@@ -902,6 +902,96 @@ function runShipping() {
   });
 })();
 
+/* ---- Live Japan Clock ---- */
+(function initJapanClock() {
+  const el = document.getElementById('japanClock');
+  if (!el) return;
+  function update() {
+    const now = new Date();
+    const jst = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    let h = jst.getHours(), m = jst.getMinutes();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    el.textContent = `${h}:${String(m).padStart(2,'0')} ${ampm}, ${days[jst.getDay()]}`;
+  }
+  update();
+  setInterval(update, 30000);
+})();
+
+/* ---- Hero Carousel ---- */
+(function initCarousel() {
+  const slides = document.querySelectorAll('.carousel-slide');
+  const dots = document.querySelectorAll('.carousel-dot');
+  if (!slides.length) return;
+  let current = 0, timer;
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    dots[current] && dots[current].classList.remove('active');
+    current = (n + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    dots[current] && dots[current].classList.add('active');
+  }
+
+  function next() { goTo(current + 1); }
+  function prev() { goTo(current - 1); }
+  function startTimer() { timer = setInterval(next, 5500); }
+  function resetTimer() { clearInterval(timer); startTimer(); }
+
+  const nextBtn = document.getElementById('carouselNext');
+  const prevBtn = document.getElementById('carouselPrev');
+  if (nextBtn) nextBtn.addEventListener('click', function() { next(); resetTimer(); });
+  if (prevBtn) prevBtn.addEventListener('click', function() { prev(); resetTimer(); });
+  dots.forEach(function(dot) {
+    dot.addEventListener('click', function() { goTo(+dot.dataset.slide); resetTimer(); });
+  });
+
+  startTimer();
+})();
+
+/* ---- Hero Search Card ---- */
+(function initHeroSearchCard() {
+  const advToggle = document.getElementById('hscAdvToggle');
+  const advPanel = document.getElementById('hscAdvanced');
+  if (advToggle && advPanel) {
+    advToggle.addEventListener('click', function() {
+      var open = advPanel.style.display !== 'none';
+      advPanel.style.display = open ? 'none' : 'block';
+      advToggle.textContent = open ? '+ Show Advanced Search' : '− Hide Advanced Search';
+    });
+  }
+
+  function buildSearchURL() {
+    var params = new URLSearchParams();
+    var kw = (document.getElementById('hscKeyword') || {}).value || '';
+    var price = (document.getElementById('hscPrice') || {}).value || '';
+    var make = (document.getElementById('hscMake') || {}).value || '';
+    var body = (document.getElementById('hscBody') || {}).value || '';
+    var year = (document.getElementById('hscYear') || {}).value || '';
+    var trans = (document.getElementById('hscTrans') || {}).value || '';
+    var fuel = (document.getElementById('hscFuel') || {}).value || '';
+    var steering = (document.getElementById('hscSteering') || {}).value || '';
+    var stockNo = (document.getElementById('hscStockNo') || {}).value || '';
+    if (kw.trim()) params.set('q', kw.trim());
+    if (price) params.set('price', price);
+    if (make) params.set('make', make);
+    if (body) params.set('body', body);
+    if (year) params.set('year', year);
+    if (trans) params.set('trans', trans);
+    if (fuel) params.set('fuel', fuel);
+    if (steering) params.set('steering', steering);
+    if (stockNo.trim()) params.set('stock', stockNo.trim());
+    var qs = params.toString();
+    return 'inventory.html' + (qs ? '?' + qs : '');
+  }
+
+  var searchBtn = document.getElementById('hscSearchBtn');
+  var kwInput = document.getElementById('hscKeyword');
+  if (searchBtn) searchBtn.addEventListener('click', function() { window.location.href = buildSearchURL(); });
+  if (kwInput) kwInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') window.location.href = buildSearchURL(); });
+})();
+
 /* ---- Scroll reveal for new elements ---- */
 (function initScrollRevealNew() {
   if (!('IntersectionObserver' in window)) return;

@@ -3,28 +3,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoElite Motors — Find Your Perfect Drive</title>
-  <meta name="description" content="AutoElite Motors — premium Japanese export vehicles. Land Cruiser, Lexus, Prado, Patrol and more. Worldwide shipping, finance options, full warranty." />
+  <title>AutoElite Motors — Japan's Premier Export Vehicle Dealer</title>
+  <meta name="description" content="AutoElite Motors — 500+ premium Japanese export vehicles. Toyota, Lexus, Nissan, Mercedes and more. Worldwide shipping to 50+ countries since 2009." />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23f0a500'/><text y='24' x='4' font-size='22'>🚗</text></svg>" />
 </head>
 <body>
 
-<!-- ===== TOP INFO BAR ===== -->
+<!-- ===== TOP BAR ===== -->
 <div class="top-bar">
   <div class="container">
     <div class="top-bar-inner">
       <div class="top-bar-left">
-        <span>📞 +81-3-1234-5678</span>
+        <span class="top-clock">🕐 Japan: <span id="japanClock">--:-- --</span></span>
+        <span class="tb-divider">|</span>
         <span>✉️ info@autoelitemotors.com</span>
-        <span>🕐 Mon–Sat: 9AM–6PM JST</span>
+        <span class="tb-divider">|</span>
+        <span>📞 +81-3-1234-5678</span>
+        <span class="tb-divider">|</span>
+        <span class="tb-stock">🚗 Total cars in stock: <strong>500</strong></span>
       </div>
       <div class="top-bar-right">
-        <a href="https://wa.me/818087654321" target="_blank" rel="noopener">💬 WhatsApp</a>
-        <span class="top-bar-divider">|</span>
-        <a href="#">🇯🇵 Japan</a>
-        <span class="top-bar-divider">|</span>
-        <a href="#">🇬🇧 English</a>
+        <a href="https://wa.me/818087654321" target="_blank" rel="noopener" class="tb-social" title="WhatsApp">💬</a>
+        <a href="#" class="tb-social" title="Facebook">📘</a>
+        <a href="#" class="tb-social" title="YouTube">▶️</a>
+        <a href="#" class="tb-social" title="LinkedIn">💼</a>
+        <span class="tb-divider">|</span>
+        <div class="tb-dropdown">
+          <button class="tb-drop-btn">🌍 Global ▾</button>
+          <div class="tb-drop-menu">
+            <a href="#">🇰🇪 Kenya</a>
+            <a href="#">🇦🇪 UAE</a>
+            <a href="#">🇿🇦 South Africa</a>
+            <a href="#">🇳🇬 Nigeria</a>
+            <a href="#">🇳🇿 New Zealand</a>
+          </div>
+        </div>
+        <div class="tb-dropdown">
+          <button class="tb-drop-btn">💵 USD ▾</button>
+          <div class="tb-drop-menu">
+            <a href="#">🇺🇸 USD</a>
+            <a href="#">🇯🇵 JPY</a>
+            <a href="#">🇰🇪 KES</a>
+            <a href="#">🇦🇪 AED</a>
+          </div>
+        </div>
+        <div class="tb-dropdown">
+          <button class="tb-drop-btn">🇬🇧 English ▾</button>
+          <div class="tb-drop-menu">
+            <a href="#">🇬🇧 English</a>
+            <a href="#">🇫🇷 Français</a>
+            <a href="#">🇸🇦 Arabic</a>
+            <a href="#">🇯🇵 Japanese</a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -34,20 +66,20 @@
 <div class="arrivals-ticker">
   <div class="ticker-label">🔔 NEW IN</div>
   <div class="ticker-track">
-    <div class="ticker-inner" id="tickerInner">
-      <span>2023 Toyota Crown Hybrid — Stock# AEM-2024-0166</span>
-      <span>2023 Toyota Sienna AWD — Stock# AEM-2024-0165</span>
-      <span>2022 Toyota Alphard Executive — Stock# AEM-2024-0164</span>
-      <span>2023 Lexus RX500h F-Sport — Stock# AEM-2024-0160</span>
-      <span>2023 Land Rover Range Rover Vogue — Stock# AEM-2024-0156</span>
-      <span>2023 Toyota Crown Hybrid — Stock# AEM-2024-0166</span>
-      <span>2023 Toyota Sienna AWD — Stock# AEM-2024-0165</span>
+    <div class="ticker-inner">
+      <span>2023 Toyota Crown Hybrid — Stock# AEM-2024-0166 — $52,000 FOB</span>
+      <span>2023 Toyota Sienna AWD — Stock# AEM-2024-0165 — $55,000 FOB</span>
+      <span>2022 Toyota Alphard Executive — Stock# AEM-2024-0164 — $65,000 FOB</span>
+      <span>2023 Lexus RX500h F-Sport — Stock# AEM-2024-0160 — $82,000 FOB</span>
+      <span>2023 Land Rover Range Rover Vogue — Stock# AEM-2024-0157 — $125,000 FOB</span>
+      <span>2023 Toyota Crown Hybrid — Stock# AEM-2024-0166 — $52,000 FOB</span>
+      <span>2023 Toyota Sienna AWD — Stock# AEM-2024-0165 — $55,000 FOB</span>
     </div>
   </div>
 </div>
 
 <!-- ===== HEADER ===== -->
-<header id="header" data-transparent="true">
+<header id="header" class="site-header">
   <div class="container">
     <nav class="nav-inner">
       <a href="index.html" class="logo">
@@ -59,14 +91,32 @@
       </a>
 
       <ul class="nav-links">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="inventory.html">Inventory</a></li>
+        <li><a href="inventory.html" class="nav-active">Browse Stock</a></li>
+        <li><a href="inventory.html?new=true">New Cars</a></li>
         <li><a href="finance.html">Finance</a></li>
-        <li><a href="about.html">About</a></li>
-        <li><a href="contact.html">Contact</a></li>
+        <li class="nav-has-dropdown">
+          <a href="about.html">About Us ▾</a>
+          <ul class="nav-dropdown">
+            <li><a href="about.html">Our Story</a></li>
+            <li><a href="about.html#team">Meet the Team</a></li>
+            <li><a href="about.html#timeline">Milestones</a></li>
+          </ul>
+        </li>
+        <li><a href="contact.html#how-to-buy">How to Buy</a></li>
+        <li class="nav-has-dropdown">
+          <a href="contact.html">Inquiry ▾</a>
+          <ul class="nav-dropdown">
+            <li><a href="contact.html">Request a Quote</a></li>
+            <li><a href="contact.html">Trade-In Valuation</a></li>
+            <li><a href="contact.html">Shipping Schedule</a></li>
+          </ul>
+        </li>
       </ul>
 
-      <a href="inventory.html" class="btn btn-primary nav-cta">Browse Inventory</a>
+      <div class="nav-auth">
+        <a href="#" class="btn-auth-login">Login</a>
+        <a href="#" class="btn-auth-signup">Sign Up</a>
+      </div>
 
       <button class="hamburger" id="hamburger" aria-label="Open menu">
         <span></span><span></span><span></span>
@@ -78,96 +128,147 @@
 <!-- Mobile Menu -->
 <div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true">
   <button class="mobile-close" id="mobileClose" aria-label="Close menu">✕</button>
-  <a href="index.html">Home</a>
-  <a href="inventory.html">Inventory</a>
+  <a href="inventory.html">Browse Stock</a>
+  <a href="inventory.html?new=true">New Cars</a>
   <a href="finance.html">Finance</a>
-  <a href="about.html">About</a>
-  <a href="contact.html">Contact</a>
-  <a href="inventory.html" class="btn btn-primary" style="margin-top:1rem;">Browse Inventory</a>
+  <a href="about.html">About Us</a>
+  <a href="contact.html">How to Buy</a>
+  <a href="contact.html">Inquiry</a>
+  <div style="display:flex;gap:.8rem;margin-top:1.2rem;">
+    <a href="#" class="btn-auth-login" style="flex:1;text-align:center;padding:.7rem;">Login</a>
+    <a href="#" class="btn-auth-signup" style="flex:1;text-align:center;padding:.7rem;">Sign Up</a>
+  </div>
 </div>
 
-<!-- ===== HERO ===== -->
-<section class="hero">
+<!-- ===== HERO CAROUSEL ===== -->
+<section class="hero-carousel" id="heroCarousel">
+
+  <!-- Slide 1 -->
+  <div class="carousel-slide active" style="background-image:url('https://picsum.photos/seed/hero-suv-1/1600/900')">
+    <div class="carousel-overlay"></div>
+    <div class="carousel-content container">
+      <span class="hero-eyebrow">Japan's Premier Export Dealer Since 2009</span>
+      <h1>More Than a Car.<br><span>A Way of Life.</span></h1>
+      <p>Explore our wide range of used Japanese vehicles for every need — inspected, certified and shipped worldwide.</p>
+      <div class="carousel-btns">
+        <a href="inventory.html" class="btn btn-primary">Browse Stock</a>
+        <a href="contact.html" class="btn btn-carousel-outline">Get a Free Quote</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 2 -->
+  <div class="carousel-slide" style="background-image:url('https://picsum.photos/seed/hero-luxury-2/1600/900')">
+    <div class="carousel-overlay"></div>
+    <div class="carousel-content container">
+      <span class="hero-eyebrow">Grade 4+ Certified • 150-Point Inspected</span>
+      <h1>Japan's Finest SUVs,<br><span>Delivered to Your Door.</span></h1>
+      <p>Land Cruisers, Lexus LX, Patrol, Prado — sourced from Japan's top auction houses and shipped to 50+ countries.</p>
+      <div class="carousel-btns">
+        <a href="inventory.html" class="btn btn-primary">View SUVs</a>
+        <a href="finance.html" class="btn btn-carousel-outline">Finance Options</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 3 -->
+  <div class="carousel-slide" style="background-image:url('https://picsum.photos/seed/hero-night-3/1600/900')">
+    <div class="carousel-overlay"></div>
+    <div class="carousel-content container">
+      <span class="hero-eyebrow">RORO & Container Shipping • Full Marine Insurance</span>
+      <h1>Export Grade.<br><span>Auction Certified. Worldwide.</span></h1>
+      <p>10,000+ vehicles exported. Every purchase backed by our AutoElite warranty and full documentation support.</p>
+      <div class="carousel-btns">
+        <a href="about.html" class="btn btn-primary">Our Story</a>
+        <a href="contact.html" class="btn btn-carousel-outline">Contact Us</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrows -->
+  <button class="carousel-arrow carousel-prev" id="carouselPrev" aria-label="Previous slide">&#8249;</button>
+  <button class="carousel-arrow carousel-next" id="carouselNext" aria-label="Next slide">&#8250;</button>
+
+  <!-- Dots -->
+  <div class="carousel-dots">
+    <button class="carousel-dot active" data-slide="0"></button>
+    <button class="carousel-dot" data-slide="1"></button>
+    <button class="carousel-dot" data-slide="2"></button>
+  </div>
+
+</section>
+
+<!-- ===== HERO SEARCH CARD (Yuasa-style) ===== -->
+<div class="hero-search-card">
   <div class="container">
-    <div class="hero-content">
-      <div class="hero-badge">Japan's Premier Export Dealer</div>
-      <h1 class="fade-up">Find Your <span>Perfect</span><br>Drive</h1>
-      <p class="fade-up delay-1">Access the world's finest Japanese export vehicles — Land Cruisers, Lexus, Patrols and more — shipped directly to your door in over 50 countries.</p>
-      <div class="hero-btns fade-up delay-2">
-        <a href="inventory.html" class="btn btn-primary">Browse Inventory</a>
-        <a href="contact.html" class="btn btn-outline">Get a Quote</a>
+    <div class="hsc-inner">
+      <div class="hsc-top">
+        <span class="search-icon-lg">🔍</span>
+        <input type="text" id="hscKeyword" class="hsc-keyword" placeholder="Search by Car Make or Model (e.g. Land Cruiser, Lexus LX...)" />
       </div>
-
-      <!-- Hero Search Widget -->
-      <div class="hero-search fade-up delay-2">
-        <div class="hero-search-tabs">
-          <button class="hs-tab active" data-tab="quick">Quick Search</button>
-          <button class="hs-tab" data-tab="advanced">Advanced</button>
-        </div>
-        <div class="hero-search-form" id="hsTabQuick">
-          <select class="hs-select" id="hsMake">
-            <option value="">Any Make</option>
-            <option>Toyota</option>
-            <option>Lexus</option>
-            <option>Nissan</option>
-            <option>Mercedes-Benz</option>
-            <option>Land Rover</option>
-            <option>Mitsubishi</option>
-            <option>Honda</option>
-            <option>Subaru</option>
-          </select>
-          <select class="hs-select" id="hsBody">
-            <option value="">Any Type</option>
-            <option>SUV</option>
-            <option>Sedan</option>
-            <option>Van</option>
-            <option>Pickup</option>
-            <option>Wagon</option>
-          </select>
-          <select class="hs-select" id="hsBudget">
-            <option value="">Any Budget</option>
-            <option>Under $30,000</option>
-            <option>$30,000 – $60,000</option>
-            <option>$60,000 – $100,000</option>
-            <option>Over $100,000</option>
-          </select>
-          <button class="hs-btn" id="heroSearchBtn">🔍 Search</button>
-        </div>
-        <div class="hero-search-form" id="hsTabAdvanced" style="display:none;">
-          <input class="hs-input" type="text" placeholder="e.g. Land Cruiser 200, Lexus LX..." id="hsKeyword" />
-          <select class="hs-select" id="hsYear">
-            <option value="">Any Year</option>
-            <option>2023–2025</option>
-            <option>2020–2022</option>
-            <option>2017–2019</option>
-          </select>
-          <select class="hs-select" id="hsTransAdv">
-            <option value="">Any Trans.</option>
-            <option>Automatic</option>
-            <option>Manual</option>
-          </select>
-          <button class="hs-btn" id="heroSearchBtnAdv">🔍 Search</button>
-        </div>
+      <div class="hsc-row">
+        <select class="hsc-sel" id="hscPrice">
+          <option value="">💰 All Prices</option>
+          <option value="0-30000">Under $30,000</option>
+          <option value="30000-60000">$30,000 – $60,000</option>
+          <option value="60000-100000">$60,000 – $100,000</option>
+          <option value="100000-999999">Over $100,000</option>
+        </select>
+        <select class="hsc-sel" id="hscMake">
+          <option value="">🚗 All Makes</option>
+          <option value="toyota">Toyota</option>
+          <option value="lexus">Lexus</option>
+          <option value="nissan">Nissan</option>
+          <option value="mercedes-benz">Mercedes-Benz</option>
+          <option value="land rover">Land Rover</option>
+          <option value="mitsubishi">Mitsubishi</option>
+          <option value="honda">Honda</option>
+          <option value="subaru">Subaru</option>
+        </select>
+        <select class="hsc-sel" id="hscBody">
+          <option value="">🚙 All Models</option>
+          <option value="suv">SUV / 4WD</option>
+          <option value="sedan">Sedan</option>
+          <option value="van">Van / Minivan</option>
+          <option value="pickup">Pickup Truck</option>
+          <option value="wagon">Wagon</option>
+        </select>
+        <select class="hsc-sel" id="hscYear">
+          <option value="">📅 All Years</option>
+          <option value="2023-2025">2023 – 2025</option>
+          <option value="2020-2022">2020 – 2022</option>
+          <option value="2017-2019">2017 – 2019</option>
+        </select>
+        <button class="hsc-search-btn" id="hscSearchBtn">🔍 Search</button>
       </div>
-
-      <div class="hero-stats fade-up delay-3">
-        <div class="hero-stat">
-          <strong>500+</strong>
-          <span>Vehicles in Stock</span>
-        </div>
-        <div class="hero-stat">
-          <strong>50+</strong>
-          <span>Countries Served</span>
-        </div>
-        <div class="hero-stat">
-          <strong>15+</strong>
-          <span>Years Experience</span>
+      <div class="hsc-advanced-toggle">
+        <button id="hscAdvToggle">+ Show Advanced Search</button>
+      </div>
+      <div class="hsc-advanced" id="hscAdvanced" style="display:none;">
+        <div class="hsc-adv-row">
+          <select class="hsc-sel" id="hscTrans">
+            <option value="">⚙️ Any Transmission</option>
+            <option value="automatic">Automatic</option>
+            <option value="manual">Manual</option>
+          </select>
+          <select class="hsc-sel" id="hscFuel">
+            <option value="">⛽ Any Fuel</option>
+            <option value="petrol">Petrol</option>
+            <option value="diesel">Diesel</option>
+            <option value="hybrid">Hybrid</option>
+            <option value="electric">Electric</option>
+          </select>
+          <select class="hsc-sel" id="hscSteering">
+            <option value="">🚗 Any Steering</option>
+            <option value="rhd">Right Hand Drive (RHD)</option>
+            <option value="lhd">Left Hand Drive (LHD)</option>
+          </select>
+          <input type="text" class="hsc-sel" id="hscStockNo" placeholder="📋 Stock No." style="font-size:.88rem;" />
         </div>
       </div>
     </div>
   </div>
-  <div class="scroll-hint">Scroll</div>
-</section>
+</div>
 
 <!-- ===== STATS BAR ===== -->
 <section class="stats-bar">
@@ -193,22 +294,193 @@
   </div>
 </section>
 
-<!-- ===== BRAND LOGOS ===== -->
-<section class="brand-logos-section">
+<!-- ===== BROWSE BY MAKE ===== -->
+<section class="browse-make-section">
   <div class="container">
-    <div class="text-center">
-      <span class="section-label">Trusted Manufacturers</span>
-      <h2 class="section-title">Trusted Brands We Carry</h2>
+    <div class="section-header-row">
+      <div>
+        <span class="section-label">Search by Make &amp; Model</span>
+        <h2 class="section-title">Browse Our Stock</h2>
+      </div>
+      <a href="inventory.html" class="btn btn-navy">View All →</a>
     </div>
-    <div class="brand-logos">
-      <div class="brand-logo-item">Toyota</div>
-      <div class="brand-logo-item">Lexus</div>
-      <div class="brand-logo-item">Nissan</div>
-      <div class="brand-logo-item">Mercedes-Benz</div>
-      <div class="brand-logo-item">Land Rover</div>
-      <div class="brand-logo-item">Mitsubishi</div>
-      <div class="brand-logo-item">Honda</div>
-      <div class="brand-logo-item">Subaru</div>
+    <div class="make-grid">
+      <a href="inventory.html?make=toyota" class="make-card">
+        <div class="make-icon">🚙</div>
+        <div class="make-name">Toyota</div>
+        <div class="make-count">9 vehicles</div>
+      </a>
+      <a href="inventory.html?make=lexus" class="make-card">
+        <div class="make-icon">🚗</div>
+        <div class="make-name">Lexus</div>
+        <div class="make-count">3 vehicles</div>
+      </a>
+      <a href="inventory.html?make=nissan" class="make-card">
+        <div class="make-icon">🚙</div>
+        <div class="make-name">Nissan</div>
+        <div class="make-count">2 vehicles</div>
+      </a>
+      <a href="inventory.html?make=mercedes-benz" class="make-card">
+        <div class="make-icon">🏎️</div>
+        <div class="make-name">Mercedes-Benz</div>
+        <div class="make-count">1 vehicle</div>
+      </a>
+      <a href="inventory.html?make=land+rover" class="make-card">
+        <div class="make-icon">🚙</div>
+        <div class="make-name">Land Rover</div>
+        <div class="make-count">1 vehicle</div>
+      </a>
+      <a href="inventory.html?make=mitsubishi" class="make-card">
+        <div class="make-icon">🚗</div>
+        <div class="make-name">Mitsubishi</div>
+        <div class="make-count">2 vehicles</div>
+      </a>
+      <a href="inventory.html?make=honda" class="make-card">
+        <div class="make-icon">🚗</div>
+        <div class="make-name">Honda</div>
+        <div class="make-count">1 vehicle</div>
+      </a>
+      <a href="inventory.html?make=subaru" class="make-card">
+        <div class="make-icon">🚗</div>
+        <div class="make-name">Subaru</div>
+        <div class="make-count">1 vehicle</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== NEW ARRIVALS ===== -->
+<section class="new-arrivals-section">
+  <div class="container">
+    <div class="section-header-row">
+      <div>
+        <span class="section-label">Just In</span>
+        <h2 class="section-title">New Arrivals</h2>
+      </div>
+      <a href="inventory.html?new=true" class="btn btn-navy">See All New →</a>
+    </div>
+    <div class="arrivals-grid">
+
+      <!-- Arrival 1 -->
+      <article class="vehicle-card arrival-card">
+        <div class="card-img-wrap">
+          <img src="https://picsum.photos/seed/crownhybrid/600/380" alt="Toyota Crown Hybrid" loading="lazy" />
+          <span class="card-badge new">New</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Toyota</p>
+          <h3 class="card-name">Crown 2.5 Hybrid RS</h3>
+          <div class="card-meta-row">
+            <span class="card-stock">Stock# AEM-2024-0166</span>
+            <span class="card-grade">Grade 5</span>
+          </div>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2023</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 6,200 km</span>
+            <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
+            <span class="card-spec steering-badge">RHD</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>FOB Tokyo</span>$52,000</div>
+            <div class="card-actions">
+              <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+              <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0166 Toyota Crown" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Arrival 2 -->
+      <article class="vehicle-card arrival-card">
+        <div class="card-img-wrap">
+          <img src="https://picsum.photos/seed/sienna23/600/380" alt="Toyota Sienna" loading="lazy" />
+          <span class="card-badge new">New</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Toyota</p>
+          <h3 class="card-name">Sienna Hybrid AWD</h3>
+          <div class="card-meta-row">
+            <span class="card-stock">Stock# AEM-2024-0165</span>
+            <span class="card-grade">Grade 4.5</span>
+          </div>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2023</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 14,200 km</span>
+            <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
+            <span class="card-spec steering-badge">RHD</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>FOB Tokyo</span>$55,000</div>
+            <div class="card-actions">
+              <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+              <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0165 Toyota Sienna" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Arrival 3 -->
+      <article class="vehicle-card arrival-card">
+        <div class="card-img-wrap">
+          <img src="https://picsum.photos/seed/alphard22/600/380" alt="Toyota Alphard" loading="lazy" />
+          <span class="card-badge new">New</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Toyota</p>
+          <h3 class="card-name">Alphard Executive Lounge</h3>
+          <div class="card-meta-row">
+            <span class="card-stock">Stock# AEM-2024-0164</span>
+            <span class="card-grade">Grade 4.5</span>
+          </div>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2022</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 18,000 km</span>
+            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+            <span class="card-spec steering-badge">RHD</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>FOB Tokyo</span>$65,000</div>
+            <div class="card-actions">
+              <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+              <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0164 Toyota Alphard" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Arrival 4 -->
+      <article class="vehicle-card arrival-card">
+        <div class="card-img-wrap">
+          <img src="https://picsum.photos/seed/rxhybrid/600/380" alt="Lexus RX500h" loading="lazy" />
+          <span class="card-badge hot">Hot</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Lexus</p>
+          <h3 class="card-name">RX 500h F-Sport Performance</h3>
+          <div class="card-meta-row">
+            <span class="card-stock">Stock# AEM-2024-0160</span>
+            <span class="card-grade">Grade 5</span>
+          </div>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2023</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 12,000 km</span>
+            <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
+            <span class="card-spec steering-badge">RHD</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>FOB Tokyo</span>$82,000</div>
+            <div class="card-actions">
+              <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+              <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0160 Lexus RX500h" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+            </div>
+          </div>
+        </div>
+      </article>
+
     </div>
   </div>
 </section>
@@ -216,15 +488,16 @@
 <!-- ===== FEATURED VEHICLES ===== -->
 <section class="featured" id="featured">
   <div class="container">
-    <div class="text-center">
-      <span class="section-label">Hand-Picked Selection</span>
-      <h2 class="section-title">Featured Vehicles</h2>
-      <p class="section-sub">Our most sought-after export vehicles, meticulously inspected and ready for worldwide shipping.</p>
+    <div class="section-header-row">
+      <div>
+        <span class="section-label">Hand-Picked Selection</span>
+        <h2 class="section-title">Featured Vehicles</h2>
+      </div>
+      <a href="inventory.html" class="btn btn-navy">View All →</a>
     </div>
 
     <div class="vehicle-grid">
 
-      <!-- Card 1 -->
       <article class="vehicle-card">
         <div class="card-img-wrap">
           <img src="https://picsum.photos/seed/landcruiser200/600/380" alt="Toyota Land Cruiser" loading="lazy" />
@@ -233,21 +506,21 @@
         </div>
         <div class="card-body">
           <p class="card-make">Toyota</p>
-          <h3 class="card-name">Land Cruiser 200 Series</h3>
+          <h3 class="card-name">Land Cruiser 200 GX-R</h3>
           <div class="card-meta-row">
             <span class="card-stock">Stock# AEM-2024-0147</span>
             <span class="card-grade">Grade 4.5</span>
           </div>
           <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2021</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 42,000 km</span>
+            <span class="card-spec"><span class="icon">📅</span> 2022</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 38,400 km</span>
             <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
             <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
             <span class="card-spec"><span class="color-dot" style="background:#f5f5f0;border:1px solid #ddd;"></span> Pearl White</span>
             <span class="card-spec steering-badge">RHD</span>
           </div>
           <div class="card-footer">
-            <div class="card-price"><span>FOB Tokyo</span>$68,500</div>
+            <div class="card-price"><span>FOB Tokyo</span>$72,500</div>
             <div class="card-actions">
               <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
               <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0147 Toyota Land Cruiser 200" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
@@ -256,7 +529,6 @@
         </div>
       </article>
 
-      <!-- Card 2 -->
       <article class="vehicle-card">
         <div class="card-img-wrap">
           <img src="https://picsum.photos/seed/lexuslx570/600/380" alt="Lexus LX570" loading="lazy" />
@@ -265,9 +537,9 @@
         </div>
         <div class="card-body">
           <p class="card-make">Lexus</p>
-          <h3 class="card-name">LX 570 Sport</h3>
+          <h3 class="card-name">LX 570 Sport Package</h3>
           <div class="card-meta-row">
-            <span class="card-stock">Stock# AEM-2024-0160</span>
+            <span class="card-stock">Stock# AEM-2024-0148</span>
             <span class="card-grade">Grade 5</span>
           </div>
           <div class="card-specs">
@@ -282,13 +554,12 @@
             <div class="card-price"><span>FOB Tokyo</span>$95,000</div>
             <div class="card-actions">
               <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
-              <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0160 Lexus LX570" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+              <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0148 Lexus LX570" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
             </div>
           </div>
         </div>
       </article>
 
-      <!-- Card 3 -->
       <article class="vehicle-card">
         <div class="card-img-wrap">
           <img src="https://picsum.photos/seed/prado2023/600/380" alt="Toyota Prado" loading="lazy" />
@@ -297,7 +568,7 @@
         </div>
         <div class="card-body">
           <p class="card-make">Toyota</p>
-          <h3 class="card-name">Land Cruiser Prado TX</h3>
+          <h3 class="card-name">Land Cruiser Prado TX-L</h3>
           <div class="card-meta-row">
             <span class="card-stock">Stock# AEM-2024-0149</span>
             <span class="card-grade">Grade 4.5</span>
@@ -320,7 +591,6 @@
         </div>
       </article>
 
-      <!-- Card 4 -->
       <article class="vehicle-card">
         <div class="card-img-wrap">
           <img src="https://picsum.photos/seed/patrolplatinum/600/380" alt="Nissan Patrol" loading="lazy" />
@@ -352,7 +622,6 @@
         </div>
       </article>
 
-      <!-- Card 5 -->
       <article class="vehicle-card">
         <div class="card-img-wrap">
           <img src="https://picsum.photos/seed/gclass500/600/380" alt="Mercedes G-Class" loading="lazy" />
@@ -361,7 +630,7 @@
         </div>
         <div class="card-body">
           <p class="card-make">Mercedes-Benz</p>
-          <h3 class="card-name">G-Class G500 AMG</h3>
+          <h3 class="card-name">G-Class G500 AMG Line</h3>
           <div class="card-meta-row">
             <span class="card-stock">Stock# AEM-2024-0156</span>
             <span class="card-grade">Grade 5</span>
@@ -384,7 +653,6 @@
         </div>
       </article>
 
-      <!-- Card 6 -->
       <article class="vehicle-card">
         <div class="card-img-wrap">
           <img src="https://picsum.photos/seed/rangerover5/600/380" alt="Range Rover" loading="lazy" />
@@ -393,7 +661,7 @@
         </div>
         <div class="card-body">
           <p class="card-make">Land Rover</p>
-          <h3 class="card-name">Range Rover Vogue SE</h3>
+          <h3 class="card-name">Range Rover Vogue SE LWB</h3>
           <div class="card-meta-row">
             <span class="card-stock">Stock# AEM-2024-0157</span>
             <span class="card-grade">Grade 5</span>
@@ -416,10 +684,46 @@
         </div>
       </article>
 
-    </div><!-- /vehicle-grid -->
+    </div>
+  </div>
+</section>
 
-    <div class="text-center" style="margin-top:2.8rem;">
-      <a href="inventory.html" class="btn btn-primary">View Full Inventory →</a>
+<!-- ===== HOW IT WORKS ===== -->
+<section class="how-it-works" id="how-it-works">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-label">Simple 4-Step Process</span>
+      <h2 class="section-title">How to Buy From Us</h2>
+      <p class="section-sub">From browsing to delivery — buying an export vehicle has never been easier.</p>
+    </div>
+    <div class="steps-row">
+      <div class="step-card">
+        <div class="step-number">01</div>
+        <div class="step-icon">🔍</div>
+        <h3 class="step-title">Browse &amp; Choose</h3>
+        <p class="step-desc">Search our inventory or tell us what you need. Use filters for make, year, budget and body type.</p>
+      </div>
+      <div class="steps-connector"></div>
+      <div class="step-card">
+        <div class="step-number">02</div>
+        <div class="step-icon">📋</div>
+        <h3 class="step-title">Get a Quote</h3>
+        <p class="step-desc">Receive a full cost breakdown: vehicle price, shipping to your port, marine insurance, and import duties.</p>
+      </div>
+      <div class="steps-connector"></div>
+      <div class="step-card">
+        <div class="step-number">03</div>
+        <div class="step-icon">🔒</div>
+        <h3 class="step-title">Secure Your Vehicle</h3>
+        <p class="step-desc">Pay a 30% deposit to reserve. We hold it exclusively for you while all export documents are prepared.</p>
+      </div>
+      <div class="steps-connector"></div>
+      <div class="step-card">
+        <div class="step-number">04</div>
+        <div class="step-icon">🚢</div>
+        <h3 class="step-title">We Ship, You Drive</h3>
+        <p class="step-desc">We handle all export documentation and ship directly to your port. Track your vehicle every step of the way.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -432,96 +736,46 @@
       <h2 class="section-title">Our Services</h2>
       <p class="section-sub">Everything you need to buy, ship, and enjoy your dream vehicle — all in one place.</p>
     </div>
-
     <div class="services-grid">
-
       <div class="service-card">
         <span class="service-icon">🌍</span>
         <h3>Export Worldwide</h3>
         <p>We ship to over 50 countries. Full export documentation, customs clearance assistance, and door-to-port delivery included.</p>
       </div>
-
       <div class="service-card">
         <span class="service-icon">💳</span>
         <h3>Finance Options</h3>
         <p>Flexible payment plans tailored to your budget. Competitive interest rates with approvals in as little as 24 hours.</p>
       </div>
-
       <div class="service-card">
         <span class="service-icon">🔄</span>
-        <h3>Trade-in Welcome</h3>
+        <h3>Trade-In Welcome</h3>
         <p>Get a fair market valuation for your current vehicle and offset the cost of your next purchase seamlessly.</p>
       </div>
-
       <div class="service-card">
         <span class="service-icon">🛡️</span>
         <h3>Warranty Included</h3>
-        <p>Every vehicle comes with our comprehensive AutoElite warranty. Drive with confidence — we've got you covered.</p>
+        <p>Every vehicle comes with our comprehensive 12-month AutoElite warranty. Extended plans up to 36 months available.</p>
       </div>
-
       <div class="service-card">
         <span class="service-icon">🔍</span>
-        <h3>Pre-Export Inspection</h3>
-        <p>150-point mechanical and cosmetic inspection by certified technicians before every vehicle leaves our lot.</p>
+        <h3>150-Point Inspection</h3>
+        <p>Mechanical and cosmetic inspection by certified technicians. Full inspection report provided before you commit.</p>
       </div>
-
       <div class="service-card">
         <span class="service-icon">📦</span>
         <h3>Secure Shipping</h3>
         <p>RORO and container shipping options. Full marine insurance coverage and real-time cargo tracking provided.</p>
       </div>
-
       <div class="service-card">
         <span class="service-icon">📋</span>
-        <h3>Documentation</h3>
-        <p>We handle all export and import paperwork — title, de-registration, export certificate, and customs forms.</p>
+        <h3>All Documentation</h3>
+        <p>We handle export certificate, title, de-registration, Bill of Lading, and customs forms — completely handled.</p>
       </div>
-
       <div class="service-card">
         <span class="service-icon">🎖️</span>
-        <h3>Premium Support</h3>
+        <h3>7-Day Support</h3>
         <p>Dedicated account managers available 7 days a week via phone, email, and WhatsApp in multiple languages.</p>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- ===== HOW IT WORKS ===== -->
-<section class="how-it-works" id="how-it-works">
-  <div class="container">
-    <div class="text-center">
-      <span class="section-label">Simple 4-Step Process</span>
-      <h2 class="section-title">How It Works</h2>
-      <p class="section-sub">From browsing to delivery — we make buying an export vehicle straightforward and stress-free.</p>
-    </div>
-    <div class="steps-row">
-      <div class="step-card">
-        <div class="step-number">01</div>
-        <div class="step-icon">🔍</div>
-        <h3 class="step-title">Browse &amp; Choose</h3>
-        <p class="step-desc">Search our inventory or tell us what you need. Our specialists will help you find the perfect match.</p>
-      </div>
-      <div class="steps-connector"></div>
-      <div class="step-card">
-        <div class="step-number">02</div>
-        <div class="step-icon">📋</div>
-        <h3 class="step-title">Get a Quote</h3>
-        <p class="step-desc">Receive a detailed cost breakdown including vehicle price, shipping to your port, and estimated import duties.</p>
-      </div>
-      <div class="steps-connector"></div>
-      <div class="step-card">
-        <div class="step-number">03</div>
-        <div class="step-icon">🔒</div>
-        <h3 class="step-title">Secure Your Vehicle</h3>
-        <p class="step-desc">Pay a 30% deposit to reserve your chosen vehicle. We hold it exclusively for you while docs are prepared.</p>
-      </div>
-      <div class="steps-connector"></div>
-      <div class="step-card">
-        <div class="step-number">04</div>
-        <div class="step-icon">🚢</div>
-        <h3 class="step-title">We Ship, You Drive</h3>
-        <p class="step-desc">We handle all export documentation and ship direct to your chosen port. Track your vehicle the whole way.</p>
       </div>
     </div>
   </div>
@@ -535,9 +789,7 @@
       <h2 class="section-title">What Our Clients Say</h2>
       <p class="section-sub">Thousands of satisfied customers across the globe trust AutoElite Motors.</p>
     </div>
-
-    <div class="testimonials-grid testi-grid-6">
-
+    <div class="testimonials-grid testi-grid-3">
       <div class="testi-card">
         <div class="testi-quote">"</div>
         <p class="testi-text">The entire process from inquiry to delivery was seamless. My Land Cruiser arrived in perfect condition to Nairobi within 6 weeks. Highly recommend AutoElite!</p>
@@ -550,10 +802,9 @@
           </div>
         </div>
       </div>
-
       <div class="testi-card">
         <div class="testi-quote">"</div>
-        <p class="testi-text">Bought a Lexus LX570 through AutoElite. The team was knowledgeable and kept me updated every step of the way. The car exceeded my expectations!</p>
+        <p class="testi-text">Bought a Lexus LX570 through AutoElite. The team kept me updated every step of the way. The inspection report was incredibly detailed. Exceeded my expectations!</p>
         <div class="testi-author">
           <img class="testi-avatar" src="https://randomuser.me/api/portraits/men/77.jpg" alt="Ahmed Al-Hassan" />
           <div>
@@ -563,49 +814,9 @@
           </div>
         </div>
       </div>
-
       <div class="testi-card">
         <div class="testi-quote">"</div>
-        <p class="testi-text">Third vehicle I've purchased from AutoElite. Their trade-in program saved me a lot of money. Will not buy from anywhere else. Top-notch service every time.</p>
-        <div class="testi-author">
-          <img class="testi-avatar" src="https://randomuser.me/api/portraits/men/22.jpg" alt="Ricardo Pereira" />
-          <div>
-            <div class="stars">★★★★★</div>
-            <div class="testi-name">Ricardo Pereira</div>
-            <div class="testi-role">São Paulo, Brazil</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="testi-card">
-        <div class="testi-quote">"</div>
-        <p class="testi-text">Purchased a Toyota Alphard. The inspection report was incredibly detailed and the car arrived exactly as described. AutoElite is in a league of their own.</p>
-        <div class="testi-author">
-          <img class="testi-avatar" src="https://randomuser.me/api/portraits/women/55.jpg" alt="Sarah Kimani" />
-          <div>
-            <div class="stars">★★★★★</div>
-            <div class="testi-name">Sarah Kimani</div>
-            <div class="testi-role">Kampala, Uganda</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="testi-card">
-        <div class="testi-quote">"</div>
-        <p class="testi-text">Third car I've bought through them. The trade-in process was smooth and their finance team negotiated a great rate. Will always come back.</p>
-        <div class="testi-author">
-          <img class="testi-avatar" src="https://randomuser.me/api/portraits/men/88.jpg" alt="Mohammed Al-Rashid" />
-          <div>
-            <div class="stars">★★★★★</div>
-            <div class="testi-name">Mohammed Al-Rashid</div>
-            <div class="testi-role">Riyadh, Saudi Arabia</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="testi-card">
-        <div class="testi-quote">"</div>
-        <p class="testi-text">Found a 2023 Toyota Crown hybrid not available locally. AutoElite sourced it, handled all compliance paperwork, and delivered to Auckland port. Incredible service.</p>
+        <p class="testi-text">Third vehicle I've purchased from AutoElite. Found a 2023 Toyota Crown Hybrid not available locally. Sourced it, handled compliance paperwork, delivered to Auckland port. Incredible.</p>
         <div class="testi-author">
           <img class="testi-avatar" src="https://randomuser.me/api/portraits/women/33.jpg" alt="Chen Wei" />
           <div>
@@ -615,20 +826,58 @@
           </div>
         </div>
       </div>
+    </div>
+    <div class="text-center" style="margin-top:2rem;">
+      <a href="about.html#testimonials" class="btn btn-navy">Read More Reviews →</a>
+    </div>
+  </div>
+</section>
 
+<!-- ===== WHY JAPAN ===== -->
+<section class="why-japan">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-label">The Japan Advantage</span>
+      <h2 class="section-title">Why Buy a Japanese Export Vehicle?</h2>
+    </div>
+    <div class="why-grid">
+      <div class="why-card">
+        <div class="why-icon">🛡️</div>
+        <h3>Strict Vehicle Grading</h3>
+        <p>Every auction vehicle is independently graded 1–5. Grade 4+ means near-perfect condition. We only source Grade 3.5 and above.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">🔧</div>
+        <h3>Meticulous Maintenance</h3>
+        <p>Japanese drivers follow strict service schedules. Most vehicles have full dealer history and original-condition interiors.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">💴</div>
+        <h3>Exceptional Value</h3>
+        <p>Japan's depreciation is among the highest worldwide. Get a low-mileage premium vehicle at a fraction of the new price.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">🌏</div>
+        <h3>Right Hand Drive Ready</h3>
+        <p>Perfect for RHD countries across Africa, Asia, and the Pacific. Road-legal and compliant for your destination.</p>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- ===== CTA BANNER ===== -->
-<section style="background: linear-gradient(135deg, var(--navy) 0%, var(--navy-lt) 100%); padding: 4.5rem 0; text-align: center;">
+<section class="cta-banner">
   <div class="container">
-    <span class="section-label">Ready to Get Started?</span>
-    <h2 style="color: var(--white); font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 1rem;">Your Dream Car is Waiting</h2>
-    <p style="color: var(--mid); max-width: 480px; margin: 0 auto 2rem;">Explore our full inventory of premium export vehicles or reach out to our team today.</p>
-    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-      <a href="inventory.html" class="btn btn-primary">Browse Inventory</a>
-      <a href="contact.html" class="btn btn-outline">Contact Us</a>
+    <div class="cta-inner">
+      <div class="cta-text">
+        <span class="section-label">Ready to Get Started?</span>
+        <h2>Your Dream Car is One Click Away</h2>
+        <p>Explore 500+ vehicles or let our specialists source exactly what you need.</p>
+      </div>
+      <div class="cta-actions">
+        <a href="inventory.html" class="btn btn-primary">Browse Inventory</a>
+        <a href="contact.html" class="btn btn-outline">Contact Us</a>
+      </div>
     </div>
   </div>
 </section>
@@ -645,49 +894,13 @@
       <div class="newsletter-form-wrap">
         <form class="newsletter-form" id="newsletterForm" novalidate>
           <div class="newsletter-input-row">
-            <input type="email" class="newsletter-input" id="newsletterEmail" placeholder="Enter your email address" aria-label="Email address" />
+            <input type="email" class="newsletter-input" id="newsletterEmail" placeholder="Enter your email address" />
             <button type="submit" class="btn btn-primary newsletter-btn">Subscribe</button>
           </div>
           <p class="newsletter-small">No spam. Unsubscribe anytime.</p>
-          <div class="newsletter-success" id="newsletterSuccess" style="display:none;">
-            ✅ You're subscribed! Watch your inbox for exclusive deals.
-          </div>
-          <div class="newsletter-error" id="newsletterError" style="display:none;">
-            Please enter a valid email address.
-          </div>
+          <div class="newsletter-success" id="newsletterSuccess" style="display:none;">✅ You're subscribed! Watch your inbox for exclusive deals.</div>
+          <div class="newsletter-error" id="newsletterError" style="display:none;">Please enter a valid email address.</div>
         </form>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== WHY JAPAN ===== -->
-<section class="why-japan">
-  <div class="container">
-    <div class="text-center">
-      <span class="section-label">The Japan Advantage</span>
-      <h2 class="section-title">Why Buy a Japanese Export Vehicle?</h2>
-    </div>
-    <div class="why-grid">
-      <div class="why-card">
-        <div class="why-icon">🛡️</div>
-        <h3>Strict Vehicle Grading</h3>
-        <p>Every auction vehicle is graded 1–5 by independent inspectors. Grade 4+ means near-perfect condition. We only source Grade 3.5 and above.</p>
-      </div>
-      <div class="why-card">
-        <div class="why-icon">🔧</div>
-        <h3>Meticulous Maintenance</h3>
-        <p>Japanese drivers follow strict servicing schedules. Most vehicles have full dealer service history and original condition interiors.</p>
-      </div>
-      <div class="why-card">
-        <div class="why-icon">💴</div>
-        <h3>Exceptional Value</h3>
-        <p>Japan's vehicle depreciation is among the highest in the world. Get a low-mileage premium vehicle at a fraction of the local new price.</p>
-      </div>
-      <div class="why-card">
-        <div class="why-icon">🌏</div>
-        <h3>Right Hand Drive Ready</h3>
-        <p>Perfect for RHD countries across Africa, Asia, and the Pacific. All vehicles are road-legal and compliant for your destination.</p>
       </div>
     </div>
   </div>
@@ -705,66 +918,50 @@
             <span>Motors</span>
           </div>
         </a>
-        <p>Japan's most trusted export vehicle dealer since 2009. We connect buyers worldwide with premium quality cars, backed by expert service and ironclad warranties.</p>
+        <p>Japan's most trusted export vehicle dealer since 2009. Connecting buyers worldwide with premium quality cars backed by expert service and ironclad warranties.</p>
         <div class="footer-social">
           <a href="#" aria-label="Facebook">📘</a>
           <a href="#" aria-label="Instagram">📸</a>
           <a href="#" aria-label="Twitter">🐦</a>
           <a href="#" aria-label="YouTube">▶️</a>
-          <a href="#" aria-label="WhatsApp">💬</a>
+          <a href="https://wa.me/818087654321" aria-label="WhatsApp">💬</a>
         </div>
       </div>
-
       <div class="footer-col">
         <h4>Quick Links</h4>
         <ul>
           <li><a href="index.html">Home</a></li>
-          <li><a href="inventory.html">Inventory</a></li>
-          <li><a href="finance.html">Finance</a></li>
-          <li><a href="about.html">About Us</a></li>
-          <li><a href="contact.html">Contact</a></li>
+          <li><a href="inventory.html">Browse Stock</a></li>
+          <li><a href="inventory.html?new=true">New Arrivals</a></li>
           <li><a href="finance.html">Finance Options</a></li>
-          <li><a href="contact.html">Shipping Info</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="contact.html">Contact &amp; Inquiry</a></li>
         </ul>
       </div>
-
       <div class="footer-col">
         <h4>Vehicle Types</h4>
         <ul>
-          <li><a href="inventory.html">SUVs &amp; 4WD</a></li>
-          <li><a href="inventory.html">Sedans</a></li>
-          <li><a href="inventory.html">Vans &amp; Minivans</a></li>
-          <li><a href="inventory.html">Pickup Trucks</a></li>
+          <li><a href="inventory.html?body=suv">SUVs &amp; 4WD</a></li>
+          <li><a href="inventory.html?body=sedan">Sedans</a></li>
+          <li><a href="inventory.html?body=van">Vans &amp; Minivans</a></li>
+          <li><a href="inventory.html?body=pickup">Pickup Trucks</a></li>
+          <li><a href="inventory.html?fuel=hybrid">Hybrid Vehicles</a></li>
           <li><a href="inventory.html">Luxury Cars</a></li>
-          <li><a href="inventory.html">Sports Cars</a></li>
         </ul>
       </div>
-
       <div class="footer-col">
         <h4>Contact Us</h4>
         <ul class="footer-contact">
-          <li>
-            <span class="icon">📍</span>
-            <span>3-14-2 Koto-ku, Tokyo, Japan 135-0016</span>
-          </li>
-          <li>
-            <span class="icon">📞</span>
-            <span>+81-3-1234-5678</span>
-          </li>
-          <li>
-            <span class="icon">✉️</span>
-            <span>info@autoelitemotors.com</span>
-          </li>
-          <li>
-            <span class="icon">🕐</span>
-            <span>Mon–Sat: 9:00 AM – 6:00 PM JST</span>
-          </li>
+          <li><span class="icon">📍</span><span>3-14-2 Shinonome, Koto-ku, Tokyo 135-0016, Japan</span></li>
+          <li><span class="icon">📞</span><span>+81-3-1234-5678</span></li>
+          <li><span class="icon">✉️</span><span>info@autoelitemotors.com</span></li>
+          <li><span class="icon">💬</span><span>WhatsApp: +81-90-8765-4321</span></li>
+          <li><span class="icon">🕐</span><span>Mon–Sat: 9:00 AM – 6:00 PM JST</span></li>
         </ul>
       </div>
     </div>
-
     <div class="footer-bottom">
-      <span>© 2024 AutoElite Motors. All rights reserved.</span>
+      <span>© 2025 AutoElite Motors. All rights reserved.</span>
       <span><a href="#">Privacy Policy</a> · <a href="#">Terms of Service</a> · <a href="#">Cookie Policy</a></span>
     </div>
   </div>
