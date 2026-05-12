@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Us — AutoElite Motors</title>
+  <meta name="description" content="Get in touch with AutoElite Motors. Request a quote, ask about a vehicle, or enquire about finance and shipping options." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23f0a500'/><text y='24' x='4' font-size='22'>🚗</text></svg>" />
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header id="header">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">🚗</div>
+        <div class="logo-text">
+          <span>AutoElite</span>
+          <span>Motors</span>
+        </div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="inventory.html">Inventory</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <a href="inventory.html" class="btn btn-primary nav-cta">Browse Inventory</a>
+      <button class="hamburger" id="hamburger" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="mobileClose">✕</button>
+  <a href="index.html">Home</a>
+  <a href="inventory.html">Inventory</a>
+  <a href="about.html">About</a>
+  <a href="contact.html">Contact</a>
+  <a href="inventory.html" class="btn btn-primary" style="margin-top:1rem;">Browse Inventory</a>
+</div>
+
+<!-- ===== PAGE HERO ===== -->
+<section class="page-hero">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="index.html">Home</a>
+      <span>›</span>
+      <span>Contact</span>
+    </div>
+    <h1>Get In Touch</h1>
+    <p>Our team of specialists is ready to help you find your perfect vehicle and answer any questions.</p>
+  </div>
+</section>
+
+<!-- ===== CONTACT SECTION ===== -->
+<section class="contact-section">
+  <div class="container">
+    <div class="contact-grid">
+
+      <!-- FORM -->
+      <div class="contact-form-card">
+        <h2>Send Us a Message</h2>
+        <p class="sub">Fill in the form below and a specialist will respond within 24 hours.</p>
+
+        <form id="contactForm" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="name">Full Name *</label>
+              <input
+                class="form-control" type="text" id="name" name="name"
+                placeholder="e.g. John Smith" autocomplete="name" />
+              <span class="form-error" id="nameError"></span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="email">Email Address *</label>
+              <input
+                class="form-control" type="email" id="email" name="email"
+                placeholder="john@example.com" autocomplete="email" />
+              <span class="form-error" id="emailError"></span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="phone">Phone / WhatsApp</label>
+              <input
+                class="form-control" type="tel" id="phone" name="phone"
+                placeholder="+1 234 567 8900" autocomplete="tel" />
+              <span class="form-error" id="phoneError"></span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="country">Country</label>
+              <input
+                class="form-control" type="text" id="country" name="country"
+                placeholder="e.g. Kenya" autocomplete="country-name" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="enquiryType">Enquiry Type</label>
+            <select class="form-select" id="enquiryType" name="enquiryType">
+              <option value="">Select an option…</option>
+              <option value="vehicle">Specific Vehicle Enquiry</option>
+              <option value="quote">Request a Quote</option>
+              <option value="finance">Finance Options</option>
+              <option value="shipping">Shipping &amp; Logistics</option>
+              <option value="tradein">Trade-in Valuation</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="vehicle">Vehicle of Interest</label>
+            <input
+              class="form-control" type="text" id="vehicle" name="vehicle"
+              placeholder="e.g. 2022 Toyota Land Cruiser GX" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="message">Message *</label>
+            <textarea
+              class="form-control" id="message" name="message"
+              placeholder="Please describe what you're looking for, your budget, destination port, and any other requirements…"
+              rows="5"></textarea>
+            <span class="form-error" id="messageError"></span>
+          </div>
+
+          <div class="form-group" style="display:flex;align-items:flex-start;gap:.7rem;">
+            <input type="checkbox" id="consent" name="consent" style="margin-top:.25rem;accent-color:var(--gold);width:16px;height:16px;flex-shrink:0;" />
+            <label for="consent" style="font-size:.82rem;color:var(--mid);line-height:1.5;">
+              I agree to AutoElite Motors contacting me about my enquiry. Your data will be handled in accordance with our <a href="#" style="color:var(--gold);">Privacy Policy</a>.
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary form-submit">Send Message →</button>
+
+          <div class="success-msg" id="successMsg">
+            <span style="font-size:1.2rem;">✅</span>
+            <span>Thank you! Your message has been sent. We'll get back to you within 24 hours.</span>
+          </div>
+        </form>
+      </div>
+
+      <!-- SIDEBAR -->
+      <div class="contact-sidebar">
+
+        <!-- Contact Info -->
+        <div class="contact-info-card">
+          <h3>📍 Our Locations</h3>
+          <div class="contact-info-list">
+            <div class="contact-info-item">
+              <div class="ci-icon">🇯🇵</div>
+              <div>
+                <div class="ci-label">HQ — Tokyo, Japan</div>
+                <div class="ci-val">3-14-2 Shinonome, Koto-ku<br>Tokyo 135-0016, Japan</div>
+              </div>
+            </div>
+            <div class="contact-info-item">
+              <div class="ci-icon">🇦🇪</div>
+              <div>
+                <div class="ci-label">Regional — Dubai, UAE</div>
+                <div class="ci-val">Unit 12, Business Bay Tower<br>Dubai, United Arab Emirates</div>
+              </div>
+            </div>
+            <div class="contact-info-item">
+              <div class="ci-icon">🇰🇪</div>
+              <div>
+                <div class="ci-label">Africa — Nairobi, Kenya</div>
+                <div class="ci-val">Westlands Business Park<br>Nairobi, Kenya</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phone / Email -->
+        <div class="contact-info-card">
+          <h3>📞 Reach Us Directly</h3>
+          <div class="contact-info-list">
+            <div class="contact-info-item">
+              <div class="ci-icon">📞</div>
+              <div>
+                <div class="ci-label">Phone (Tokyo HQ)</div>
+                <div class="ci-val">+81-3-1234-5678</div>
+              </div>
+            </div>
+            <div class="contact-info-item">
+              <div class="ci-icon">💬</div>
+              <div>
+                <div class="ci-label">WhatsApp</div>
+                <div class="ci-val">+81-90-8765-4321</div>
+              </div>
+            </div>
+            <div class="contact-info-item">
+              <div class="ci-icon">✉️</div>
+              <div>
+                <div class="ci-label">General Enquiries</div>
+                <div class="ci-val">info@autoelitemotors.com</div>
+              </div>
+            </div>
+            <div class="contact-info-item">
+              <div class="ci-icon">🚚</div>
+              <div>
+                <div class="ci-label">Export &amp; Shipping</div>
+                <div class="ci-val">export@autoelitemotors.com</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hours -->
+        <div class="hours-card">
+          <h3>🕐 Business Hours (JST)</h3>
+          <div class="hours-row"><span class="day">Monday</span><span class="time">9:00 AM – 6:00 PM</span></div>
+          <div class="hours-row"><span class="day">Tuesday</span><span class="time">9:00 AM – 6:00 PM</span></div>
+          <div class="hours-row"><span class="day">Wednesday</span><span class="time">9:00 AM – 6:00 PM</span></div>
+          <div class="hours-row"><span class="day">Thursday</span><span class="time">9:00 AM – 6:00 PM</span></div>
+          <div class="hours-row"><span class="day">Friday</span><span class="time">9:00 AM – 6:00 PM</span></div>
+          <div class="hours-row"><span class="day">Saturday</span><span class="time">10:00 AM – 4:00 PM</span></div>
+          <div class="hours-row"><span class="day">Sunday</span><span class="time closed">Closed</span></div>
+        </div>
+
+        <!-- Map -->
+        <div class="map-placeholder">
+          <div class="map-icon">🗺️</div>
+          <div class="map-label">AutoElite Motors — Tokyo HQ</div>
+          <div class="map-sub">3-14-2 Shinonome, Koto-ku, Tokyo</div>
+        </div>
+
+      </div><!-- /sidebar -->
+    </div><!-- /contact-grid -->
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section style="padding:4.5rem 0; background:var(--light);">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-label">Common Questions</span>
+      <h2 class="section-title">Frequently Asked Questions</h2>
+      <p class="section-sub">Quick answers to the questions we hear most often.</p>
+    </div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(460px, 1fr)); gap:1.4rem; margin-top:1rem;">
+
+      <div style="background:var(--white); border-radius:10px; padding:1.6rem; box-shadow:var(--shadow);">
+        <h3 style="font-size:1rem; color:var(--navy); margin-bottom:.5rem;">How long does shipping take?</h3>
+        <p style="font-size:.87rem; color:#4a5568; line-height:1.65;">Shipping times vary by destination. Africa (East &amp; West) typically 4–6 weeks; Middle East 2–3 weeks; Pacific Islands 4–8 weeks. We provide real-time tracking for all shipments.</p>
+      </div>
+
+      <div style="background:var(--white); border-radius:10px; padding:1.6rem; box-shadow:var(--shadow);">
+        <h3 style="font-size:1rem; color:var(--navy); margin-bottom:.5rem;">Do you offer a warranty?</h3>
+        <p style="font-size:.87rem; color:#4a5568; line-height:1.65;">Yes. All vehicles come with a 12-month AutoElite powertrain warranty. Extended warranty packages of up to 36 months are available at additional cost.</p>
+      </div>
+
+      <div style="background:var(--white); border-radius:10px; padding:1.6rem; box-shadow:var(--shadow);">
+        <h3 style="font-size:1rem; color:var(--navy); margin-bottom:.5rem;">Can I inspect the vehicle before purchase?</h3>
+        <p style="font-size:.87rem; color:#4a5568; line-height:1.65;">Absolutely. We provide detailed inspection reports, 360° photos, and video walkthroughs. You're also welcome to arrange a third-party inspection at our Tokyo facility.</p>
+      </div>
+
+      <div style="background:var(--white); border-radius:10px; padding:1.6rem; box-shadow:var(--shadow);">
+        <h3 style="font-size:1rem; color:var(--navy); margin-bottom:.5rem;">What payment methods do you accept?</h3>
+        <p style="font-size:.87rem; color:#4a5568; line-height:1.65;">We accept international bank transfer (T/T), letter of credit, and select finance arrangements. A 30% deposit is required to reserve a vehicle, with the balance due before shipping.</p>
+      </div>
+
+      <div style="background:var(--white); border-radius:10px; padding:1.6rem; box-shadow:var(--shadow);">
+        <h3 style="font-size:1rem; color:var(--navy); margin-bottom:.5rem;">Do you handle customs clearance?</h3>
+        <p style="font-size:.87rem; color:#4a5568; line-height:1.65;">We prepare all necessary export documents (deregistration, export certificate, BL, etc.). We can also connect you with trusted customs clearing agents at your destination port.</p>
+      </div>
+
+      <div style="background:var(--white); border-radius:10px; padding:1.6rem; box-shadow:var(--shadow);">
+        <h3 style="font-size:1rem; color:var(--navy); margin-bottom:.5rem;">Can you source a vehicle not in your inventory?</h3>
+        <p style="font-size:.87rem; color:#4a5568; line-height:1.65;">Yes! We have access to Japan's major auction houses and a vast dealer network. Share your specifications and budget and we'll source your perfect vehicle, often within 1–2 weeks.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="logo">
+          <div class="logo-icon">🚗</div>
+          <div class="logo-text">
+            <span>AutoElite</span>
+            <span>Motors</span>
+          </div>
+        </a>
+        <p>Japan's most trusted export vehicle dealer since 2009. Premium quality, worldwide delivery, unmatched service.</p>
+        <div class="footer-social">
+          <a href="#">📘</a><a href="#">📸</a><a href="#">🐦</a><a href="#">▶️</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="inventory.html">Inventory</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Vehicle Types</h4>
+        <ul>
+          <li><a href="inventory.html">SUVs &amp; 4WD</a></li>
+          <li><a href="inventory.html">Sedans</a></li>
+          <li><a href="inventory.html">Vans &amp; Minivans</a></li>
+          <li><a href="inventory.html">Pickup Trucks</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul class="footer-contact">
+          <li><span class="icon">📍</span><span>3-14-2 Koto-ku, Tokyo, Japan</span></li>
+          <li><span class="icon">📞</span><span>+81-3-1234-5678</span></li>
+          <li><span class="icon">✉️</span><span>info@autoelitemotors.com</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2024 AutoElite Motors. All rights reserved.</span>
+      <span><a href="#">Privacy Policy</a> · <a href="#">Terms</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

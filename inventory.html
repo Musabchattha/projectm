@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vehicle Inventory — AutoElite Motors</title>
+  <meta name="description" content="Browse our full inventory of premium export vehicles. Filter by make, year, price, and body type. Toyota, Lexus, Nissan, Mercedes and more." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23f0a500'/><text y='24' x='4' font-size='22'>🚗</text></svg>" />
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header id="header">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">🚗</div>
+        <div class="logo-text">
+          <span>AutoElite</span>
+          <span>Motors</span>
+        </div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="inventory.html">Inventory</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <a href="contact.html" class="btn btn-primary nav-cta">Get a Quote</a>
+      <button class="hamburger" id="hamburger" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="mobileClose">✕</button>
+  <a href="index.html">Home</a>
+  <a href="inventory.html">Inventory</a>
+  <a href="about.html">About</a>
+  <a href="contact.html">Contact</a>
+  <a href="contact.html" class="btn btn-primary" style="margin-top:1rem;">Get a Quote</a>
+</div>
+
+<!-- ===== PAGE HERO ===== -->
+<section class="page-hero">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="index.html">Home</a>
+      <span>›</span>
+      <span>Inventory</span>
+    </div>
+    <h1>Vehicle Inventory</h1>
+    <p>Explore our hand-picked selection of premium export vehicles, ready for worldwide delivery.</p>
+  </div>
+</section>
+
+<!-- ===== INVENTORY ===== -->
+<section class="inventory-section">
+  <div class="container">
+
+    <!-- Toolbar -->
+    <div class="inventory-toolbar">
+      <div class="search-row">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search by make, model…" aria-label="Search vehicles" />
+        </div>
+        <a href="contact.html" class="btn btn-primary" style="white-space:nowrap;">Get a Quote</a>
+      </div>
+      <div class="filter-row">
+        <select class="filter-select" id="makeFilter" aria-label="Filter by make">
+          <option value="">All Makes</option>
+          <option value="toyota">Toyota</option>
+          <option value="lexus">Lexus</option>
+          <option value="nissan">Nissan</option>
+          <option value="mercedes-benz">Mercedes-Benz</option>
+          <option value="land rover">Land Rover</option>
+          <option value="mitsubishi">Mitsubishi</option>
+          <option value="honda">Honda</option>
+          <option value="subaru">Subaru</option>
+        </select>
+
+        <select class="filter-select" id="yearFilter" aria-label="Filter by year">
+          <option value="">Any Year</option>
+          <option value="2023-2025">2023 – 2025</option>
+          <option value="2020-2022">2020 – 2022</option>
+          <option value="2017-2019">2017 – 2019</option>
+          <option value="2014-2016">2014 – 2016</option>
+        </select>
+
+        <select class="filter-select" id="priceFilter" aria-label="Filter by price">
+          <option value="">Any Price</option>
+          <option value="0-30000">Under $30,000</option>
+          <option value="30000-60000">$30,000 – $60,000</option>
+          <option value="60000-100000">$60,000 – $100,000</option>
+          <option value="100000-999999">Over $100,000</option>
+        </select>
+
+        <select class="filter-select" id="bodyFilter" aria-label="Filter by body type">
+          <option value="">Any Body</option>
+          <option value="suv">SUV</option>
+          <option value="sedan">Sedan</option>
+          <option value="pickup">Pickup</option>
+          <option value="van">Van</option>
+          <option value="wagon">Wagon</option>
+        </select>
+
+        <select class="filter-select" id="transFilter" aria-label="Filter by transmission">
+          <option value="">Any Transmission</option>
+          <option value="automatic">Automatic</option>
+          <option value="manual">Manual</option>
+        </select>
+
+        <button class="filter-reset" id="resetFilters">✕ Reset</button>
+      </div>
+    </div>
+
+    <!-- Results bar -->
+    <div class="results-bar">
+      <p class="results-count">Showing <strong id="resultsCount">12</strong> vehicles</p>
+      <select class="sort-select" id="sortSelect" aria-label="Sort results">
+        <option value="">Sort by: Default</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+        <option value="year-desc">Year: Newest First</option>
+        <option value="year-asc">Year: Oldest First</option>
+      </select>
+    </div>
+
+    <!-- No Results -->
+    <div id="noResults" class="no-results" style="display:none;">
+      <div class="icon">🔍</div>
+      <p><strong>No vehicles match your filters.</strong><br>Try adjusting your search criteria or <button onclick="document.getElementById('resetFilters').click()" style="color:var(--gold);background:none;border:none;cursor:pointer;font-size:1rem;padding:0;text-decoration:underline;">reset all filters</button>.</p>
+    </div>
+
+    <!-- Grid -->
+    <div class="inventory-grid" id="inventoryGrid">
+
+      <!-- 1 -->
+      <article class="vehicle-card"
+        data-name="toyota land cruiser 200 series"
+        data-make="toyota" data-year="2021"
+        data-price="68500" data-body="suv" data-trans="automatic">
+        <div class="card-img-wrap">
+          <img src="https://via.placeholder.com/400x250/0a1628/f0a500?text=Land+Cruiser+200" alt="Toyota Land Cruiser" loading="lazy" />
+          <span class="card-badge hot">Hot</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Toyota</p>
+          <h3 class="card-name">Land Cruiser 200 Series</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2021</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 42,000 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$68,500</div>
+            <a href="contact.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 2 -->
+      <article class="vehicle-card"
+        data-name="lexus lx570 sport"
+        data-make="lexus" data-year="2022"
+        data-price="95000" data-body="suv" data-trans="automatic">
+        <div class="card-img-wrap">
+          <img src="https://via.placeholder.com/400x250/112240/f0a500?text=Lexus+LX570" alt="Lexus LX570" loading="lazy" />
+          <span class="card-badge">Featured</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Lexus</p>
+          <h3 class="card-name">LX 570 Sport</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2022</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 18,500 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$95,000</div>
+            <a href="contact.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 3 -->
+      <article class="vehicle-card"
+        data-name="toyota land cruiser prado tx"
+        data-make="toyota" data-year="2023"
+        data-price="52000" data-body="suv" data-trans="automatic">
+        <div class="card-img-wrap">
+          <img src="https://via.placeholder.com/400x250/1a3259/f0a500?text=Toyota+Prado+TX" alt="Toyota Prado" loading="lazy" />
+          <span class="card-badge new">New</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Toyota</p>
+          <h3 class="card-name">Land Cruiser Prado TX</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2023</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 8,200 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$52,000</div>
+            <a href="contact.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 4 -->
+      <article class="vehicle-card"
+        data-name="nissan patrol y62 platinum"
+        data-make="nissan" data-year="2021"
+        data-price="58000" data-body="suv" data-trans="automatic">
+        <div class="card-img-wrap">
+          <img src="https://via.placeholder.com/400x250/0d1f3c/f0a500?text=Nissan+Patrol+Y62" alt="Nissan Patrol" loading="lazy" />
+          <span class="card-badge hot">Hot</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Nissan</p>
+          <h3 class="card-name">Patrol Y62 Platinum</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2021</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 35,100 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$58,000</div>
+            <a href="contact.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 5 -->
+      <article class="vehicle-card"
+        data-name="mercedes-benz g-class g500 amg"
+        data-make="mercedes-benz" data-year="2022"
+        data-price="148000" data-body="suv" data-trans="automatic">
+        <div class="card-img-wrap">
+          <img src="https://via.placeholder.com/400x250/0a1628/c98a00?text=Mercedes+G500+AMG" alt="Mercedes G-Class" loading="lazy" />
+          <span class="card-badge">Featured</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Mercedes-Benz</p>
+          <h3 class="card-name">G-Class G500 AMG</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2022</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 22,000 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$148,000</div>
+            <a href="contact.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 6 -->
+      <article class="vehicle-card"
+        data-name="range rover vogue se"
+        data-make="land rover" data-year="2023"
+        data-price="125000" data-body="suv" data-trans="automatic">
+        <div class="card-img-wrap">
+          <img src="https://via.placeholder.com/400x250/112240/c98a00?text=Range+Rover+Vogue" alt="Range Rover" loading="lazy" />
+          <span class="card-badge new">New</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Land Rover</p>
+          <h3 class="card-name">Range Rover Vogue SE</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2023</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 5,400 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$125,000</div>
+            <a href="contact.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 7 -->
+      <article class="vehicle-card"
+        data-name="mitsubishi pajero exceed"
+        data-make="mitsubishi" data-year="2020"
+        data-price="38000" data-body="suv" data-trans="automatic">
+        <div class="card-img-wrap">
+          <img src="https://via.placeholder.com/400x250/1a3259/ffffff?text=Mitsubishi+Pajero" alt="Mitsubishi Pajero" loading="lazy" />
+          <span class="card-badge">Available</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Mitsubishi</p>
+          <h3 class="card-name">Pajero Exceed V8</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2020</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 55,000 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$38,000</div>
+            <a href="contact.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 8 -->
+      <article class="vehicle-card"
+        data-name="toyota hilux sr5 rogue"
+        data-make="toyota" data-year="2022"
+        data-price="45000" data-body="pickup" data-trans="manual">
+        <div class="card-img-wrap">
+          <img src="https://via.placeholder.com/400x250/0a1628/ffffff?text=Toyota+Hilux+Rogue" alt="Toyota Hilux" loading="lazy" />
+          <span class="card-badge">Available</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Toyota</p>
+          <h3 class="card-name">Hilux SR5 Rogue</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2022</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 28,000 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Manual</span>
+            <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$45,000</div>
+            <a href="contact.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 9 -->
+      <article class="vehicle-card"
+        data-name="nissan x-trail ti"
+        data-make="nissan" data-year="2023"
+        data-price="36000" data-body="suv" data-trans="automatic">
+        <div class="card-img-wrap">
+          <img src="https://via.placeholder.com/400x250/0d1f3c/ffffff?text=Nissan+X-Trail+Ti" alt="Nissan X-Trail" loading="lazy" />
+          <span class="card-badge new">New</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Nissan</p>
+          <h3 class="card-name">X-Trail Ti e-Power</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2023</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 6,800 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$36,000</div>
+            <a href="contact.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 10 -->
+      <article class="vehicle-card"
+        data-name="lexus rx500h f-sport"
+        data-make="lexus" data-year="2023"
+        data-price="82000" data-body="suv" data-trans="automatic">
+        <div class="card-img-wrap">
+          <img src="https://via.placeholder.com/400x250/112240/c98a00?text=Lexus+RX500h" alt="Lexus RX500h" loading="lazy" />
+          <span class="card-badge hot">Hot</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Lexus</p>
+          <h3 class="card-name">RX 500h F-Sport</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2023</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 12,000 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$82,000</div>
+            <a href="contact.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 11 -->
+      <article class="vehicle-card"
+        data-name="honda odyssey absolute"
+        data-make="honda" data-year="2020"
+        data-price="28000" data-body="van" data-trans="automatic">
+        <div class="card-img-wrap">
+          <img src="https://via.placeholder.com/400x250/1a3259/ffffff?text=Honda+Odyssey" alt="Honda Odyssey" loading="lazy" />
+          <span class="card-badge">Available</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Honda</p>
+          <h3 class="card-name">Odyssey Absolute EX</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2020</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 48,000 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$28,000</div>
+            <a href="contact.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 12 -->
+      <article class="vehicle-card"
+        data-name="subaru outback wilderness"
+        data-make="subaru" data-year="2022"
+        data-price="42000" data-body="wagon" data-trans="automatic">
+        <div class="card-img-wrap">
+          <img src="https://via.placeholder.com/400x250/0a1628/ffffff?text=Subaru+Outback" alt="Subaru Outback" loading="lazy" />
+          <span class="card-badge">Available</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Subaru</p>
+          <h3 class="card-name">Outback Wilderness</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2022</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 31,500 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$42,000</div>
+            <a href="contact.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+    </div><!-- /inventory-grid -->
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section style="background: var(--navy); padding: 3.5rem 0; text-align: center;">
+  <div class="container">
+    <h2 style="color:var(--white); margin-bottom:.8rem;">Can't Find What You're Looking For?</h2>
+    <p style="color:var(--mid); margin-bottom:1.8rem; max-width:480px; margin-inline:auto;">Tell us your requirements and our team will source the perfect vehicle for you.</p>
+    <a href="contact.html" class="btn btn-primary">Contact Our Team</a>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="logo">
+          <div class="logo-icon">🚗</div>
+          <div class="logo-text">
+            <span>AutoElite</span>
+            <span>Motors</span>
+          </div>
+        </a>
+        <p>Japan's most trusted export vehicle dealer since 2009. Premium quality, worldwide delivery, unmatched service.</p>
+        <div class="footer-social">
+          <a href="#">📘</a><a href="#">📸</a><a href="#">🐦</a><a href="#">▶️</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="inventory.html">Inventory</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Vehicle Types</h4>
+        <ul>
+          <li><a href="inventory.html">SUVs &amp; 4WD</a></li>
+          <li><a href="inventory.html">Sedans</a></li>
+          <li><a href="inventory.html">Vans &amp; Minivans</a></li>
+          <li><a href="inventory.html">Pickup Trucks</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul class="footer-contact">
+          <li><span class="icon">📍</span><span>3-14-2 Koto-ku, Tokyo, Japan</span></li>
+          <li><span class="icon">📞</span><span>+81-3-1234-5678</span></li>
+          <li><span class="icon">✉️</span><span>info@autoelitemotors.com</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2024 AutoElite Motors. All rights reserved.</span>
+      <span><a href="#">Privacy Policy</a> · <a href="#">Terms</a></span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
