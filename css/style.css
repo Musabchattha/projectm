@@ -1943,6 +1943,456 @@ textarea.form-control { resize: vertical; min-height: 130px; }
 .lc-desc { font-size: .83rem; color: var(--mid); line-height: 1.55; margin-bottom: 1.2rem; }
 .lc-btn { width: 100%; text-align: center; }
 
+/* =========================================
+   UX UPGRADE — Japanese Export Dealer Style
+   ========================================= */
+
+/* ---------- Top Info Bar ---------- */
+.top-bar {
+  background: #060e1a;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.78rem;
+  padding: 7px 0;
+}
+.top-bar-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.top-bar-left {
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
+}
+.top-bar-right {
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
+}
+.top-bar a {
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+.top-bar a:hover { color: var(--gold); }
+.top-bar-divider { opacity: 0.3; }
+
+/* ---------- Arrivals Ticker ---------- */
+.arrivals-ticker {
+  display: flex;
+  align-items: center;
+  background: #f0a500;
+  color: #0a1628;
+  font-size: .8rem;
+  font-weight: 600;
+  padding: 8px 0;
+  overflow: hidden;
+}
+.ticker-label {
+  background: #0a1628;
+  color: #f0a500;
+  padding: 8px 16px;
+  white-space: nowrap;
+  font-size: .78rem;
+  letter-spacing: .08em;
+  flex-shrink: 0;
+}
+.ticker-track {
+  flex: 1;
+  overflow: hidden;
+}
+.ticker-inner {
+  display: flex;
+  gap: 3rem;
+  white-space: nowrap;
+  animation: ticker-scroll 25s linear infinite;
+}
+.ticker-inner span { flex-shrink: 0; }
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* ---------- Hero Search Widget ---------- */
+.hero-search {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 14px;
+  padding: 1.4rem;
+  margin: 2rem 0;
+  max-width: 720px;
+}
+.hero-search-tabs {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+.hs-tab {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.7);
+  border-radius: 6px;
+  padding: .4rem 1rem;
+  cursor: pointer;
+  font-size: .85rem;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.hs-tab.active {
+  background: #f0a500;
+  color: #0a1628;
+  border-color: #f0a500;
+  font-weight: 600;
+}
+.hero-search-form {
+  display: flex;
+  gap: .7rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.hs-select,
+.hs-input {
+  flex: 1;
+  min-width: 140px;
+  padding: .6rem .9rem;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.92);
+  color: #0a1628;
+  font-size: .88rem;
+  outline: none;
+  font-family: inherit;
+}
+.hs-btn {
+  background: #f0a500;
+  color: #0a1628;
+  border: none;
+  border-radius: 8px;
+  padding: .65rem 1.4rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: .9rem;
+  font-family: inherit;
+  transition: background var(--transition);
+}
+.hs-btn:hover { background: #d4920a; }
+
+/* ---------- Why Japan Section ---------- */
+.why-japan {
+  padding: 5rem 0;
+  background: var(--light);
+}
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.6rem;
+  margin-top: 2.5rem;
+}
+.why-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  box-shadow: var(--shadow);
+  border-top: 4px solid var(--gold);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.why-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 40px rgba(10,22,40,.16);
+}
+.why-icon {
+  font-size: 2.4rem;
+  margin-bottom: 1rem;
+}
+.why-card h3 {
+  font-size: 1rem;
+  color: var(--navy);
+  margin-bottom: .6rem;
+}
+.why-card p {
+  font-size: .86rem;
+  color: #4a5568;
+  line-height: 1.65;
+}
+
+/* ---------- Inventory Sidebar Layout ---------- */
+.inv-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+.inv-sidebar {
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 1.4rem;
+  position: sticky;
+  top: 80px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+  padding-bottom: .8rem;
+  border-bottom: 2px solid var(--light);
+}
+.sidebar-header h3 {
+  font-size: 1rem;
+  color: var(--navy);
+  margin: 0;
+}
+.sidebar-reset {
+  background: none;
+  border: none;
+  color: var(--gold);
+  font-size: .82rem;
+  cursor: pointer;
+  text-decoration: underline;
+  font-family: inherit;
+}
+.sidebar-group {
+  margin-bottom: 1.4rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px solid var(--light);
+}
+.sidebar-group:last-of-type { border-bottom: none; }
+.sidebar-label {
+  display: block;
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: .6rem;
+}
+.sidebar-checks {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+}
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .87rem;
+  color: #4a5568;
+  cursor: pointer;
+}
+.check-item input[type=checkbox] {
+  accent-color: var(--gold);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.check-count {
+  color: var(--mid);
+  font-size: .78rem;
+  margin-left: auto;
+}
+.range-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+.range-slider {
+  width: 100%;
+  accent-color: var(--gold);
+  cursor: pointer;
+}
+.inv-main { min-width: 0; }
+.results-bar-right {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.view-toggle {
+  display: flex;
+  gap: .3rem;
+}
+.view-btn {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: .3rem .6rem;
+  cursor: pointer;
+  color: var(--mid);
+  font-size: 1rem;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.view-btn.active {
+  background: var(--navy);
+  color: white;
+  border-color: var(--navy);
+}
+.mobile-filter-toggle {
+  display: none;
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--navy);
+  color: white;
+  border: none;
+  padding: .7rem 1.8rem;
+  border-radius: 30px;
+  font-size: .9rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,.3);
+  z-index: 100;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.sidebar-apply { width: 100%; margin-top: .5rem; }
+
+/* List view mode */
+.inventory-grid.list-view { grid-template-columns: 1fr; }
+.inventory-grid.list-view .vehicle-card {
+  display: flex;
+  flex-direction: row;
+  max-width: 100%;
+}
+.inventory-grid.list-view .card-img-wrap {
+  width: 240px;
+  flex-shrink: 0;
+  height: auto;
+}
+
+/* Mobile sidebar overlay */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 199;
+}
+.sidebar-overlay.visible { display: block; }
+
+/* ---------- Card Upgrade Elements ---------- */
+.card-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .5rem;
+}
+.card-stock {
+  font-size: .72rem;
+  color: var(--mid);
+  font-family: monospace;
+}
+.card-grade {
+  font-size: .72rem;
+  font-weight: 700;
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-radius: 4px;
+  padding: .15rem .4rem;
+}
+.color-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 3px;
+}
+.steering-badge {
+  background: var(--navy);
+  color: white;
+  font-size: .68rem;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: .15rem .4rem;
+  letter-spacing: .04em;
+}
+.card-actions {
+  display: flex;
+  gap: .4rem;
+  align-items: center;
+}
+.btn-sm {
+  padding: .4rem .8rem;
+  font-size: .8rem;
+}
+.btn-wa {
+  background: #25D366;
+  color: white;
+}
+.btn-wa:hover {
+  background: #1da851;
+  transform: translateY(-2px);
+}
+
+/* ---------- VD Sidebar Upgrade ---------- */
+.vd-fob-row {
+  display: flex;
+  align-items: baseline;
+  gap: .7rem;
+  flex-wrap: wrap;
+  margin-top: .3rem;
+}
+.vd-fob-label {
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--mid);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+}
+.vd-cif-line {
+  font-size: .82rem;
+  color: var(--mid);
+  margin-top: .2rem;
+}
+.vd-cif-line strong { color: var(--navy); }
+.vd-trust-badges {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin: .8rem 0;
+}
+.vd-trust-badge {
+  font-size: .75rem;
+  font-weight: 600;
+  color: #16a34a;
+  background: rgba(34,197,94,.1);
+  border: 1px solid rgba(34,197,94,.3);
+  border-radius: 50px;
+  padding: .25rem .75rem;
+}
+.btn-outline-gold {
+  border: 2px solid var(--gold);
+  color: var(--gold-dk);
+  background: transparent;
+  font-weight: 600;
+}
+.btn-outline-gold:hover {
+  background: var(--gold);
+  color: var(--navy);
+  transform: translateY(-2px);
+}
+.vd-compare-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-top: .8rem;
+  font-size: .85rem;
+  color: var(--mid);
+  cursor: pointer;
+}
+.vd-compare-row input[type=checkbox] {
+  accent-color: var(--gold);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
 /* ---------- Responsive: New Sections ---------- */
 @media (max-width: 1024px) {
   .vd-layout { grid-template-columns: 1fr; }
@@ -1952,6 +2402,26 @@ textarea.form-control { resize: vertical; min-height: 130px; }
   .testi-grid-6 { grid-template-columns: repeat(2, 1fr); }
   .port-regions { grid-template-columns: 1fr 1fr; }
   .req-grid { grid-template-columns: 1fr 1fr; }
+  .inv-layout { grid-template-columns: 1fr; }
+  .inv-sidebar {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 300px;
+    z-index: 200;
+    border-radius: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+  .inv-sidebar.sidebar-open { display: block; }
+  .mobile-filter-toggle { display: block; }
+}
+
+@media (max-width: 640px) {
+  .top-bar-left { display: none; }
+  .top-bar-right { margin-inline: auto; }
+  .inventory-grid.list-view .vehicle-card { flex-direction: column; }
+  .inventory-grid.list-view .card-img-wrap { width: 100%; }
 }
 
 @media (max-width: 768px) {

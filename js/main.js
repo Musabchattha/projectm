@@ -99,8 +99,13 @@ document.querySelectorAll('.card-fav').forEach(btn => {
   });
 });
 
-/* ---- Inventory Filter ---- */
+/* ---- Inventory Filter (legacy dropdown — disabled when sidebar present) ---- */
 (function initInventoryFilter() {
+  const grid = document.getElementById('inventoryGrid');
+  if (!grid) return;
+  // Sidebar layout replaces this — skip if sidebar present
+  if (document.getElementById('invSidebar')) return;
+
   const searchInput    = document.getElementById('searchInput');
   const makeFilter     = document.getElementById('makeFilter');
   const yearFilter     = document.getElementById('yearFilter');
@@ -111,9 +116,6 @@ document.querySelectorAll('.card-fav').forEach(btn => {
   const resetBtn       = document.getElementById('resetFilters');
   const resultsCount   = document.getElementById('resultsCount');
   const noResults      = document.getElementById('noResults');
-  const grid           = document.getElementById('inventoryGrid');
-
-  if (!grid) return;
 
   const cards = Array.from(grid.querySelectorAll('.vehicle-card'));
 
@@ -533,11 +535,12 @@ function runShipping() {
   checkScroll();
 })();
 
-/* ---- Fuel Type Filter (inventory) ---- */
+/* ---- Fuel Type Filter (inventory — disabled when sidebar present) ---- */
 (function initFuelFilter() {
   const fuelFilter   = document.getElementById('fuelFilter');
   const resetBtn     = document.getElementById('resetFilters');
   if (!fuelFilter) return;
+  if (document.getElementById('invSidebar')) return;
 
   // Attach fuel filter to the existing filter system
   // The existing filterCards already runs via the other filters.
@@ -649,6 +652,243 @@ function runShipping() {
   }
 
   filterAllCards();
+})();
+
+/* ---- Hero Search Widget ---- */
+(function initHeroSearch() {
+  const tabs = document.querySelectorAll('.hs-tab');
+  const quickForm = document.getElementById('hsTabQuick');
+  const advForm   = document.getElementById('hsTabAdvanced');
+
+  if (!tabs.length) return;
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      tabs.forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      const target = this.dataset.tab;
+      if (quickForm) quickForm.style.display = target === 'quick' ? 'flex' : 'none';
+      if (advForm)   advForm.style.display   = target === 'advanced' ? 'flex' : 'none';
+    });
+  });
+
+  // Quick search button
+  const heroSearchBtn = document.getElementById('heroSearchBtn');
+  if (heroSearchBtn) {
+    heroSearchBtn.addEventListener('click', function() {
+      const make   = document.getElementById('hsMake')   ? document.getElementById('hsMake').value   : '';
+      const body   = document.getElementById('hsBody')   ? document.getElementById('hsBody').value   : '';
+      const budget = document.getElementById('hsBudget') ? document.getElementById('hsBudget').value : '';
+      const params = new URLSearchParams();
+      if (make)   params.set('make',   make.toLowerCase());
+      if (body)   params.set('body',   body.toLowerCase());
+      if (budget) params.set('budget', budget);
+      window.location.href = 'inventory.html' + (params.toString() ? '?' + params.toString() : '');
+    });
+  }
+
+  // Advanced search button
+  const heroSearchBtnAdv = document.getElementById('heroSearchBtnAdv');
+  if (heroSearchBtnAdv) {
+    heroSearchBtnAdv.addEventListener('click', function() {
+      const keyword = document.getElementById('hsKeyword')  ? document.getElementById('hsKeyword').value  : '';
+      const year    = document.getElementById('hsYear')     ? document.getElementById('hsYear').value     : '';
+      const trans   = document.getElementById('hsTransAdv') ? document.getElementById('hsTransAdv').value : '';
+      const params  = new URLSearchParams();
+      if (keyword) params.set('q',    keyword);
+      if (year)    params.set('year', year);
+      if (trans)   params.set('trans', trans.toLowerCase());
+      window.location.href = 'inventory.html' + (params.toString() ? '?' + params.toString() : '');
+    });
+  }
+})();
+
+/* ---- Sidebar Inventory Filter (replaces old dropdown filter) ---- */
+(function initSidebarFilter() {
+  const grid = document.getElementById('inventoryGrid');
+  if (!grid) return;
+
+  const sidebar      = document.getElementById('invSidebar');
+  const searchInput  = document.getElementById('searchInput');
+  const resetBtn     = document.getElementById('resetFilters');
+  const applyBtn     = document.getElementById('applyFilters');
+  const sortSelect   = document.getElementById('sortSelect');
+  const resultsCount = document.getElementById('resultsCount');
+  const noResults    = document.getElementById('noResults');
+  const gridViewBtn  = document.getElementById('gridViewBtn');
+  const listViewBtn  = document.getElementById('listViewBtn');
+  const mobileToggle = document.getElementById('mobileFilterToggle');
+  const overlay      = document.getElementById('sidebarOverlay');
+
+  const yearMinEl    = document.getElementById('yearMin');
+  const yearMaxEl    = document.getElementById('yearMax');
+  const priceMinEl   = document.getElementById('priceMin');
+  const priceMaxEl   = document.getElementById('priceMax');
+  const yearLabel    = document.getElementById('yearRangeLabel');
+  const priceLabel   = document.getElementById('priceRangeLabel');
+
+  const cards = Array.from(grid.querySelectorAll('.vehicle-card'));
+
+  /* --- Range slider labels --- */
+  function updateRangeLabels() {
+    if (yearLabel && yearMinEl && yearMaxEl) {
+      yearLabel.textContent = yearMinEl.value + ' – ' + yearMaxEl.value;
+    }
+    if (priceLabel && priceMinEl && priceMaxEl) {
+      const fmt = v => '$' + parseInt(v).toLocaleString();
+      priceLabel.textContent = fmt(priceMinEl.value) + ' – ' + fmt(priceMaxEl.value);
+    }
+  }
+
+  [yearMinEl, yearMaxEl, priceMinEl, priceMaxEl].forEach(el => {
+    if (el) el.addEventListener('input', () => { updateRangeLabels(); filterCards(); });
+  });
+  updateRangeLabels();
+
+  /* --- Checkbox helpers --- */
+  function getCheckedValues(name) {
+    return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
+  }
+
+  /* --- Core filter --- */
+  function filterCards() {
+    const q        = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const makes    = getCheckedValues('make');
+    const bodies   = getCheckedValues('body');
+    const fuels    = getCheckedValues('fuel');
+    const transes  = getCheckedValues('trans');
+    const steerings = getCheckedValues('steering');
+    const yMin     = yearMinEl  ? parseInt(yearMinEl.value)  : 2014;
+    const yMax     = yearMaxEl  ? parseInt(yearMaxEl.value)  : 2025;
+    const pMin     = priceMinEl ? parseInt(priceMinEl.value) : 0;
+    const pMax     = priceMaxEl ? parseInt(priceMaxEl.value) : 200000;
+
+    let visible = 0;
+    cards.forEach(card => {
+      const name     = (card.dataset.name  || '').toLowerCase();
+      const cmake    = (card.dataset.make  || '').toLowerCase();
+      const cyear    = parseInt(card.dataset.year  || '0');
+      const cprice   = parseInt(card.dataset.price || '0');
+      const cbody    = (card.dataset.body  || '').toLowerCase();
+      const ctrans   = (card.dataset.trans || '').toLowerCase();
+      const cfuel    = (card.dataset.fuel  || '').toLowerCase();
+      const csteer   = (card.dataset.steering || 'rhd').toLowerCase();
+
+      const matchQ       = !q             || name.includes(q)            || cmake.includes(q);
+      const matchMake    = !makes.length  || makes.includes(cmake);
+      const matchBody    = !bodies.length || bodies.includes(cbody);
+      const matchFuel    = !fuels.length  || fuels.includes(cfuel);
+      const matchTrans   = !transes.length || transes.includes(ctrans);
+      const matchSteer   = !steerings.length || steerings.includes(csteer);
+      const matchYear    = cyear >= yMin && cyear <= yMax;
+      const matchPrice   = cprice >= pMin && cprice <= pMax;
+
+      const show = matchQ && matchMake && matchBody && matchFuel && matchTrans && matchSteer && matchYear && matchPrice;
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    if (resultsCount) resultsCount.textContent = visible;
+    if (noResults)    noResults.style.display  = visible === 0 ? 'block' : 'none';
+    sortCards();
+  }
+
+  /* --- Sort --- */
+  function sortCards() {
+    if (!sortSelect) return;
+    const val = sortSelect.value;
+    const sorted = [...cards].sort((a, b) => {
+      const pa = parseInt(a.dataset.price || '0');
+      const pb = parseInt(b.dataset.price || '0');
+      const ya = parseInt(a.dataset.year  || '0');
+      const yb = parseInt(b.dataset.year  || '0');
+      if (val === 'price-asc')  return pa - pb;
+      if (val === 'price-desc') return pb - pa;
+      if (val === 'year-desc')  return yb - ya;
+      if (val === 'year-asc')   return ya - yb;
+      return 0;
+    });
+    sorted.forEach(c => grid.appendChild(c));
+  }
+
+  /* --- Event listeners --- */
+  document.querySelectorAll('input[name="make"], input[name="body"], input[name="fuel"], input[name="trans"], input[name="steering"]').forEach(cb => {
+    cb.addEventListener('change', filterCards);
+  });
+  if (searchInput) searchInput.addEventListener('input', filterCards);
+  if (sortSelect)  sortSelect.addEventListener('change', filterCards);
+  if (applyBtn)    applyBtn.addEventListener('click', filterCards);
+
+  /* --- Reset --- */
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      document.querySelectorAll('input[name="make"], input[name="body"], input[name="fuel"], input[name="trans"], input[name="steering"]').forEach(cb => { cb.checked = false; });
+      if (searchInput) searchInput.value = '';
+      if (sortSelect)  sortSelect.value  = '';
+      if (yearMinEl)   yearMinEl.value   = yearMinEl.min;
+      if (yearMaxEl)   yearMaxEl.value   = yearMaxEl.max;
+      if (priceMinEl)  priceMinEl.value  = priceMinEl.min;
+      if (priceMaxEl)  priceMaxEl.value  = priceMaxEl.max;
+      updateRangeLabels();
+      filterCards();
+    });
+  }
+
+  /* --- Grid / List toggle --- */
+  if (gridViewBtn) {
+    gridViewBtn.addEventListener('click', () => {
+      grid.classList.remove('list-view');
+      gridViewBtn.classList.add('active');
+      if (listViewBtn) listViewBtn.classList.remove('active');
+    });
+  }
+  if (listViewBtn) {
+    listViewBtn.addEventListener('click', () => {
+      grid.classList.add('list-view');
+      listViewBtn.classList.add('active');
+      if (gridViewBtn) gridViewBtn.classList.remove('active');
+    });
+  }
+
+  /* --- Mobile sidebar toggle --- */
+  function openSidebar() {
+    if (sidebar) sidebar.classList.add('sidebar-open');
+    if (overlay) overlay.classList.add('visible');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    if (sidebar) sidebar.classList.remove('sidebar-open');
+    if (overlay) overlay.classList.remove('visible');
+    document.body.style.overflow = '';
+  }
+  if (mobileToggle) mobileToggle.addEventListener('click', openSidebar);
+  if (overlay)      overlay.addEventListener('click', closeSidebar);
+  if (applyBtn)     applyBtn.addEventListener('click', closeSidebar);
+
+  /* --- Read URL params and pre-check filters --- */
+  (function readURLParams() {
+    const params = new URLSearchParams(window.location.search);
+    const make   = params.get('make');
+    const body   = params.get('body');
+    const q      = params.get('q');
+    const trans  = params.get('trans');
+
+    if (make) {
+      const cb = document.querySelector(`input[name="make"][value="${make.toLowerCase()}"]`);
+      if (cb) cb.checked = true;
+    }
+    if (body) {
+      const cb = document.querySelector(`input[name="body"][value="${body.toLowerCase()}"]`);
+      if (cb) cb.checked = true;
+    }
+    if (trans) {
+      const cb = document.querySelector(`input[name="trans"][value="${trans.toLowerCase()}"]`);
+      if (cb) cb.checked = true;
+    }
+    if (q && searchInput) searchInput.value = q;
+  })();
+
+  filterCards();
 })();
 
 /* ---- WhatsApp Pulse on first visit ---- */

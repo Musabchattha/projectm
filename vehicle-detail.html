@@ -10,6 +10,26 @@
 </head>
 <body>
 
+<!-- ===== TOP INFO BAR ===== -->
+<div class="top-bar">
+  <div class="container">
+    <div class="top-bar-inner">
+      <div class="top-bar-left">
+        <span>📞 +81-3-1234-5678</span>
+        <span>✉️ info@autoelitemotors.com</span>
+        <span>🕐 Mon–Sat: 9AM–6PM JST</span>
+      </div>
+      <div class="top-bar-right">
+        <a href="https://wa.me/818087654321" target="_blank" rel="noopener">💬 WhatsApp</a>
+        <span class="top-bar-divider">|</span>
+        <a href="#">🇯🇵 Japan</a>
+        <span class="top-bar-divider">|</span>
+        <a href="#">🇬🇧 English</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ===== HEADER ===== -->
 <header id="header">
   <div class="container">
@@ -93,6 +113,7 @@
           <div class="qs-item"><span class="qs-label">Trans.</span><span class="qs-val">Automatic</span></div>
           <div class="qs-item"><span class="qs-label">Drive</span><span class="qs-val">4WD</span></div>
           <div class="qs-item"><span class="qs-label">Colour</span><span class="qs-val">Pearl White</span></div>
+          <div class="qs-item"><span class="qs-label">Steering</span><span class="qs-val">RHD</span></div>
         </div>
 
         <!-- Full Specs Table -->
@@ -273,7 +294,18 @@
           <!-- Price -->
           <div class="vd-price-block" id="priceSection">
             <div class="vd-price">$72,500</div>
+            <div class="vd-fob-row">
+              <span class="vd-fob-label">FOB Tokyo</span>
+            </div>
+            <div class="vd-cif-line">CIF Mombasa: <strong>~$74,300</strong></div>
             <div class="vd-finance-hint">or from <strong>$1,850/month</strong></div>
+          </div>
+
+          <!-- Trust Badges -->
+          <div class="vd-trust-badges">
+            <span class="vd-trust-badge">✓ Inspected</span>
+            <span class="vd-trust-badge">✓ Insured</span>
+            <span class="vd-trust-badge">✓ Documented</span>
           </div>
 
           <!-- Action Buttons -->
@@ -281,7 +313,13 @@
             <a href="contact.html" class="btn btn-primary vd-btn-full">Enquire Now</a>
             <a href="#financeCalc" class="btn btn-outline-navy vd-btn-full">Calculate Finance</a>
             <a href="https://wa.me/818087654321" class="btn vd-btn-whatsapp vd-btn-full" target="_blank" rel="noopener">💬 WhatsApp Us</a>
+            <a href="#" class="btn btn-outline-gold vd-btn-full" onclick="alert('Inspection report download — connect to your document server.');return false;">📋 Download Inspection Report</a>
           </div>
+
+          <!-- Compare -->
+          <label class="vd-compare-row">
+            <input type="checkbox"> Add to Compare
+          </label>
 
           <!-- Share -->
           <div class="vd-share">

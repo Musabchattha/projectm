@@ -10,6 +10,26 @@
 </head>
 <body>
 
+<!-- ===== TOP INFO BAR ===== -->
+<div class="top-bar">
+  <div class="container">
+    <div class="top-bar-inner">
+      <div class="top-bar-left">
+        <span>📞 +81-3-1234-5678</span>
+        <span>✉️ info@autoelitemotors.com</span>
+        <span>🕐 Mon–Sat: 9AM–6PM JST</span>
+      </div>
+      <div class="top-bar-right">
+        <a href="https://wa.me/818087654321" target="_blank" rel="noopener">💬 WhatsApp</a>
+        <span class="top-bar-divider">|</span>
+        <a href="#">🇯🇵 Japan</a>
+        <span class="top-bar-divider">|</span>
+        <a href="#">🇬🇧 English</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ===== HEADER ===== -->
 <header id="header">
   <div class="container">
@@ -63,616 +83,843 @@
 <!-- ===== INVENTORY ===== -->
 <section class="inventory-section">
   <div class="container">
+    <div class="inv-layout">
 
-    <!-- Toolbar -->
-    <div class="inventory-toolbar">
-      <div class="search-row">
-        <div class="search-input-wrap">
-          <span class="search-icon">🔍</span>
-          <input type="text" id="searchInput" placeholder="Search by make, model…" aria-label="Search vehicles" />
+      <!-- SIDEBAR -->
+      <aside class="inv-sidebar" id="invSidebar">
+        <div class="sidebar-header">
+          <h3>Filter Vehicles</h3>
+          <button id="resetFilters" class="sidebar-reset">Reset All</button>
         </div>
-        <a href="contact.html" class="btn btn-primary" style="white-space:nowrap;">Get a Quote</a>
-      </div>
-      <div class="filter-row">
-        <select class="filter-select" id="makeFilter" aria-label="Filter by make">
-          <option value="">All Makes</option>
-          <option value="toyota">Toyota</option>
-          <option value="lexus">Lexus</option>
-          <option value="nissan">Nissan</option>
-          <option value="mercedes-benz">Mercedes-Benz</option>
-          <option value="land rover">Land Rover</option>
-          <option value="mitsubishi">Mitsubishi</option>
-          <option value="honda">Honda</option>
-          <option value="subaru">Subaru</option>
-        </select>
 
-        <select class="filter-select" id="yearFilter" aria-label="Filter by year">
-          <option value="">Any Year</option>
-          <option value="2023-2025">2023 – 2025</option>
-          <option value="2020-2022">2020 – 2022</option>
-          <option value="2017-2019">2017 – 2019</option>
-          <option value="2014-2016">2014 – 2016</option>
-        </select>
+        <!-- Search -->
+        <div class="sidebar-group">
+          <label class="sidebar-label">Search</label>
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Make, model, keyword…" />
+          </div>
+        </div>
 
-        <select class="filter-select" id="priceFilter" aria-label="Filter by price">
-          <option value="">Any Price</option>
-          <option value="0-30000">Under $30,000</option>
-          <option value="30000-60000">$30,000 – $60,000</option>
-          <option value="60000-100000">$60,000 – $100,000</option>
-          <option value="100000-999999">Over $100,000</option>
-        </select>
+        <!-- Make -->
+        <div class="sidebar-group">
+          <label class="sidebar-label">Make</label>
+          <div class="sidebar-checks">
+            <label class="check-item"><input type="checkbox" value="toyota" name="make"> Toyota <span class="check-count">(9)</span></label>
+            <label class="check-item"><input type="checkbox" value="lexus" name="make"> Lexus <span class="check-count">(2)</span></label>
+            <label class="check-item"><input type="checkbox" value="nissan" name="make"> Nissan <span class="check-count">(2)</span></label>
+            <label class="check-item"><input type="checkbox" value="mercedes-benz" name="make"> Mercedes-Benz <span class="check-count">(1)</span></label>
+            <label class="check-item"><input type="checkbox" value="land rover" name="make"> Land Rover <span class="check-count">(1)</span></label>
+            <label class="check-item"><input type="checkbox" value="mitsubishi" name="make"> Mitsubishi <span class="check-count">(2)</span></label>
+            <label class="check-item"><input type="checkbox" value="honda" name="make"> Honda <span class="check-count">(1)</span></label>
+            <label class="check-item"><input type="checkbox" value="subaru" name="make"> Subaru <span class="check-count">(1)</span></label>
+          </div>
+        </div>
 
-        <select class="filter-select" id="bodyFilter" aria-label="Filter by body type">
-          <option value="">Any Body</option>
-          <option value="suv">SUV</option>
-          <option value="sedan">Sedan</option>
-          <option value="pickup">Pickup</option>
-          <option value="van">Van</option>
-          <option value="wagon">Wagon</option>
-        </select>
+        <!-- Body Type -->
+        <div class="sidebar-group">
+          <label class="sidebar-label">Body Type</label>
+          <div class="sidebar-checks">
+            <label class="check-item"><input type="checkbox" value="suv" name="body"> SUV / 4WD</label>
+            <label class="check-item"><input type="checkbox" value="sedan" name="body"> Sedan</label>
+            <label class="check-item"><input type="checkbox" value="pickup" name="body"> Pickup Truck</label>
+            <label class="check-item"><input type="checkbox" value="van" name="body"> Van / Minivan</label>
+            <label class="check-item"><input type="checkbox" value="wagon" name="body"> Wagon / Estate</label>
+          </div>
+        </div>
 
-        <select class="filter-select" id="transFilter" aria-label="Filter by transmission">
-          <option value="">Any Transmission</option>
-          <option value="automatic">Automatic</option>
-          <option value="manual">Manual</option>
-        </select>
+        <!-- Year Range -->
+        <div class="sidebar-group">
+          <label class="sidebar-label">Year: <span id="yearRangeLabel">2014 – 2025</span></label>
+          <div class="range-wrap">
+            <input type="range" id="yearMin" min="2014" max="2025" value="2014" class="range-slider" />
+            <input type="range" id="yearMax" min="2014" max="2025" value="2025" class="range-slider" />
+          </div>
+        </div>
 
-        <select class="filter-select" id="fuelFilter" aria-label="Filter by fuel type">
-          <option value="">Any Fuel</option>
-          <option value="petrol">Petrol</option>
-          <option value="diesel">Diesel</option>
-          <option value="hybrid">Hybrid</option>
-          <option value="electric">Electric</option>
-        </select>
+        <!-- Price Range -->
+        <div class="sidebar-group">
+          <label class="sidebar-label">Price: <span id="priceRangeLabel">$0 – $200,000</span></label>
+          <div class="range-wrap">
+            <input type="range" id="priceMin" min="0" max="200000" value="0" step="5000" class="range-slider" />
+            <input type="range" id="priceMax" min="0" max="200000" value="200000" step="5000" class="range-slider" />
+          </div>
+        </div>
 
-        <button class="filter-reset" id="resetFilters">✕ Reset</button>
-      </div>
-    </div>
+        <!-- Fuel Type -->
+        <div class="sidebar-group">
+          <label class="sidebar-label">Fuel Type</label>
+          <div class="sidebar-checks">
+            <label class="check-item"><input type="checkbox" value="petrol" name="fuel"> Petrol</label>
+            <label class="check-item"><input type="checkbox" value="diesel" name="fuel"> Diesel</label>
+            <label class="check-item"><input type="checkbox" value="hybrid" name="fuel"> Hybrid</label>
+            <label class="check-item"><input type="checkbox" value="electric" name="fuel"> Electric</label>
+          </div>
+        </div>
 
-    <!-- Results bar -->
-    <div class="results-bar">
-      <p class="results-count">Showing <strong id="resultsCount">20</strong> vehicles</p>
-      <select class="sort-select" id="sortSelect" aria-label="Sort results">
-        <option value="">Sort by: Default</option>
-        <option value="price-asc">Price: Low to High</option>
-        <option value="price-desc">Price: High to Low</option>
-        <option value="year-desc">Year: Newest First</option>
-        <option value="year-asc">Year: Oldest First</option>
-      </select>
-    </div>
+        <!-- Transmission -->
+        <div class="sidebar-group">
+          <label class="sidebar-label">Transmission</label>
+          <div class="sidebar-checks">
+            <label class="check-item"><input type="checkbox" value="automatic" name="trans"> Automatic</label>
+            <label class="check-item"><input type="checkbox" value="manual" name="trans"> Manual</label>
+          </div>
+        </div>
 
-    <!-- No Results -->
-    <div id="noResults" class="no-results" style="display:none;">
-      <div class="icon">🔍</div>
-      <p><strong>No vehicles match your filters.</strong><br>Try adjusting your search criteria or <button onclick="document.getElementById('resetFilters').click()" style="color:var(--gold);background:none;border:none;cursor:pointer;font-size:1rem;padding:0;text-decoration:underline;">reset all filters</button>.</p>
-    </div>
+        <!-- Steering -->
+        <div class="sidebar-group">
+          <label class="sidebar-label">Steering</label>
+          <div class="sidebar-checks">
+            <label class="check-item"><input type="checkbox" value="rhd" name="steering"> RHD (Right Hand Drive)</label>
+            <label class="check-item"><input type="checkbox" value="lhd" name="steering"> LHD (Left Hand Drive)</label>
+          </div>
+        </div>
 
-    <!-- Grid -->
-    <div class="inventory-grid" id="inventoryGrid">
+        <button class="btn btn-primary sidebar-apply" id="applyFilters" style="width:100%;margin-top:.5rem;">Apply Filters</button>
+      </aside>
 
-      <!-- 1 -->
-      <article class="vehicle-card"
-        data-name="toyota land cruiser 200 series"
-        data-make="toyota" data-year="2021"
-        data-price="68500" data-body="suv" data-trans="automatic" data-fuel="diesel">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/landcruiser200/600/380" alt="Toyota Land Cruiser 200" loading="lazy" />
-          <span class="card-badge hot">Hot</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Toyota</p>
-          <h3 class="card-name">Land Cruiser 200 Series</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2021</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 42,000 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$68,500</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
+      <!-- MAIN CONTENT -->
+      <div class="inv-main">
+        <!-- Results bar -->
+        <div class="results-bar">
+          <p class="results-count">Showing <strong id="resultsCount">20</strong> vehicles</p>
+          <div class="results-bar-right">
+            <div class="view-toggle">
+              <button class="view-btn active" id="gridViewBtn" title="Grid view">▦</button>
+              <button class="view-btn" id="listViewBtn" title="List view">☰</button>
+            </div>
+            <select class="sort-select" id="sortSelect" aria-label="Sort results">
+              <option value="">Sort: Default</option>
+              <option value="price-asc">Price: Low → High</option>
+              <option value="price-desc">Price: High → Low</option>
+              <option value="year-desc">Year: Newest First</option>
+              <option value="year-asc">Year: Oldest First</option>
+            </select>
           </div>
         </div>
-      </article>
 
-      <!-- 2 -->
-      <article class="vehicle-card"
-        data-name="lexus lx570 sport"
-        data-make="lexus" data-year="2022"
-        data-price="95000" data-body="suv" data-trans="automatic" data-fuel="petrol">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/lexuslx570/600/380" alt="Lexus LX570" loading="lazy" />
-          <span class="card-badge">Featured</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
+        <!-- No Results -->
+        <div id="noResults" class="no-results" style="display:none;">
+          <div class="icon">🔍</div>
+          <p><strong>No vehicles match your filters.</strong><br>
+          <button onclick="document.getElementById('resetFilters').click()" style="color:var(--gold);background:none;border:none;cursor:pointer;font-size:1rem;padding:0;text-decoration:underline;">Reset all filters</button></p>
         </div>
-        <div class="card-body">
-          <p class="card-make">Lexus</p>
-          <h3 class="card-name">LX 570 Sport</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2022</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 18,500 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$95,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
 
-      <!-- 3 -->
-      <article class="vehicle-card"
-        data-name="toyota land cruiser prado tx"
-        data-make="toyota" data-year="2023"
-        data-price="52000" data-body="suv" data-trans="automatic" data-fuel="diesel">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/prado2023/600/380" alt="Toyota Prado" loading="lazy" />
-          <span class="card-badge new">New</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Toyota</p>
-          <h3 class="card-name">Land Cruiser Prado TX</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2023</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 8,200 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$52,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+        <!-- Grid -->
+        <div class="inventory-grid" id="inventoryGrid">
 
-      <!-- 4 -->
-      <article class="vehicle-card"
-        data-name="nissan patrol y62 platinum"
-        data-make="nissan" data-year="2021"
-        data-price="58000" data-body="suv" data-trans="automatic" data-fuel="petrol">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/patrolplatinum/600/380" alt="Nissan Patrol" loading="lazy" />
-          <span class="card-badge hot">Hot</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Nissan</p>
-          <h3 class="card-name">Patrol Y62 Platinum</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2021</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 35,100 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$58,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 1 -->
+          <article class="vehicle-card"
+            data-name="toyota land cruiser 200 series"
+            data-make="toyota" data-year="2021"
+            data-price="68500" data-body="suv" data-trans="automatic" data-fuel="diesel" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/landcruiser200/600/380" alt="Toyota Land Cruiser 200" loading="lazy" />
+              <span class="card-badge hot">Hot</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Toyota</p>
+              <h3 class="card-name">Land Cruiser 200 Series</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0147</span>
+                <span class="card-grade">Grade 4.5</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2021</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 42,000 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
+                <span class="card-spec"><span class="color-dot" style="background:#f5f5f0;border:1px solid #ddd;"></span> Pearl White</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$68,500</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0147 Toyota Land Cruiser 200" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 5 -->
-      <article class="vehicle-card"
-        data-name="mercedes-benz g-class g500 amg"
-        data-make="mercedes-benz" data-year="2022"
-        data-price="148000" data-body="suv" data-trans="automatic" data-fuel="petrol">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/gclass500/600/380" alt="Mercedes G-Class" loading="lazy" />
-          <span class="card-badge">Featured</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Mercedes-Benz</p>
-          <h3 class="card-name">G-Class G500 AMG</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2022</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 22,000 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$148,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 2 -->
+          <article class="vehicle-card"
+            data-name="lexus lx570 sport"
+            data-make="lexus" data-year="2022"
+            data-price="95000" data-body="suv" data-trans="automatic" data-fuel="petrol" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/lexuslx570/600/380" alt="Lexus LX570" loading="lazy" />
+              <span class="card-badge">Featured</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Lexus</p>
+              <h3 class="card-name">LX 570 Sport</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0148</span>
+                <span class="card-grade">Grade 5</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2022</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 18,500 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+                <span class="card-spec"><span class="color-dot" style="background:#111;"></span> Obsidian Black</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$95,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0148 Lexus LX570" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 6 -->
-      <article class="vehicle-card"
-        data-name="range rover vogue se"
-        data-make="land rover" data-year="2023"
-        data-price="125000" data-body="suv" data-trans="automatic" data-fuel="petrol">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/rangerover5/600/380" alt="Range Rover" loading="lazy" />
-          <span class="card-badge new">New</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Land Rover</p>
-          <h3 class="card-name">Range Rover Vogue SE</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2023</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 5,400 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$125,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 3 -->
+          <article class="vehicle-card"
+            data-name="toyota land cruiser prado tx"
+            data-make="toyota" data-year="2023"
+            data-price="52000" data-body="suv" data-trans="automatic" data-fuel="diesel" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/prado2023/600/380" alt="Toyota Prado" loading="lazy" />
+              <span class="card-badge new">New</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Toyota</p>
+              <h3 class="card-name">Land Cruiser Prado TX</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0149</span>
+                <span class="card-grade">Grade 4.5</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2023</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 8,200 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
+                <span class="card-spec"><span class="color-dot" style="background:#c0c0c0;"></span> Silver Metallic</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$52,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0149 Toyota Prado TX" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 7 -->
-      <article class="vehicle-card"
-        data-name="mitsubishi pajero exceed"
-        data-make="mitsubishi" data-year="2020"
-        data-price="38000" data-body="suv" data-trans="automatic" data-fuel="diesel">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/pajero4x4/600/380" alt="Mitsubishi Pajero" loading="lazy" />
-          <span class="card-badge">Available</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Mitsubishi</p>
-          <h3 class="card-name">Pajero Exceed V8</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2020</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 55,000 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$38,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 4 -->
+          <article class="vehicle-card"
+            data-name="nissan patrol y62 platinum"
+            data-make="nissan" data-year="2021"
+            data-price="58000" data-body="suv" data-trans="automatic" data-fuel="petrol" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/patrolplatinum/600/380" alt="Nissan Patrol" loading="lazy" />
+              <span class="card-badge hot">Hot</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Nissan</p>
+              <h3 class="card-name">Patrol Y62 Platinum</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0150</span>
+                <span class="card-grade">Grade 4</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2021</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 35,100 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+                <span class="card-spec"><span class="color-dot" style="background:#f5f5f0;border:1px solid #ddd;"></span> White Pearl</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$58,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0150 Nissan Patrol Y62" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 8 -->
-      <article class="vehicle-card"
-        data-name="toyota hilux sr5 rogue"
-        data-make="toyota" data-year="2022"
-        data-price="45000" data-body="pickup" data-trans="manual" data-fuel="diesel">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/hilux2022/600/380" alt="Toyota Hilux" loading="lazy" />
-          <span class="card-badge">Available</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Toyota</p>
-          <h3 class="card-name">Hilux SR5 Rogue</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2022</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 28,000 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Manual</span>
-            <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$45,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 5 -->
+          <article class="vehicle-card"
+            data-name="mercedes-benz g-class g500 amg"
+            data-make="mercedes-benz" data-year="2022"
+            data-price="148000" data-body="suv" data-trans="automatic" data-fuel="petrol" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/gclass500/600/380" alt="Mercedes G-Class" loading="lazy" />
+              <span class="card-badge">Featured</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Mercedes-Benz</p>
+              <h3 class="card-name">G-Class G500 AMG</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0151</span>
+                <span class="card-grade">Grade 5</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2022</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 22,000 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+                <span class="card-spec"><span class="color-dot" style="background:#111;"></span> Obsidian Black</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$148,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0151 Mercedes G500" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 9 -->
-      <article class="vehicle-card"
-        data-name="nissan x-trail ti"
-        data-make="nissan" data-year="2023"
-        data-price="36000" data-body="suv" data-trans="automatic" data-fuel="hybrid">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/xtrail23/600/380" alt="Nissan X-Trail" loading="lazy" />
-          <span class="card-badge new">New</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Nissan</p>
-          <h3 class="card-name">X-Trail Ti e-Power</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2023</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 6,800 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$36,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 6 -->
+          <article class="vehicle-card"
+            data-name="range rover vogue se"
+            data-make="land rover" data-year="2023"
+            data-price="125000" data-body="suv" data-trans="automatic" data-fuel="petrol" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/rangerover5/600/380" alt="Range Rover" loading="lazy" />
+              <span class="card-badge new">New</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Land Rover</p>
+              <h3 class="card-name">Range Rover Vogue SE</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0152</span>
+                <span class="card-grade">Grade 5</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2023</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 5,400 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+                <span class="card-spec"><span class="color-dot" style="background:#1a3a5c;"></span> Santorini Black</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$125,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0152 Range Rover Vogue" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 10 -->
-      <article class="vehicle-card"
-        data-name="lexus rx500h f-sport"
-        data-make="lexus" data-year="2023"
-        data-price="82000" data-body="suv" data-trans="automatic" data-fuel="hybrid">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/rxhybrid/600/380" alt="Lexus RX500h" loading="lazy" />
-          <span class="card-badge hot">Hot</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Lexus</p>
-          <h3 class="card-name">RX 500h F-Sport</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2023</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 12,000 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$82,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 7 -->
+          <article class="vehicle-card"
+            data-name="mitsubishi pajero exceed"
+            data-make="mitsubishi" data-year="2020"
+            data-price="38000" data-body="suv" data-trans="automatic" data-fuel="diesel" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/pajero4x4/600/380" alt="Mitsubishi Pajero" loading="lazy" />
+              <span class="card-badge">Available</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Mitsubishi</p>
+              <h3 class="card-name">Pajero Exceed V8</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0153</span>
+                <span class="card-grade">Grade 3.5</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2020</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 55,000 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
+                <span class="card-spec"><span class="color-dot" style="background:#f5f5f0;border:1px solid #ddd;"></span> Pearl White</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$38,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0153 Mitsubishi Pajero" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 11 -->
-      <article class="vehicle-card"
-        data-name="honda odyssey absolute"
-        data-make="honda" data-year="2020"
-        data-price="28000" data-body="van" data-trans="automatic" data-fuel="petrol">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/odyssey20/600/380" alt="Honda Odyssey" loading="lazy" />
-          <span class="card-badge">Available</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Honda</p>
-          <h3 class="card-name">Odyssey Absolute EX</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2020</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 48,000 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$28,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 8 -->
+          <article class="vehicle-card"
+            data-name="toyota hilux sr5 rogue"
+            data-make="toyota" data-year="2022"
+            data-price="45000" data-body="pickup" data-trans="manual" data-fuel="diesel" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/hilux2022/600/380" alt="Toyota Hilux" loading="lazy" />
+              <span class="card-badge">Available</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Toyota</p>
+              <h3 class="card-name">Hilux SR5 Rogue</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0154</span>
+                <span class="card-grade">Grade 4</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2022</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 28,000 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Manual</span>
+                <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
+                <span class="card-spec"><span class="color-dot" style="background:#c0392b;"></span> Inferno Red</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$45,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0154 Toyota Hilux SR5" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 12 -->
-      <article class="vehicle-card"
-        data-name="subaru outback wilderness"
-        data-make="subaru" data-year="2022"
-        data-price="42000" data-body="wagon" data-trans="automatic" data-fuel="petrol">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/outback22/600/380" alt="Subaru Outback" loading="lazy" />
-          <span class="card-badge">Available</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Subaru</p>
-          <h3 class="card-name">Outback Wilderness</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2022</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 31,500 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$42,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 9 -->
+          <article class="vehicle-card"
+            data-name="nissan x-trail ti"
+            data-make="nissan" data-year="2023"
+            data-price="36000" data-body="suv" data-trans="automatic" data-fuel="hybrid" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/xtrail23/600/380" alt="Nissan X-Trail" loading="lazy" />
+              <span class="card-badge new">New</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Nissan</p>
+              <h3 class="card-name">X-Trail Ti e-Power</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0155</span>
+                <span class="card-grade">Grade 4.5</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2023</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 6,800 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
+                <span class="card-spec"><span class="color-dot" style="background:#c0c0c0;"></span> Platinum Silver</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$36,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0155 Nissan X-Trail" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 13 -->
-      <article class="vehicle-card"
-        data-name="toyota highlander 2021"
-        data-make="toyota" data-year="2021"
-        data-price="48000" data-body="suv" data-trans="automatic" data-fuel="petrol">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/highlander21/600/380" alt="Toyota Highlander" loading="lazy" />
-          <span class="card-badge">Available</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Toyota</p>
-          <h3 class="card-name">Highlander 2021</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2021</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 45,000 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$48,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 10 -->
+          <article class="vehicle-card"
+            data-name="lexus rx500h f-sport"
+            data-make="lexus" data-year="2023"
+            data-price="82000" data-body="suv" data-trans="automatic" data-fuel="hybrid" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/rxhybrid/600/380" alt="Lexus RX500h" loading="lazy" />
+              <span class="card-badge hot">Hot</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Lexus</p>
+              <h3 class="card-name">RX 500h F-Sport</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0156</span>
+                <span class="card-grade">Grade 5</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2023</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 12,000 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
+                <span class="card-spec"><span class="color-dot" style="background:#1a3a5c;"></span> Nightfall Mica</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$82,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0156 Lexus RX500h" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 14 -->
-      <article class="vehicle-card"
-        data-name="toyota fortuner gr-s 2022"
-        data-make="toyota" data-year="2022"
-        data-price="44000" data-body="suv" data-trans="automatic" data-fuel="diesel">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/fortuner22/600/380" alt="Toyota Fortuner GR-S" loading="lazy" />
-          <span class="card-badge hot">Hot</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Toyota</p>
-          <h3 class="card-name">Fortuner GR-S 2022</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2022</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 22,000 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$44,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 11 -->
+          <article class="vehicle-card"
+            data-name="honda odyssey absolute"
+            data-make="honda" data-year="2020"
+            data-price="28000" data-body="van" data-trans="automatic" data-fuel="petrol" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/odyssey20/600/380" alt="Honda Odyssey" loading="lazy" />
+              <span class="card-badge">Available</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Honda</p>
+              <h3 class="card-name">Odyssey Absolute EX</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0157</span>
+                <span class="card-grade">Grade 3.5</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2020</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 48,000 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+                <span class="card-spec"><span class="color-dot" style="background:#f5f5f0;border:1px solid #ddd;"></span> Platinum White</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$28,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0157 Honda Odyssey" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 15 -->
-      <article class="vehicle-card"
-        data-name="toyota 4runner trd 2020"
-        data-make="toyota" data-year="2020"
-        data-price="42000" data-body="suv" data-trans="automatic" data-fuel="petrol">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/4runner20/600/380" alt="Toyota 4Runner TRD" loading="lazy" />
-          <span class="card-badge">Available</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Toyota</p>
-          <h3 class="card-name">4Runner TRD 2020</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2020</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 61,000 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$42,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 12 -->
+          <article class="vehicle-card"
+            data-name="subaru outback wilderness"
+            data-make="subaru" data-year="2022"
+            data-price="42000" data-body="wagon" data-trans="automatic" data-fuel="petrol" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/outback22/600/380" alt="Subaru Outback" loading="lazy" />
+              <span class="card-badge">Available</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Subaru</p>
+              <h3 class="card-name">Outback Wilderness</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0158</span>
+                <span class="card-grade">Grade 4</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2022</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 31,500 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+                <span class="card-spec"><span class="color-dot" style="background:#4a5568;"></span> Magnetite Grey</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$42,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0158 Subaru Outback" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 16 -->
-      <article class="vehicle-card"
-        data-name="toyota alphard executive 2022"
-        data-make="toyota" data-year="2022"
-        data-price="65000" data-body="van" data-trans="automatic" data-fuel="petrol">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/alphard22/600/380" alt="Toyota Alphard Executive" loading="lazy" />
-          <span class="card-badge new">New</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Toyota</p>
-          <h3 class="card-name">Alphard Executive 2022</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2022</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 18,000 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$65,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 13 -->
+          <article class="vehicle-card"
+            data-name="toyota highlander 2021"
+            data-make="toyota" data-year="2021"
+            data-price="48000" data-body="suv" data-trans="automatic" data-fuel="petrol" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/highlander21/600/380" alt="Toyota Highlander" loading="lazy" />
+              <span class="card-badge">Available</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Toyota</p>
+              <h3 class="card-name">Highlander 2021</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0159</span>
+                <span class="card-grade">Grade 4</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2021</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 45,000 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+                <span class="card-spec"><span class="color-dot" style="background:#f5f5f0;border:1px solid #ddd;"></span> Blizzard Pearl</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$48,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0159 Toyota Highlander" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 17 -->
-      <article class="vehicle-card"
-        data-name="toyota camry hybrid 2023"
-        data-make="toyota" data-year="2023"
-        data-price="34000" data-body="sedan" data-trans="automatic" data-fuel="hybrid">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/camry2023/600/380" alt="Toyota Camry Hybrid" loading="lazy" />
-          <span class="card-badge new">New</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Toyota</p>
-          <h3 class="card-name">Camry Hybrid 2023</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2023</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 9,500 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$34,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 14 -->
+          <article class="vehicle-card"
+            data-name="toyota fortuner gr-s 2022"
+            data-make="toyota" data-year="2022"
+            data-price="44000" data-body="suv" data-trans="automatic" data-fuel="diesel" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/fortuner22/600/380" alt="Toyota Fortuner GR-S" loading="lazy" />
+              <span class="card-badge hot">Hot</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Toyota</p>
+              <h3 class="card-name">Fortuner GR-S 2022</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0160</span>
+                <span class="card-grade">Grade 4</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2022</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 22,000 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
+                <span class="card-spec"><span class="color-dot" style="background:#111;"></span> Attitude Black</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$44,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0160 Toyota Fortuner GR-S" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 18 -->
-      <article class="vehicle-card"
-        data-name="toyota crown 2023"
-        data-make="toyota" data-year="2023"
-        data-price="52000" data-body="sedan" data-trans="automatic" data-fuel="hybrid">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/crownhybrid/600/380" alt="Toyota Crown" loading="lazy" />
-          <span class="card-badge new">New</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Toyota</p>
-          <h3 class="card-name">Crown 2023</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2023</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 6,200 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$52,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 15 -->
+          <article class="vehicle-card"
+            data-name="toyota 4runner trd 2020"
+            data-make="toyota" data-year="2020"
+            data-price="42000" data-body="suv" data-trans="automatic" data-fuel="petrol" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/4runner20/600/380" alt="Toyota 4Runner TRD" loading="lazy" />
+              <span class="card-badge">Available</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Toyota</p>
+              <h3 class="card-name">4Runner TRD 2020</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0161</span>
+                <span class="card-grade">Grade 3.5</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2020</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 61,000 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+                <span class="card-spec"><span class="color-dot" style="background:#c0392b;"></span> Barcelona Red</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$42,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0161 Toyota 4Runner TRD" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 19 -->
-      <article class="vehicle-card"
-        data-name="mitsubishi challenger 2022"
-        data-make="mitsubishi" data-year="2022"
-        data-price="37000" data-body="suv" data-trans="automatic" data-fuel="diesel">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/challanger22/600/380" alt="Mitsubishi Challenger" loading="lazy" />
-          <span class="card-badge">Available</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Mitsubishi</p>
-          <h3 class="card-name">Challenger 2022</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2022</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 31,000 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$37,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 16 -->
+          <article class="vehicle-card"
+            data-name="toyota alphard executive 2022"
+            data-make="toyota" data-year="2022"
+            data-price="65000" data-body="van" data-trans="automatic" data-fuel="petrol" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/alphard22/600/380" alt="Toyota Alphard Executive" loading="lazy" />
+              <span class="card-badge new">New</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Toyota</p>
+              <h3 class="card-name">Alphard Executive 2022</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0162</span>
+                <span class="card-grade">Grade 4.5</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2022</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 18,000 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+                <span class="card-spec"><span class="color-dot" style="background:#f5f5f0;border:1px solid #ddd;"></span> White Pearl Crystal</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$65,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0162 Toyota Alphard" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-      <!-- 20 -->
-      <article class="vehicle-card"
-        data-name="toyota sienna 2023"
-        data-make="toyota" data-year="2023"
-        data-price="55000" data-body="van" data-trans="automatic" data-fuel="hybrid">
-        <div class="card-img-wrap">
-          <img src="https://picsum.photos/seed/sienna23/600/380" alt="Toyota Sienna" loading="lazy" />
-          <span class="card-badge new">New</span>
-          <button class="card-fav" title="Add to favourites">🤍</button>
-        </div>
-        <div class="card-body">
-          <p class="card-make">Toyota</p>
-          <h3 class="card-name">Sienna 2023</h3>
-          <div class="card-specs">
-            <span class="card-spec"><span class="icon">📅</span> 2023</span>
-            <span class="card-spec"><span class="icon">🛣️</span> 14,200 km</span>
-            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
-            <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
-          </div>
-          <div class="card-footer">
-            <div class="card-price"><span>From</span>$55,000</div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
-          </div>
-        </div>
-      </article>
+          <!-- 17 -->
+          <article class="vehicle-card"
+            data-name="toyota camry hybrid 2023"
+            data-make="toyota" data-year="2023"
+            data-price="34000" data-body="sedan" data-trans="automatic" data-fuel="hybrid" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/camry2023/600/380" alt="Toyota Camry Hybrid" loading="lazy" />
+              <span class="card-badge new">New</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Toyota</p>
+              <h3 class="card-name">Camry Hybrid 2023</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0163</span>
+                <span class="card-grade">Grade 4.5</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2023</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 9,500 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
+                <span class="card-spec"><span class="color-dot" style="background:#c0c0c0;"></span> Celestial Silver</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$34,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0163 Toyota Camry Hybrid" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
 
-    </div><!-- /inventory-grid -->
+          <!-- 18 -->
+          <article class="vehicle-card"
+            data-name="toyota crown 2023"
+            data-make="toyota" data-year="2023"
+            data-price="52000" data-body="sedan" data-trans="automatic" data-fuel="hybrid" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/crownhybrid/600/380" alt="Toyota Crown" loading="lazy" />
+              <span class="card-badge new">New</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Toyota</p>
+              <h3 class="card-name">Crown 2023</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0164</span>
+                <span class="card-grade">Grade 5</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2023</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 6,200 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
+                <span class="card-spec"><span class="color-dot" style="background:#f5f5f0;border:1px solid #ddd;"></span> Precious White Pearl</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$52,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0164 Toyota Crown" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- 19 -->
+          <article class="vehicle-card"
+            data-name="mitsubishi challenger 2022"
+            data-make="mitsubishi" data-year="2022"
+            data-price="37000" data-body="suv" data-trans="automatic" data-fuel="diesel" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/challanger22/600/380" alt="Mitsubishi Challenger" loading="lazy" />
+              <span class="card-badge">Available</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Mitsubishi</p>
+              <h3 class="card-name">Challenger 2022</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0165</span>
+                <span class="card-grade">Grade 4</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2022</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 31,000 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
+                <span class="card-spec"><span class="color-dot" style="background:#4a5568;"></span> Graphite Grey</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$37,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0165 Mitsubishi Challenger" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- 20 -->
+          <article class="vehicle-card"
+            data-name="toyota sienna 2023"
+            data-make="toyota" data-year="2023"
+            data-price="55000" data-body="van" data-trans="automatic" data-fuel="hybrid" data-steering="rhd">
+            <div class="card-img-wrap">
+              <img src="https://picsum.photos/seed/sienna23/600/380" alt="Toyota Sienna" loading="lazy" />
+              <span class="card-badge new">New</span>
+              <button class="card-fav" title="Add to favourites">🤍</button>
+            </div>
+            <div class="card-body">
+              <p class="card-make">Toyota</p>
+              <h3 class="card-name">Sienna 2023</h3>
+              <div class="card-meta-row">
+                <span class="card-stock">Stock# AEM-2024-0166</span>
+                <span class="card-grade">Grade 4.5</span>
+              </div>
+              <div class="card-specs">
+                <span class="card-spec"><span class="icon">📅</span> 2023</span>
+                <span class="card-spec"><span class="icon">🛣️</span> 14,200 km</span>
+                <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+                <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
+                <span class="card-spec"><span class="color-dot" style="background:#f5f5f0;border:1px solid #ddd;"></span> Blizzard Pearl</span>
+                <span class="card-spec steering-badge">RHD</span>
+              </div>
+              <div class="card-footer">
+                <div class="card-price"><span>FOB Tokyo</span>$55,000</div>
+                <div class="card-actions">
+                  <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+                  <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0166 Toyota Sienna" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+                </div>
+              </div>
+            </div>
+          </article>
+
+        </div><!-- /inventory-grid -->
+
+        <!-- Mobile Filter Toggle Button -->
+        <button class="mobile-filter-toggle" id="mobileFilterToggle">⚙️ Filter &amp; Sort</button>
+      </div><!-- /inv-main -->
+
+    </div><!-- /inv-layout -->
   </div>
 </section>
+
+<!-- Mobile sidebar overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <!-- ===== CTA ===== -->
 <section style="background: var(--navy); padding: 3.5rem 0; text-align: center;">

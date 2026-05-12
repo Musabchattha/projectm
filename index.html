@@ -10,6 +10,42 @@
 </head>
 <body>
 
+<!-- ===== TOP INFO BAR ===== -->
+<div class="top-bar">
+  <div class="container">
+    <div class="top-bar-inner">
+      <div class="top-bar-left">
+        <span>📞 +81-3-1234-5678</span>
+        <span>✉️ info@autoelitemotors.com</span>
+        <span>🕐 Mon–Sat: 9AM–6PM JST</span>
+      </div>
+      <div class="top-bar-right">
+        <a href="https://wa.me/818087654321" target="_blank" rel="noopener">💬 WhatsApp</a>
+        <span class="top-bar-divider">|</span>
+        <a href="#">🇯🇵 Japan</a>
+        <span class="top-bar-divider">|</span>
+        <a href="#">🇬🇧 English</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ARRIVALS TICKER ===== -->
+<div class="arrivals-ticker">
+  <div class="ticker-label">🔔 NEW IN</div>
+  <div class="ticker-track">
+    <div class="ticker-inner" id="tickerInner">
+      <span>2023 Toyota Crown Hybrid — Stock# AEM-2024-0166</span>
+      <span>2023 Toyota Sienna AWD — Stock# AEM-2024-0165</span>
+      <span>2022 Toyota Alphard Executive — Stock# AEM-2024-0164</span>
+      <span>2023 Lexus RX500h F-Sport — Stock# AEM-2024-0160</span>
+      <span>2023 Land Rover Range Rover Vogue — Stock# AEM-2024-0156</span>
+      <span>2023 Toyota Crown Hybrid — Stock# AEM-2024-0166</span>
+      <span>2023 Toyota Sienna AWD — Stock# AEM-2024-0165</span>
+    </div>
+  </div>
+</div>
+
 <!-- ===== HEADER ===== -->
 <header id="header" data-transparent="true">
   <div class="container">
@@ -61,6 +97,59 @@
         <a href="inventory.html" class="btn btn-primary">Browse Inventory</a>
         <a href="contact.html" class="btn btn-outline">Get a Quote</a>
       </div>
+
+      <!-- Hero Search Widget -->
+      <div class="hero-search fade-up delay-2">
+        <div class="hero-search-tabs">
+          <button class="hs-tab active" data-tab="quick">Quick Search</button>
+          <button class="hs-tab" data-tab="advanced">Advanced</button>
+        </div>
+        <div class="hero-search-form" id="hsTabQuick">
+          <select class="hs-select" id="hsMake">
+            <option value="">Any Make</option>
+            <option>Toyota</option>
+            <option>Lexus</option>
+            <option>Nissan</option>
+            <option>Mercedes-Benz</option>
+            <option>Land Rover</option>
+            <option>Mitsubishi</option>
+            <option>Honda</option>
+            <option>Subaru</option>
+          </select>
+          <select class="hs-select" id="hsBody">
+            <option value="">Any Type</option>
+            <option>SUV</option>
+            <option>Sedan</option>
+            <option>Van</option>
+            <option>Pickup</option>
+            <option>Wagon</option>
+          </select>
+          <select class="hs-select" id="hsBudget">
+            <option value="">Any Budget</option>
+            <option>Under $30,000</option>
+            <option>$30,000 – $60,000</option>
+            <option>$60,000 – $100,000</option>
+            <option>Over $100,000</option>
+          </select>
+          <button class="hs-btn" id="heroSearchBtn">🔍 Search</button>
+        </div>
+        <div class="hero-search-form" id="hsTabAdvanced" style="display:none;">
+          <input class="hs-input" type="text" placeholder="e.g. Land Cruiser 200, Lexus LX..." id="hsKeyword" />
+          <select class="hs-select" id="hsYear">
+            <option value="">Any Year</option>
+            <option>2023–2025</option>
+            <option>2020–2022</option>
+            <option>2017–2019</option>
+          </select>
+          <select class="hs-select" id="hsTransAdv">
+            <option value="">Any Trans.</option>
+            <option>Automatic</option>
+            <option>Manual</option>
+          </select>
+          <button class="hs-btn" id="heroSearchBtnAdv">🔍 Search</button>
+        </div>
+      </div>
+
       <div class="hero-stats fade-up delay-3">
         <div class="hero-stat">
           <strong>500+</strong>
@@ -145,18 +234,24 @@
         <div class="card-body">
           <p class="card-make">Toyota</p>
           <h3 class="card-name">Land Cruiser 200 Series</h3>
+          <div class="card-meta-row">
+            <span class="card-stock">Stock# AEM-2024-0147</span>
+            <span class="card-grade">Grade 4.5</span>
+          </div>
           <div class="card-specs">
             <span class="card-spec"><span class="icon">📅</span> 2021</span>
             <span class="card-spec"><span class="icon">🛣️</span> 42,000 km</span>
             <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
             <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
+            <span class="card-spec"><span class="color-dot" style="background:#f5f5f0;border:1px solid #ddd;"></span> Pearl White</span>
+            <span class="card-spec steering-badge">RHD</span>
           </div>
           <div class="card-footer">
-            <div class="card-price">
-              <span>Starting from</span>
-              $68,500
+            <div class="card-price"><span>FOB Tokyo</span>$68,500</div>
+            <div class="card-actions">
+              <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+              <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0147 Toyota Land Cruiser 200" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
             </div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -171,18 +266,24 @@
         <div class="card-body">
           <p class="card-make">Lexus</p>
           <h3 class="card-name">LX 570 Sport</h3>
+          <div class="card-meta-row">
+            <span class="card-stock">Stock# AEM-2024-0160</span>
+            <span class="card-grade">Grade 5</span>
+          </div>
           <div class="card-specs">
             <span class="card-spec"><span class="icon">📅</span> 2022</span>
             <span class="card-spec"><span class="icon">🛣️</span> 18,500 km</span>
             <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
             <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+            <span class="card-spec"><span class="color-dot" style="background:#111;"></span> Obsidian Black</span>
+            <span class="card-spec steering-badge">RHD</span>
           </div>
           <div class="card-footer">
-            <div class="card-price">
-              <span>Starting from</span>
-              $95,000
+            <div class="card-price"><span>FOB Tokyo</span>$95,000</div>
+            <div class="card-actions">
+              <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+              <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0160 Lexus LX570" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
             </div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -197,18 +298,24 @@
         <div class="card-body">
           <p class="card-make">Toyota</p>
           <h3 class="card-name">Land Cruiser Prado TX</h3>
+          <div class="card-meta-row">
+            <span class="card-stock">Stock# AEM-2024-0149</span>
+            <span class="card-grade">Grade 4.5</span>
+          </div>
           <div class="card-specs">
             <span class="card-spec"><span class="icon">📅</span> 2023</span>
             <span class="card-spec"><span class="icon">🛣️</span> 8,200 km</span>
             <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
             <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
+            <span class="card-spec"><span class="color-dot" style="background:#c0c0c0;"></span> Silver Metallic</span>
+            <span class="card-spec steering-badge">RHD</span>
           </div>
           <div class="card-footer">
-            <div class="card-price">
-              <span>Starting from</span>
-              $52,000
+            <div class="card-price"><span>FOB Tokyo</span>$52,000</div>
+            <div class="card-actions">
+              <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+              <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0149 Toyota Prado TX" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
             </div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -223,18 +330,24 @@
         <div class="card-body">
           <p class="card-make">Nissan</p>
           <h3 class="card-name">Patrol Y62 Platinum</h3>
+          <div class="card-meta-row">
+            <span class="card-stock">Stock# AEM-2024-0151</span>
+            <span class="card-grade">Grade 4</span>
+          </div>
           <div class="card-specs">
             <span class="card-spec"><span class="icon">📅</span> 2021</span>
             <span class="card-spec"><span class="icon">🛣️</span> 35,100 km</span>
             <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
             <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+            <span class="card-spec"><span class="color-dot" style="background:#f5f5f0;border:1px solid #ddd;"></span> White Pearl</span>
+            <span class="card-spec steering-badge">RHD</span>
           </div>
           <div class="card-footer">
-            <div class="card-price">
-              <span>Starting from</span>
-              $58,000
+            <div class="card-price"><span>FOB Tokyo</span>$58,000</div>
+            <div class="card-actions">
+              <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+              <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0151 Nissan Patrol Y62" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
             </div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -249,18 +362,24 @@
         <div class="card-body">
           <p class="card-make">Mercedes-Benz</p>
           <h3 class="card-name">G-Class G500 AMG</h3>
+          <div class="card-meta-row">
+            <span class="card-stock">Stock# AEM-2024-0156</span>
+            <span class="card-grade">Grade 5</span>
+          </div>
           <div class="card-specs">
             <span class="card-spec"><span class="icon">📅</span> 2022</span>
             <span class="card-spec"><span class="icon">🛣️</span> 22,000 km</span>
             <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
             <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+            <span class="card-spec"><span class="color-dot" style="background:#111;"></span> Obsidian Black</span>
+            <span class="card-spec steering-badge">RHD</span>
           </div>
           <div class="card-footer">
-            <div class="card-price">
-              <span>Starting from</span>
-              $148,000
+            <div class="card-price"><span>FOB Tokyo</span>$148,000</div>
+            <div class="card-actions">
+              <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+              <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0156 Mercedes G500" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
             </div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -275,18 +394,24 @@
         <div class="card-body">
           <p class="card-make">Land Rover</p>
           <h3 class="card-name">Range Rover Vogue SE</h3>
+          <div class="card-meta-row">
+            <span class="card-stock">Stock# AEM-2024-0157</span>
+            <span class="card-grade">Grade 5</span>
+          </div>
           <div class="card-specs">
             <span class="card-spec"><span class="icon">📅</span> 2023</span>
             <span class="card-spec"><span class="icon">🛣️</span> 5,400 km</span>
             <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
             <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+            <span class="card-spec"><span class="color-dot" style="background:#1a3a5c;"></span> Santorini Black</span>
+            <span class="card-spec steering-badge">RHD</span>
           </div>
           <div class="card-footer">
-            <div class="card-price">
-              <span>Starting from</span>
-              $125,000
+            <div class="card-price"><span>FOB Tokyo</span>$125,000</div>
+            <div class="card-actions">
+              <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+              <a href="https://wa.me/818087654321?text=Hi, I'm interested in Stock# AEM-2024-0157 Range Rover Vogue" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
             </div>
-            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -531,6 +656,38 @@
             Please enter a valid email address.
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== WHY JAPAN ===== -->
+<section class="why-japan">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-label">The Japan Advantage</span>
+      <h2 class="section-title">Why Buy a Japanese Export Vehicle?</h2>
+    </div>
+    <div class="why-grid">
+      <div class="why-card">
+        <div class="why-icon">🛡️</div>
+        <h3>Strict Vehicle Grading</h3>
+        <p>Every auction vehicle is graded 1–5 by independent inspectors. Grade 4+ means near-perfect condition. We only source Grade 3.5 and above.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">🔧</div>
+        <h3>Meticulous Maintenance</h3>
+        <p>Japanese drivers follow strict servicing schedules. Most vehicles have full dealer service history and original condition interiors.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">💴</div>
+        <h3>Exceptional Value</h3>
+        <p>Japan's vehicle depreciation is among the highest in the world. Get a low-mileage premium vehicle at a fraction of the local new price.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">🌏</div>
+        <h3>Right Hand Drive Ready</h3>
+        <p>Perfect for RHD countries across Africa, Asia, and the Pacific. All vehicles are road-legal and compliant for your destination.</p>
       </div>
     </div>
   </div>
