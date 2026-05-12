@@ -24,6 +24,7 @@
       <ul class="nav-links">
         <li><a href="index.html">Home</a></li>
         <li><a href="inventory.html">Inventory</a></li>
+        <li><a href="finance.html">Finance</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="contact.html">Contact</a></li>
       </ul>
@@ -40,6 +41,7 @@
   <button class="mobile-close" id="mobileClose">✕</button>
   <a href="index.html">Home</a>
   <a href="inventory.html">Inventory</a>
+  <a href="finance.html">Finance</a>
   <a href="about.html">About</a>
   <a href="contact.html">Contact</a>
   <a href="inventory.html" class="btn btn-primary" style="margin-top:1rem;">Browse Inventory</a>
@@ -225,11 +227,38 @@
           <div class="hours-row"><span class="day">Sunday</span><span class="time closed">Closed</span></div>
         </div>
 
-        <!-- Map -->
-        <div class="map-placeholder">
-          <div class="map-icon">🗺️</div>
-          <div class="map-label">AutoElite Motors — Tokyo HQ</div>
-          <div class="map-sub">3-14-2 Shinonome, Koto-ku, Tokyo</div>
+        <!-- Map Embed Placeholder -->
+        <div class="map-embed-section">
+          <div class="map-embed-header">
+            <span class="map-embed-icon">🗺️</span>
+            <div>
+              <div class="map-embed-label">AutoElite Motors — Tokyo HQ</div>
+              <div class="map-embed-sub">3-14-2 Shinonome, Koto-ku, Tokyo</div>
+            </div>
+          </div>
+          <div class="map-embed-frame">
+            <div class="map-grid-overlay"></div>
+            <div class="map-pin-center">
+              <div class="map-pin">📍</div>
+              <div class="map-pin-label">AutoElite Motors</div>
+            </div>
+            <div class="map-street-h map-street-1"></div>
+            <div class="map-street-h map-street-2"></div>
+            <div class="map-street-v map-street-3"></div>
+            <div class="map-street-v map-street-4"></div>
+          </div>
+          <a href="https://www.google.com/maps/search/3-14-2+Shinonome+Koto-ku+Tokyo" target="_blank" rel="noopener" class="map-directions-btn">Get Directions →</a>
+        </div>
+
+        <!-- Live Chat Placeholder -->
+        <div class="live-chat-card">
+          <div class="lc-header">
+            <span class="lc-status-dot"></span>
+            <span class="lc-status-text">Support Online Now</span>
+          </div>
+          <h3 class="lc-title">Speak with a Specialist</h3>
+          <p class="lc-desc">Our team is available Mon–Sat, 9am–6pm JST. Start a live chat for instant answers.</p>
+          <button class="btn btn-primary lc-btn" onclick="this.textContent='Connecting...'">💬 Start Live Chat</button>
         </div>
 
       </div><!-- /sidebar -->
@@ -237,7 +266,7 @@
   </div>
 </section>
 
-<!-- ===== FAQ ===== -->
+<!-- ===== FAQ ACCORDION ===== -->
 <section style="padding:4.5rem 0; background:var(--light);">
   <div class="container">
     <div class="text-center">
@@ -245,36 +274,86 @@
       <h2 class="section-title">Frequently Asked Questions</h2>
       <p class="section-sub">Quick answers to the questions we hear most often.</p>
     </div>
-    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(460px, 1fr)); gap:1.4rem; margin-top:1rem;">
+    <div class="faq-accordion" id="faqAccordion">
 
-      <div style="background:var(--white); border-radius:10px; padding:1.6rem; box-shadow:var(--shadow);">
-        <h3 style="font-size:1rem; color:var(--navy); margin-bottom:.5rem;">How long does shipping take?</h3>
-        <p style="font-size:.87rem; color:#4a5568; line-height:1.65;">Shipping times vary by destination. Africa (East &amp; West) typically 4–6 weeks; Middle East 2–3 weeks; Pacific Islands 4–8 weeks. We provide real-time tracking for all shipments.</p>
+      <div class="faq-item">
+        <button class="faq-question" type="button">
+          How long does shipping take?
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Shipping times vary by destination. Africa (East &amp; West) typically 4–6 weeks; Middle East 2–3 weeks; Pacific Islands 4–8 weeks. We provide real-time tracking for all shipments.</p>
+        </div>
       </div>
 
-      <div style="background:var(--white); border-radius:10px; padding:1.6rem; box-shadow:var(--shadow);">
-        <h3 style="font-size:1rem; color:var(--navy); margin-bottom:.5rem;">Do you offer a warranty?</h3>
-        <p style="font-size:.87rem; color:#4a5568; line-height:1.65;">Yes. All vehicles come with a 12-month AutoElite powertrain warranty. Extended warranty packages of up to 36 months are available at additional cost.</p>
+      <div class="faq-item">
+        <button class="faq-question" type="button">
+          Do you offer a warranty?
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Yes. All vehicles come with a 12-month AutoElite powertrain warranty. Extended warranty packages of up to 36 months are available at additional cost.</p>
+        </div>
       </div>
 
-      <div style="background:var(--white); border-radius:10px; padding:1.6rem; box-shadow:var(--shadow);">
-        <h3 style="font-size:1rem; color:var(--navy); margin-bottom:.5rem;">Can I inspect the vehicle before purchase?</h3>
-        <p style="font-size:.87rem; color:#4a5568; line-height:1.65;">Absolutely. We provide detailed inspection reports, 360° photos, and video walkthroughs. You're also welcome to arrange a third-party inspection at our Tokyo facility.</p>
+      <div class="faq-item">
+        <button class="faq-question" type="button">
+          Can I inspect the vehicle before purchase?
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Absolutely. We provide detailed inspection reports, 360° photos, and video walkthroughs. You're also welcome to arrange a third-party inspection at our Tokyo facility.</p>
+        </div>
       </div>
 
-      <div style="background:var(--white); border-radius:10px; padding:1.6rem; box-shadow:var(--shadow);">
-        <h3 style="font-size:1rem; color:var(--navy); margin-bottom:.5rem;">What payment methods do you accept?</h3>
-        <p style="font-size:.87rem; color:#4a5568; line-height:1.65;">We accept international bank transfer (T/T), letter of credit, and select finance arrangements. A 30% deposit is required to reserve a vehicle, with the balance due before shipping.</p>
+      <div class="faq-item">
+        <button class="faq-question" type="button">
+          What payment methods do you accept?
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>We accept international bank transfer (T/T), letter of credit, and select finance arrangements. A 30% deposit is required to reserve a vehicle, with the balance due before shipping.</p>
+        </div>
       </div>
 
-      <div style="background:var(--white); border-radius:10px; padding:1.6rem; box-shadow:var(--shadow);">
-        <h3 style="font-size:1rem; color:var(--navy); margin-bottom:.5rem;">Do you handle customs clearance?</h3>
-        <p style="font-size:.87rem; color:#4a5568; line-height:1.65;">We prepare all necessary export documents (deregistration, export certificate, BL, etc.). We can also connect you with trusted customs clearing agents at your destination port.</p>
+      <div class="faq-item">
+        <button class="faq-question" type="button">
+          Do you handle customs clearance?
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>We prepare all necessary export documents (deregistration, export certificate, BL, etc.). We can also connect you with trusted customs clearing agents at your destination port.</p>
+        </div>
       </div>
 
-      <div style="background:var(--white); border-radius:10px; padding:1.6rem; box-shadow:var(--shadow);">
-        <h3 style="font-size:1rem; color:var(--navy); margin-bottom:.5rem;">Can you source a vehicle not in your inventory?</h3>
-        <p style="font-size:.87rem; color:#4a5568; line-height:1.65;">Yes! We have access to Japan's major auction houses and a vast dealer network. Share your specifications and budget and we'll source your perfect vehicle, often within 1–2 weeks.</p>
+      <div class="faq-item">
+        <button class="faq-question" type="button">
+          Can you source a vehicle not in your inventory?
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Yes! We have access to Japan's major auction houses and a vast dealer network. Share your specifications and budget and we'll source your perfect vehicle, often within 1–2 weeks.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" type="button">
+          What is RORO shipping?
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>RORO stands for "Roll-On/Roll-Off" — a method where vehicles are driven onto a specialized cargo vessel and driven off at the destination port. It's generally the most cost-effective shipping method for vehicles. We also offer container shipping for added protection or multi-vehicle shipments.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" type="button">
+          Can I request a specific auction grade?
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Yes. Japan's vehicle auction system grades vehicles on a scale from 1 to 5 (and sub-grades like 4.5). We can source vehicles to your minimum grade requirement — most of our buyers specify grade 3.5 or above. Grade 4 and 4.5 vehicles are excellent condition and our most popular category.</p>
+        </div>
       </div>
 
     </div>
@@ -303,6 +382,7 @@
         <ul>
           <li><a href="index.html">Home</a></li>
           <li><a href="inventory.html">Inventory</a></li>
+          <li><a href="finance.html">Finance</a></li>
           <li><a href="about.html">About Us</a></li>
           <li><a href="contact.html">Contact</a></li>
         </ul>
@@ -331,6 +411,12 @@
     </div>
   </div>
 </footer>
+
+<!-- WhatsApp Float -->
+<a href="https://wa.me/818087654321" class="whatsapp-float" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+  <span class="wa-icon">💬</span>
+  <span class="wa-label">WhatsApp Us</span>
+</a>
 
 <script src="js/main.js"></script>
 </body>

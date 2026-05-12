@@ -24,6 +24,7 @@
       <ul class="nav-links">
         <li><a href="index.html">Home</a></li>
         <li><a href="inventory.html">Inventory</a></li>
+        <li><a href="finance.html">Finance</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="contact.html">Contact</a></li>
       </ul>
@@ -40,6 +41,7 @@
   <button class="mobile-close" id="mobileClose">✕</button>
   <a href="index.html">Home</a>
   <a href="inventory.html">Inventory</a>
+  <a href="finance.html">Finance</a>
   <a href="about.html">About</a>
   <a href="contact.html">Contact</a>
   <a href="contact.html" class="btn btn-primary" style="margin-top:1rem;">Get a Quote</a>
@@ -115,13 +117,21 @@
           <option value="manual">Manual</option>
         </select>
 
+        <select class="filter-select" id="fuelFilter" aria-label="Filter by fuel type">
+          <option value="">Any Fuel</option>
+          <option value="petrol">Petrol</option>
+          <option value="diesel">Diesel</option>
+          <option value="hybrid">Hybrid</option>
+          <option value="electric">Electric</option>
+        </select>
+
         <button class="filter-reset" id="resetFilters">✕ Reset</button>
       </div>
     </div>
 
     <!-- Results bar -->
     <div class="results-bar">
-      <p class="results-count">Showing <strong id="resultsCount">12</strong> vehicles</p>
+      <p class="results-count">Showing <strong id="resultsCount">20</strong> vehicles</p>
       <select class="sort-select" id="sortSelect" aria-label="Sort results">
         <option value="">Sort by: Default</option>
         <option value="price-asc">Price: Low to High</option>
@@ -144,9 +154,9 @@
       <article class="vehicle-card"
         data-name="toyota land cruiser 200 series"
         data-make="toyota" data-year="2021"
-        data-price="68500" data-body="suv" data-trans="automatic">
+        data-price="68500" data-body="suv" data-trans="automatic" data-fuel="diesel">
         <div class="card-img-wrap">
-          <img src="https://via.placeholder.com/400x250/0a1628/f0a500?text=Land+Cruiser+200" alt="Toyota Land Cruiser" loading="lazy" />
+          <img src="https://picsum.photos/seed/landcruiser200/600/380" alt="Toyota Land Cruiser 200" loading="lazy" />
           <span class="card-badge hot">Hot</span>
           <button class="card-fav" title="Add to favourites">🤍</button>
         </div>
@@ -161,7 +171,7 @@
           </div>
           <div class="card-footer">
             <div class="card-price"><span>From</span>$68,500</div>
-            <a href="contact.html" class="btn btn-navy">View Details</a>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -170,9 +180,9 @@
       <article class="vehicle-card"
         data-name="lexus lx570 sport"
         data-make="lexus" data-year="2022"
-        data-price="95000" data-body="suv" data-trans="automatic">
+        data-price="95000" data-body="suv" data-trans="automatic" data-fuel="petrol">
         <div class="card-img-wrap">
-          <img src="https://via.placeholder.com/400x250/112240/f0a500?text=Lexus+LX570" alt="Lexus LX570" loading="lazy" />
+          <img src="https://picsum.photos/seed/lexuslx570/600/380" alt="Lexus LX570" loading="lazy" />
           <span class="card-badge">Featured</span>
           <button class="card-fav" title="Add to favourites">🤍</button>
         </div>
@@ -187,7 +197,7 @@
           </div>
           <div class="card-footer">
             <div class="card-price"><span>From</span>$95,000</div>
-            <a href="contact.html" class="btn btn-navy">View Details</a>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -196,9 +206,9 @@
       <article class="vehicle-card"
         data-name="toyota land cruiser prado tx"
         data-make="toyota" data-year="2023"
-        data-price="52000" data-body="suv" data-trans="automatic">
+        data-price="52000" data-body="suv" data-trans="automatic" data-fuel="diesel">
         <div class="card-img-wrap">
-          <img src="https://via.placeholder.com/400x250/1a3259/f0a500?text=Toyota+Prado+TX" alt="Toyota Prado" loading="lazy" />
+          <img src="https://picsum.photos/seed/prado2023/600/380" alt="Toyota Prado" loading="lazy" />
           <span class="card-badge new">New</span>
           <button class="card-fav" title="Add to favourites">🤍</button>
         </div>
@@ -213,7 +223,7 @@
           </div>
           <div class="card-footer">
             <div class="card-price"><span>From</span>$52,000</div>
-            <a href="contact.html" class="btn btn-navy">View Details</a>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -222,9 +232,9 @@
       <article class="vehicle-card"
         data-name="nissan patrol y62 platinum"
         data-make="nissan" data-year="2021"
-        data-price="58000" data-body="suv" data-trans="automatic">
+        data-price="58000" data-body="suv" data-trans="automatic" data-fuel="petrol">
         <div class="card-img-wrap">
-          <img src="https://via.placeholder.com/400x250/0d1f3c/f0a500?text=Nissan+Patrol+Y62" alt="Nissan Patrol" loading="lazy" />
+          <img src="https://picsum.photos/seed/patrolplatinum/600/380" alt="Nissan Patrol" loading="lazy" />
           <span class="card-badge hot">Hot</span>
           <button class="card-fav" title="Add to favourites">🤍</button>
         </div>
@@ -239,7 +249,7 @@
           </div>
           <div class="card-footer">
             <div class="card-price"><span>From</span>$58,000</div>
-            <a href="contact.html" class="btn btn-navy">View Details</a>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -248,9 +258,9 @@
       <article class="vehicle-card"
         data-name="mercedes-benz g-class g500 amg"
         data-make="mercedes-benz" data-year="2022"
-        data-price="148000" data-body="suv" data-trans="automatic">
+        data-price="148000" data-body="suv" data-trans="automatic" data-fuel="petrol">
         <div class="card-img-wrap">
-          <img src="https://via.placeholder.com/400x250/0a1628/c98a00?text=Mercedes+G500+AMG" alt="Mercedes G-Class" loading="lazy" />
+          <img src="https://picsum.photos/seed/gclass500/600/380" alt="Mercedes G-Class" loading="lazy" />
           <span class="card-badge">Featured</span>
           <button class="card-fav" title="Add to favourites">🤍</button>
         </div>
@@ -265,7 +275,7 @@
           </div>
           <div class="card-footer">
             <div class="card-price"><span>From</span>$148,000</div>
-            <a href="contact.html" class="btn btn-navy">View Details</a>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -274,9 +284,9 @@
       <article class="vehicle-card"
         data-name="range rover vogue se"
         data-make="land rover" data-year="2023"
-        data-price="125000" data-body="suv" data-trans="automatic">
+        data-price="125000" data-body="suv" data-trans="automatic" data-fuel="petrol">
         <div class="card-img-wrap">
-          <img src="https://via.placeholder.com/400x250/112240/c98a00?text=Range+Rover+Vogue" alt="Range Rover" loading="lazy" />
+          <img src="https://picsum.photos/seed/rangerover5/600/380" alt="Range Rover" loading="lazy" />
           <span class="card-badge new">New</span>
           <button class="card-fav" title="Add to favourites">🤍</button>
         </div>
@@ -291,7 +301,7 @@
           </div>
           <div class="card-footer">
             <div class="card-price"><span>From</span>$125,000</div>
-            <a href="contact.html" class="btn btn-navy">View Details</a>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -300,9 +310,9 @@
       <article class="vehicle-card"
         data-name="mitsubishi pajero exceed"
         data-make="mitsubishi" data-year="2020"
-        data-price="38000" data-body="suv" data-trans="automatic">
+        data-price="38000" data-body="suv" data-trans="automatic" data-fuel="diesel">
         <div class="card-img-wrap">
-          <img src="https://via.placeholder.com/400x250/1a3259/ffffff?text=Mitsubishi+Pajero" alt="Mitsubishi Pajero" loading="lazy" />
+          <img src="https://picsum.photos/seed/pajero4x4/600/380" alt="Mitsubishi Pajero" loading="lazy" />
           <span class="card-badge">Available</span>
           <button class="card-fav" title="Add to favourites">🤍</button>
         </div>
@@ -317,7 +327,7 @@
           </div>
           <div class="card-footer">
             <div class="card-price"><span>From</span>$38,000</div>
-            <a href="contact.html" class="btn btn-navy">View Details</a>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -326,9 +336,9 @@
       <article class="vehicle-card"
         data-name="toyota hilux sr5 rogue"
         data-make="toyota" data-year="2022"
-        data-price="45000" data-body="pickup" data-trans="manual">
+        data-price="45000" data-body="pickup" data-trans="manual" data-fuel="diesel">
         <div class="card-img-wrap">
-          <img src="https://via.placeholder.com/400x250/0a1628/ffffff?text=Toyota+Hilux+Rogue" alt="Toyota Hilux" loading="lazy" />
+          <img src="https://picsum.photos/seed/hilux2022/600/380" alt="Toyota Hilux" loading="lazy" />
           <span class="card-badge">Available</span>
           <button class="card-fav" title="Add to favourites">🤍</button>
         </div>
@@ -343,7 +353,7 @@
           </div>
           <div class="card-footer">
             <div class="card-price"><span>From</span>$45,000</div>
-            <a href="contact.html" class="btn btn-navy">View Details</a>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -352,9 +362,9 @@
       <article class="vehicle-card"
         data-name="nissan x-trail ti"
         data-make="nissan" data-year="2023"
-        data-price="36000" data-body="suv" data-trans="automatic">
+        data-price="36000" data-body="suv" data-trans="automatic" data-fuel="hybrid">
         <div class="card-img-wrap">
-          <img src="https://via.placeholder.com/400x250/0d1f3c/ffffff?text=Nissan+X-Trail+Ti" alt="Nissan X-Trail" loading="lazy" />
+          <img src="https://picsum.photos/seed/xtrail23/600/380" alt="Nissan X-Trail" loading="lazy" />
           <span class="card-badge new">New</span>
           <button class="card-fav" title="Add to favourites">🤍</button>
         </div>
@@ -369,7 +379,7 @@
           </div>
           <div class="card-footer">
             <div class="card-price"><span>From</span>$36,000</div>
-            <a href="contact.html" class="btn btn-navy">View Details</a>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -378,9 +388,9 @@
       <article class="vehicle-card"
         data-name="lexus rx500h f-sport"
         data-make="lexus" data-year="2023"
-        data-price="82000" data-body="suv" data-trans="automatic">
+        data-price="82000" data-body="suv" data-trans="automatic" data-fuel="hybrid">
         <div class="card-img-wrap">
-          <img src="https://via.placeholder.com/400x250/112240/c98a00?text=Lexus+RX500h" alt="Lexus RX500h" loading="lazy" />
+          <img src="https://picsum.photos/seed/rxhybrid/600/380" alt="Lexus RX500h" loading="lazy" />
           <span class="card-badge hot">Hot</span>
           <button class="card-fav" title="Add to favourites">🤍</button>
         </div>
@@ -395,7 +405,7 @@
           </div>
           <div class="card-footer">
             <div class="card-price"><span>From</span>$82,000</div>
-            <a href="contact.html" class="btn btn-navy">View Details</a>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -404,9 +414,9 @@
       <article class="vehicle-card"
         data-name="honda odyssey absolute"
         data-make="honda" data-year="2020"
-        data-price="28000" data-body="van" data-trans="automatic">
+        data-price="28000" data-body="van" data-trans="automatic" data-fuel="petrol">
         <div class="card-img-wrap">
-          <img src="https://via.placeholder.com/400x250/1a3259/ffffff?text=Honda+Odyssey" alt="Honda Odyssey" loading="lazy" />
+          <img src="https://picsum.photos/seed/odyssey20/600/380" alt="Honda Odyssey" loading="lazy" />
           <span class="card-badge">Available</span>
           <button class="card-fav" title="Add to favourites">🤍</button>
         </div>
@@ -421,7 +431,7 @@
           </div>
           <div class="card-footer">
             <div class="card-price"><span>From</span>$28,000</div>
-            <a href="contact.html" class="btn btn-navy">View Details</a>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -430,9 +440,9 @@
       <article class="vehicle-card"
         data-name="subaru outback wilderness"
         data-make="subaru" data-year="2022"
-        data-price="42000" data-body="wagon" data-trans="automatic">
+        data-price="42000" data-body="wagon" data-trans="automatic" data-fuel="petrol">
         <div class="card-img-wrap">
-          <img src="https://via.placeholder.com/400x250/0a1628/ffffff?text=Subaru+Outback" alt="Subaru Outback" loading="lazy" />
+          <img src="https://picsum.photos/seed/outback22/600/380" alt="Subaru Outback" loading="lazy" />
           <span class="card-badge">Available</span>
           <button class="card-fav" title="Add to favourites">🤍</button>
         </div>
@@ -447,7 +457,215 @@
           </div>
           <div class="card-footer">
             <div class="card-price"><span>From</span>$42,000</div>
-            <a href="contact.html" class="btn btn-navy">View Details</a>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 13 -->
+      <article class="vehicle-card"
+        data-name="toyota highlander 2021"
+        data-make="toyota" data-year="2021"
+        data-price="48000" data-body="suv" data-trans="automatic" data-fuel="petrol">
+        <div class="card-img-wrap">
+          <img src="https://picsum.photos/seed/highlander21/600/380" alt="Toyota Highlander" loading="lazy" />
+          <span class="card-badge">Available</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Toyota</p>
+          <h3 class="card-name">Highlander 2021</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2021</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 45,000 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$48,000</div>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 14 -->
+      <article class="vehicle-card"
+        data-name="toyota fortuner gr-s 2022"
+        data-make="toyota" data-year="2022"
+        data-price="44000" data-body="suv" data-trans="automatic" data-fuel="diesel">
+        <div class="card-img-wrap">
+          <img src="https://picsum.photos/seed/fortuner22/600/380" alt="Toyota Fortuner GR-S" loading="lazy" />
+          <span class="card-badge hot">Hot</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Toyota</p>
+          <h3 class="card-name">Fortuner GR-S 2022</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2022</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 22,000 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$44,000</div>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 15 -->
+      <article class="vehicle-card"
+        data-name="toyota 4runner trd 2020"
+        data-make="toyota" data-year="2020"
+        data-price="42000" data-body="suv" data-trans="automatic" data-fuel="petrol">
+        <div class="card-img-wrap">
+          <img src="https://picsum.photos/seed/4runner20/600/380" alt="Toyota 4Runner TRD" loading="lazy" />
+          <span class="card-badge">Available</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Toyota</p>
+          <h3 class="card-name">4Runner TRD 2020</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2020</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 61,000 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$42,000</div>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 16 -->
+      <article class="vehicle-card"
+        data-name="toyota alphard executive 2022"
+        data-make="toyota" data-year="2022"
+        data-price="65000" data-body="van" data-trans="automatic" data-fuel="petrol">
+        <div class="card-img-wrap">
+          <img src="https://picsum.photos/seed/alphard22/600/380" alt="Toyota Alphard Executive" loading="lazy" />
+          <span class="card-badge new">New</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Toyota</p>
+          <h3 class="card-name">Alphard Executive 2022</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2022</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 18,000 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Petrol</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$65,000</div>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 17 -->
+      <article class="vehicle-card"
+        data-name="toyota camry hybrid 2023"
+        data-make="toyota" data-year="2023"
+        data-price="34000" data-body="sedan" data-trans="automatic" data-fuel="hybrid">
+        <div class="card-img-wrap">
+          <img src="https://picsum.photos/seed/camry2023/600/380" alt="Toyota Camry Hybrid" loading="lazy" />
+          <span class="card-badge new">New</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Toyota</p>
+          <h3 class="card-name">Camry Hybrid 2023</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2023</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 9,500 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$34,000</div>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 18 -->
+      <article class="vehicle-card"
+        data-name="toyota crown 2023"
+        data-make="toyota" data-year="2023"
+        data-price="52000" data-body="sedan" data-trans="automatic" data-fuel="hybrid">
+        <div class="card-img-wrap">
+          <img src="https://picsum.photos/seed/crownhybrid/600/380" alt="Toyota Crown" loading="lazy" />
+          <span class="card-badge new">New</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Toyota</p>
+          <h3 class="card-name">Crown 2023</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2023</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 6,200 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$52,000</div>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 19 -->
+      <article class="vehicle-card"
+        data-name="mitsubishi challenger 2022"
+        data-make="mitsubishi" data-year="2022"
+        data-price="37000" data-body="suv" data-trans="automatic" data-fuel="diesel">
+        <div class="card-img-wrap">
+          <img src="https://picsum.photos/seed/challanger22/600/380" alt="Mitsubishi Challenger" loading="lazy" />
+          <span class="card-badge">Available</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Mitsubishi</p>
+          <h3 class="card-name">Challenger 2022</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2022</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 31,000 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Diesel</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$37,000</div>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 20 -->
+      <article class="vehicle-card"
+        data-name="toyota sienna 2023"
+        data-make="toyota" data-year="2023"
+        data-price="55000" data-body="van" data-trans="automatic" data-fuel="hybrid">
+        <div class="card-img-wrap">
+          <img src="https://picsum.photos/seed/sienna23/600/380" alt="Toyota Sienna" loading="lazy" />
+          <span class="card-badge new">New</span>
+          <button class="card-fav" title="Add to favourites">🤍</button>
+        </div>
+        <div class="card-body">
+          <p class="card-make">Toyota</p>
+          <h3 class="card-name">Sienna 2023</h3>
+          <div class="card-specs">
+            <span class="card-spec"><span class="icon">📅</span> 2023</span>
+            <span class="card-spec"><span class="icon">🛣️</span> 14,200 km</span>
+            <span class="card-spec"><span class="icon">⚙️</span> Automatic</span>
+            <span class="card-spec"><span class="icon">⛽</span> Hybrid</span>
+          </div>
+          <div class="card-footer">
+            <div class="card-price"><span>From</span>$55,000</div>
+            <a href="vehicle-detail.html" class="btn btn-navy">View Details</a>
           </div>
         </div>
       </article>
@@ -487,6 +705,7 @@
         <ul>
           <li><a href="index.html">Home</a></li>
           <li><a href="inventory.html">Inventory</a></li>
+          <li><a href="finance.html">Finance</a></li>
           <li><a href="about.html">About Us</a></li>
           <li><a href="contact.html">Contact</a></li>
         </ul>
@@ -515,6 +734,12 @@
     </div>
   </div>
 </footer>
+
+<!-- WhatsApp Float -->
+<a href="https://wa.me/818087654321" class="whatsapp-float" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+  <span class="wa-icon">💬</span>
+  <span class="wa-label">WhatsApp Us</span>
+</a>
 
 <script src="js/main.js"></script>
 </body>

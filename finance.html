@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vehicle Finance — AutoElite Motors</title>
+  <meta name="description" content="Finance your dream vehicle with AutoElite Motors. Competitive rates, flexible terms, fast approvals. Standard loan, balloon payment, and lease-to-own options." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23f0a500'/><text y='24' x='4' font-size='22'>🚗</text></svg>" />
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header id="header">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">🚗</div>
+        <div class="logo-text">
+          <span>AutoElite</span>
+          <span>Motors</span>
+        </div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="inventory.html">Inventory</a></li>
+        <li><a href="finance.html">Finance</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <a href="contact.html" class="btn btn-primary nav-cta">Get a Quote</a>
+      <button class="hamburger" id="hamburger" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="mobileClose">✕</button>
+  <a href="index.html">Home</a>
+  <a href="inventory.html">Inventory</a>
+  <a href="finance.html">Finance</a>
+  <a href="about.html">About</a>
+  <a href="contact.html">Contact</a>
+  <a href="contact.html" class="btn btn-primary" style="margin-top:1rem;">Get a Quote</a>
+</div>
+
+<!-- ===== PAGE HERO ===== -->
+<section class="page-hero">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="index.html">Home</a>
+      <span>›</span>
+      <span>Finance</span>
+    </div>
+    <h1>Finance Your Dream Vehicle</h1>
+    <p>Flexible, competitive finance options tailored to your budget. Fast approvals, transparent terms, no hidden fees.</p>
+  </div>
+</section>
+
+<!-- ===== STANDALONE FINANCE CALCULATOR ===== -->
+<section style="padding:5rem 0; background:var(--light);">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-label">Payment Estimator</span>
+      <h2 class="section-title">Finance Calculator</h2>
+      <p class="section-sub">Adjust the values below to calculate your estimated monthly repayments.</p>
+    </div>
+    <div class="finance-calc finance-calc-lg">
+      <div class="calc-inputs">
+        <div class="calc-field">
+          <label>Vehicle Price ($)</label>
+          <input type="number" id="calcPrice" value="72500" min="1000" />
+        </div>
+        <div class="calc-field">
+          <label>Deposit ($)</label>
+          <input type="number" id="calcDeposit" value="14500" min="0" />
+        </div>
+        <div class="calc-field">
+          <label>Loan Term</label>
+          <select id="calcTerm">
+            <option value="24">24 months</option>
+            <option value="36">36 months</option>
+            <option value="48" selected>48 months</option>
+            <option value="60">60 months</option>
+          </select>
+        </div>
+        <div class="calc-field">
+          <label>Interest Rate (% p.a.)</label>
+          <input type="number" id="calcRate" value="6.9" min="0" step="0.1" />
+        </div>
+      </div>
+      <button class="btn btn-primary calc-btn" onclick="runCalc()">Calculate Repayments</button>
+      <div class="calc-results" id="calcResults" style="display:none;">
+        <div class="calc-result-item">
+          <span class="cr-label">Monthly Payment</span>
+          <span class="cr-val gold" id="crMonthly">—</span>
+        </div>
+        <div class="calc-result-item">
+          <span class="cr-label">Total Interest</span>
+          <span class="cr-val" id="crInterest">—</span>
+        </div>
+        <div class="calc-result-item">
+          <span class="cr-label">Total Repayment</span>
+          <span class="cr-val" id="crTotal">—</span>
+        </div>
+      </div>
+      <p class="calc-disclaimer">* Calculations are estimates only and do not constitute a finance offer. Actual rates subject to credit approval.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FINANCE OPTIONS ===== -->
+<section style="padding:5rem 0; background:var(--white);">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-label">Your Options</span>
+      <h2 class="section-title">Finance Solutions</h2>
+      <p class="section-sub">Choose the financing structure that best suits your lifestyle and budget.</p>
+    </div>
+    <div class="finance-options">
+
+      <div class="fo-card">
+        <div class="fo-icon">🏦</div>
+        <h3 class="fo-title">Standard Loan</h3>
+        <p class="fo-desc">A straightforward fixed-term loan. Borrow the full vehicle cost (less deposit), make equal monthly payments, and own the vehicle outright at the end.</p>
+        <div class="fo-pros-cons">
+          <div class="fo-pros">
+            <strong>Pros</strong>
+            <ul>
+              <li>Clear repayment schedule</li>
+              <li>Own the vehicle outright</li>
+              <li>Fixed monthly payments</li>
+              <li>No restrictions on usage</li>
+            </ul>
+          </div>
+          <div class="fo-cons">
+            <strong>Cons</strong>
+            <ul>
+              <li>Higher monthly payments</li>
+              <li>Interest adds to total cost</li>
+            </ul>
+          </div>
+        </div>
+        <a href="contact.html" class="btn btn-primary" style="margin-top:1.5rem;width:100%;text-align:center;">Apply Now</a>
+      </div>
+
+      <div class="fo-card fo-featured">
+        <div class="fo-badge-top">Most Popular</div>
+        <div class="fo-icon">🎈</div>
+        <h3 class="fo-title">Balloon Payment</h3>
+        <p class="fo-desc">Pay lower monthly instalments during the loan term, with a larger "balloon" lump sum due at the end. Ideal if you expect a large cash inflow later.</p>
+        <div class="fo-pros-cons">
+          <div class="fo-pros">
+            <strong>Pros</strong>
+            <ul>
+              <li>Lower monthly payments</li>
+              <li>More cash flow flexibility</li>
+              <li>Option to refinance balloon</li>
+              <li>Keep or return vehicle at end</li>
+            </ul>
+          </div>
+          <div class="fo-cons">
+            <strong>Cons</strong>
+            <ul>
+              <li>Large payment at end</li>
+              <li>Higher total interest cost</li>
+            </ul>
+          </div>
+        </div>
+        <a href="contact.html" class="btn btn-primary" style="margin-top:1.5rem;width:100%;text-align:center;">Apply Now</a>
+      </div>
+
+      <div class="fo-card">
+        <div class="fo-icon">🔄</div>
+        <h3 class="fo-title">Lease-to-Own</h3>
+        <p class="fo-desc">A structured lease where your payments gradually build equity. At the end of the lease period, you have the option to purchase the vehicle at a predetermined price.</p>
+        <div class="fo-pros-cons">
+          <div class="fo-pros">
+            <strong>Pros</strong>
+            <ul>
+              <li>Lowest entry cost</li>
+              <li>Tax benefits (business use)</li>
+              <li>Flexible end-of-term options</li>
+              <li>Easier approval criteria</li>
+            </ul>
+          </div>
+          <div class="fo-cons">
+            <strong>Cons</strong>
+            <ul>
+              <li>Usage/km restrictions</li>
+              <li>You don't own until final payment</li>
+            </ul>
+          </div>
+        </div>
+        <a href="contact.html" class="btn btn-primary" style="margin-top:1.5rem;width:100%;text-align:center;">Apply Now</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== REQUIREMENTS ===== -->
+<section style="padding:5rem 0; background:var(--navy);">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-label">Am I Eligible?</span>
+      <h2 class="section-title" style="color:var(--white);">Finance Requirements</h2>
+      <p class="section-sub" style="color:var(--mid);">Basic eligibility criteria for our finance programs. We work with buyers in over 50 countries.</p>
+    </div>
+    <div class="req-grid">
+      <div class="req-card">
+        <div class="req-icon">🪪</div>
+        <h4>Valid Identification</h4>
+        <p>Government-issued photo ID (passport, national ID or driver's licence) and proof of address dated within 3 months.</p>
+      </div>
+      <div class="req-card">
+        <div class="req-icon">💰</div>
+        <h4>Proof of Income</h4>
+        <p>Last 3 months bank statements or payslips. Self-employed applicants require 12 months of financial records.</p>
+      </div>
+      <div class="req-card">
+        <div class="req-icon">🏦</div>
+        <h4>Bank Account</h4>
+        <p>An active bank account in your name for deposit payment and regular instalment collection.</p>
+      </div>
+      <div class="req-card">
+        <div class="req-icon">📋</div>
+        <h4>30% Deposit</h4>
+        <p>A minimum 30% deposit of the vehicle price is required to reserve and begin the finance process.</p>
+      </div>
+      <div class="req-card">
+        <div class="req-icon">✅</div>
+        <h4>Credit Check</h4>
+        <p>We conduct a soft credit check initially. Full credit assessment may be required for larger loan amounts.</p>
+      </div>
+      <div class="req-card">
+        <div class="req-icon">📝</div>
+        <h4>Signed Agreement</h4>
+        <p>A signed finance agreement and vehicle purchase agreement before funds are released and shipping begins.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ACCORDION ===== -->
+<section style="padding:5rem 0; background:var(--light);">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-label">Questions Answered</span>
+      <h2 class="section-title">Finance FAQ</h2>
+      <p class="section-sub">Everything you need to know about financing your vehicle through AutoElite Motors.</p>
+    </div>
+    <div class="faq-accordion" id="faqAccordion">
+
+      <div class="faq-item">
+        <button class="faq-question" type="button">
+          What interest rates do you offer?
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Our rates typically range from 5.9% to 9.9% per annum depending on your credit profile, loan term, and country of residence. We work with multiple lending partners to secure the most competitive rate for your situation.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" type="button">
+          How long does finance approval take?
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Pre-approval can be granted within 24–48 hours of receiving your complete application. Full approval, including vehicle valuation, typically takes 3–5 business days. Once approved, vehicle reservation is immediate upon deposit payment.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" type="button">
+          Can I finance as an overseas buyer?
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Yes. We have financing arrangements for buyers in East Africa, the Middle East, South Asia, and Pacific Island nations. Requirements vary by country. Contact our finance team for country-specific information and local partner lenders.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" type="button">
+          Is there a minimum or maximum loan amount?
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Our minimum financed amount is $10,000 USD. There is no hard maximum — for vehicles over $150,000 additional documentation and a larger deposit may be required. Commercial buyers purchasing multiple vehicles may qualify for fleet finance packages.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" type="button">
+          Can I pay off my loan early?
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Yes. All our standard loan products allow early repayment without penalty after the first 6 months. Balloon payment structures may have early settlement fees — these are clearly disclosed in your agreement before signing.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" type="button">
+          What currencies do you accept for repayments?
+          <span class="faq-toggle">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Vehicle prices and loan agreements are denominated in USD. Repayments are collected in USD via international bank transfer. In select markets, local currency arrangements can be discussed with our regional finance partners.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section style="background:linear-gradient(135deg,var(--navy) 0%,var(--navy-lt) 100%);padding:4.5rem 0;text-align:center;">
+  <div class="container">
+    <span class="section-label">Ready to Start?</span>
+    <h2 style="color:var(--white);font-size:clamp(1.6rem,3vw,2.2rem);margin-bottom:1rem;">Speak With Our Finance Team</h2>
+    <p style="color:var(--mid);max-width:480px;margin:0 auto 2rem;">Our specialists will walk you through every option and build a finance plan around your exact needs.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <a href="contact.html" class="btn btn-primary">Contact Finance Team</a>
+      <a href="inventory.html" class="btn btn-outline">Browse Inventory</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="index.html" class="logo">
+          <div class="logo-icon">🚗</div>
+          <div class="logo-text">
+            <span>AutoElite</span>
+            <span>Motors</span>
+          </div>
+        </a>
+        <p>Japan's most trusted export vehicle dealer since 2009. Premium quality, worldwide delivery, unmatched service.</p>
+        <div class="footer-social">
+          <a href="#">📘</a><a href="#">📸</a><a href="#">🐦</a><a href="#">▶️</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="inventory.html">Inventory</a></li>
+          <li><a href="finance.html">Finance</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Vehicle Types</h4>
+        <ul>
+          <li><a href="inventory.html">SUVs &amp; 4WD</a></li>
+          <li><a href="inventory.html">Sedans</a></li>
+          <li><a href="inventory.html">Vans &amp; Minivans</a></li>
+          <li><a href="inventory.html">Pickup Trucks</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul class="footer-contact">
+          <li><span class="icon">📍</span><span>3-14-2 Koto-ku, Tokyo, Japan</span></li>
+          <li><span class="icon">📞</span><span>+81-3-1234-5678</span></li>
+          <li><span class="icon">✉️</span><span>info@autoelitemotors.com</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2024 AutoElite Motors. All rights reserved.</span>
+      <span><a href="#">Privacy Policy</a> · <a href="#">Terms</a></span>
+    </div>
+  </div>
+</footer>
+
+<!-- WhatsApp Float -->
+<a href="https://wa.me/818087654321" class="whatsapp-float" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+  <span class="wa-icon">💬</span>
+  <span class="wa-label">WhatsApp Us</span>
+</a>
+
+<script src="js/main.js"></script>
+</body>
+</html>
