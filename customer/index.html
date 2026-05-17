@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Account — NipponAuto Uganda</title>
+  <link rel="stylesheet" href="css/customer.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23f0a500'/><text y='24' x='4' font-size='22'>🚗</text></svg>" />
+</head>
+<body class="customer-body">
+<div id="customerShell" class="customer-shell">
+  <aside class="customer-sidebar">
+    <div class="cs-brand">
+      <a href="../index.html" class="cs-logo">
+        <span class="cs-logo-icon">🚗</span>
+        <div><span class="cs-logo-t1">NipponAuto</span><span class="cs-logo-t2">My Account</span></div>
+      </a>
+    </div>
+    <nav class="cs-nav">
+      <button class="cs-nav-item active" data-page="dashboard">🏠 Dashboard</button>
+      <button class="cs-nav-item" data-page="inquiries">💬 My Inquiries</button>
+      <button class="cs-nav-item" data-page="quotes">📋 My Quotes</button>
+      <button class="cs-nav-item" data-page="saved">❤️ Saved Vehicles</button>
+      <button class="cs-nav-item" data-page="profile">👤 Profile</button>
+    </nav>
+    <div class="cs-sidebar-footer">
+      <a href="../index.html" class="cs-back-link">← Back to Website</a>
+      <button class="cs-logout" id="logoutBtn">Logout</button>
+    </div>
+  </aside>
+  <main class="customer-main">
+    <div class="customer-topbar">
+      <div id="cPageTitle" class="c-page-title">Dashboard</div>
+      <div id="cUserBadge" class="c-user-badge"></div>
+    </div>
+    <div class="c-page active" id="cpage-dashboard">
+      <div class="c-welcome" id="cWelcome"></div>
+      <div class="c-stats-grid" id="cStatsGrid"></div>
+      <div class="c-section"><h3>Recent Inquiries</h3><div id="cRecentInq"></div></div>
+    </div>
+    <div class="c-page" id="cpage-inquiries">
+      <div class="c-section"><h3>My Inquiries</h3>
+        <div class="c-table-wrap"><table class="c-table">
+          <thead><tr><th>Vehicle Interest</th><th>Message</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody id="cInqTbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="c-page" id="cpage-quotes">
+      <div class="c-section"><h3>My Quotes</h3>
+        <div class="c-table-wrap"><table class="c-table">
+          <thead><tr><th>Quote ID</th><th>Vehicle</th><th>Web Price</th><th>Quoted Price</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody id="cQtTbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="c-page" id="cpage-saved">
+      <div class="c-section"><h3>Saved Vehicles</h3><div class="c-vehicles-grid" id="cSavedGrid"></div></div>
+    </div>
+    <div class="c-page" id="cpage-profile">
+      <div class="c-section" style="max-width:500px"><h3>My Profile</h3>
+        <div class="c-profile-form">
+          <div class="c-form-group"><label>Full Name</label><input class="c-input" id="pName" readonly /></div>
+          <div class="c-form-group"><label>Email</label><input class="c-input" id="pEmail" readonly /></div>
+          <div class="c-form-group"><label>Phone</label><input class="c-input" id="pPhone" readonly /></div>
+          <div class="c-form-group"><label>Member Since</label><input class="c-input" id="pSince" readonly /></div>
+        </div>
+        <p style="color:#8a9ab5;font-size:.82rem;margin-top:1rem">To update your details, contact us at <a href="mailto:info@nipponauto.ug">info@nipponauto.ug</a></p>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="js/customer.js"></script>
+</body>
+</html>
