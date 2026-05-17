@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NipponAuto Uganda — Admin Panel</title>
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23c0392b'/><text y='24' x='4' font-size='22'>🚗</text></svg>" />
+</head>
+<body class="admin-body">
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">🚗</div>
+      <div class="logo-text">
+        <span>NipponAuto Uganda</span>
+        <span>Admin Panel</span>
+      </div>
+    </div>
+    <h2>Welcome back</h2>
+    <p>Sign in to access the dashboard</p>
+    <div class="login-error" id="loginError">Invalid username or password.</div>
+    <div class="login-field">
+      <label for="loginUser">Username</label>
+      <input type="text" id="loginUser" placeholder="admin" autocomplete="username" />
+    </div>
+    <div class="login-field">
+      <label for="loginPass">Password</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+    <button class="btn-login" id="loginBtn">Sign In</button>
+  </div>
+</div>
+
+<!-- ===== ADMIN SHELL ===== -->
+<div id="adminShell" class="admin-shell">
+
+  <!-- TOP NAVBAR -->
+  <nav class="admin-navbar">
+    <div class="navbar-top">
+      <a href="#" class="navbar-logo" data-nav="dashboard">
+        <div class="logo-icon">🚗</div>
+        <div class="logo-text">
+          <span>NipponAuto Uganda</span>
+          <span>Admin Panel</span>
+        </div>
+      </a>
+      <div class="navbar-user">
+        <span>Welcome, Super Admin</span>
+        <button class="btn-nav-action btn-nav-profile">Profile</button>
+        <button class="btn-nav-action btn-nav-web" onclick="window.open('../index.html')">Web</button>
+        <button class="btn-nav-action btn-nav-logout" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+    <div class="navbar-links">
+
+      <div class="nav-item">
+        <button class="nav-link active" data-nav="dashboard">Dashboard</button>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link" data-nav="inv-vehicles">Inventory ▾</button>
+        <div class="nav-dropdown">
+          <a href="#" data-nav="inv-manufacturers">Manufacturers</a>
+          <a href="#" data-nav="inv-models">Models</a>
+          <a href="#" data-nav="inv-model-codes">Model Codes</a>
+          <a href="#" data-nav="inv-vehicles">Vehicles</a>
+          <a href="#" data-nav="inv-variables">Manage Variables</a>
+          <a href="#" data-nav="inv-reviews">Reviews</a>
+          <a href="#" data-nav="inv-service-plans">Service Plans</a>
+        </div>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link" data-nav="auctions">Auctions</button>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link" data-nav="quotes">Quotes</button>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link" data-nav="orders">Orders</button>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link" data-nav="inquiries">Inquiries ▾</button>
+        <div class="nav-dropdown">
+          <a href="#" data-nav="inquiries">All Inquiries</a>
+          <a href="#" data-nav="inquiries-new">New Inquiries</a>
+        </div>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link" data-nav="content-slider">Content Management ▾</button>
+        <div class="nav-dropdown">
+          <a href="#" data-nav="content-topic">Topic Pages</a>
+          <a href="#" data-nav="content-slider">Homepage Slider</a>
+          <a href="#" data-nav="content-blogs">Blogs</a>
+          <a href="#" data-nav="content-faqs">FAQs</a>
+        </div>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link" data-nav="marketing">Marketing ▾</button>
+        <div class="nav-dropdown">
+          <a href="#" data-nav="marketing-promos">Promotions</a>
+          <a href="#" data-nav="marketing-newsletter">Newsletter</a>
+          <a href="#" data-nav="marketing-campaigns">Campaigns</a>
+        </div>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link" data-nav="support">Support</button>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link" data-nav="careers">Careers</button>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link" data-nav="user-management">User Management</button>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link" data-nav="reports">Reports</button>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link" data-nav="settings">Settings</button>
+      </div>
+
+    </div>
+  </nav>
+
+  <!-- BREADCRUMB -->
+  <div class="admin-breadcrumb" id="adminBreadcrumb">
+    <a href="#" data-nav="dashboard">Home</a>
+    <span class="bc-sep">›</span>
+    <span class="bc-current" id="bcCurrent">Dashboard</span>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="admin-content">
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="page-section active" id="page-dashboard">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Dashboard</h1>
+        </div>
+      </div>
+
+      <div class="sub-tabs" id="dashTabs">
+        <button class="sub-tab active" data-dash="overview">Overview</button>
+        <button class="sub-tab" data-dash="vehicles">Vehicles</button>
+        <button class="sub-tab" data-dash="manufacturers">Manufacturers</button>
+        <button class="sub-tab" data-dash="inquiries">Inquiries</button>
+        <button class="sub-tab" data-dash="finance">Finance</button>
+      </div>
+
+      <div id="dashContent"></div>
+    </div>
+
+    <!-- ===== MANUFACTURERS ===== -->
+    <div class="page-section" id="page-inv-manufacturers">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Manufacturers Management</h1>
+          <p>Admin panel for managing vehicle manufacturers</p>
+        </div>
+        <button class="btn-create" onclick="openModal('manufacturer')">+ Add Manufacturer</button>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Name</label>
+          <input type="text" class="filter-input" id="mfr-search" placeholder="Search by Manufacturer Name" />
+        </div>
+        <div class="filter-actions">
+          <button class="btn-filter btn-clear" onclick="clearFilters('manufacturers')">Clear All</button>
+          <button class="btn-filter btn-apply" onclick="renderManufacturers()">🔍 Apply Filters</button>
+        </div>
+      </div>
+      <div class="table-meta"><span id="mfr-count"></span></div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr>
+            <th>Logo</th><th>Manufacturer</th><th>Route</th><th>Models</th><th>Position</th><th>Description</th><th>Updated By</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="mfr-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== MODELS ===== -->
+    <div class="page-section" id="page-inv-models">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Models Management</h1>
+          <p>Admin panel for managing vehicle models</p>
+        </div>
+        <button class="btn-create" onclick="openModal('model')">+ Add Model</button>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Name</label>
+          <input type="text" class="filter-input" id="mdl-search" placeholder="Search by Model Name" />
+        </div>
+        <div class="filter-group">
+          <label>Manufacturer</label>
+          <select class="filter-select" id="mdl-mfr-filter"><option value="">All Manufacturers</option></select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn-filter btn-clear" onclick="clearFilters('models')">Clear All</button>
+          <button class="btn-filter btn-apply" onclick="renderModels()">🔍 Apply Filters</button>
+        </div>
+      </div>
+      <div class="table-meta"><span id="mdl-count"></span></div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr>
+            <th>Name</th><th>Manufacturer</th><th>Description</th><th>Vehicles</th><th>Status</th><th>Updated By</th><th>Created At</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="mdl-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== MODEL CODES ===== -->
+    <div class="page-section" id="page-inv-model-codes">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Model Codes</h1>
+          <p>Admin panel for managing model codes</p>
+        </div>
+        <button class="btn-create" onclick="openModal('modelCode')">+ Add Model Code</button>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Code</th><th>Model</th><th>Manufacturer</th><th>Description</th><th>Actions</th></tr></thead>
+          <tbody id="mc-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== VEHICLES ===== -->
+    <div class="page-section" id="page-inv-vehicles">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Vehicles Management</h1>
+          <p>Admin panel for managing vehicle inventory</p>
+        </div>
+        <button class="btn-create" onclick="openModal('vehicle')">+ Create New Vehicle</button>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Keyword</label>
+          <input type="text" class="filter-input" id="veh-search" placeholder="Search by SKU, Title, Chassis..." />
+        </div>
+        <div class="filter-group">
+          <label>Showroom Location</label>
+          <select class="filter-select" id="veh-location"><option value="">All Locations</option><option>Nakawa, Kampala</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Manufacturer</label>
+          <select class="filter-select" id="veh-mfr-filter"><option value="">All Manufacturers</option></select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn-filter btn-clear" onclick="clearFilters('vehicles')">Clear All</button>
+          <button class="btn-filter btn-apply" onclick="renderVehicles()">🔍 Apply Filters</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="btn-tool">📷 Import Images</button>
+        <button class="btn-tool" onclick="downloadCSVTemplate()">⬇ CSV Template</button>
+        <button class="btn-tool" onclick="exportVehiclesCSV()">📤 Export CSV</button>
+        <button class="btn-tool btn-tool-red">📥 Import CSV</button>
+      </div>
+      <div class="table-meta"><span id="veh-count"></span></div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr>
+            <th>Images</th><th>SKU</th><th>Manufacturer – Model</th><th>Color</th><th>Year</th><th>Chassis</th><th>Engine (cc)</th><th>Body Type</th><th>Fuel</th><th>Price</th><th>Status</th><th>Created At</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="veh-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== MANAGE VARIABLES ===== -->
+    <div class="page-section" id="page-inv-variables">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Manage Variables</h1>
+          <p>Configure dropdown options for vehicle creation forms.</p>
+        </div>
+        <button class="btn-create" id="var-create-btn" onclick="openModal('variable')">+ Create Variable</button>
+      </div>
+      <div class="var-tabs" id="varTabs"></div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Keyword</label>
+          <input type="text" class="filter-input" id="var-search" placeholder="Search..." />
+        </div>
+        <div class="filter-group">
+          <label>Status</label>
+          <select class="filter-select" id="var-status-filter"><option value="">All Status</option><option value="1">Active</option><option value="0">Inactive</option></select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn-filter btn-clear" onclick="clearFilters('variables')">Clear All</button>
+          <button class="btn-filter btn-apply" onclick="renderVariables()">🔍 Apply Filters</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr>
+            <th>Image</th><th>Name</th><th>Route</th><th>Operator</th><th>Status</th><th>Created Date</th><th>Updated Date</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="var-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== REVIEWS ===== -->
+    <div class="page-section" id="page-inv-reviews">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Reviews</h1><p>Manage customer vehicle reviews</p></div>
+        <button class="btn-create" onclick="openModal('review')">+ Add Review</button>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Customer</th><th>Vehicle</th><th>Rating</th><th>Review</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="rev-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== SERVICE PLANS ===== -->
+    <div class="page-section" id="page-inv-service-plans">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Service Plans</h1><p>Manage vehicle service plans</p></div>
+        <button class="btn-create" onclick="openModal('servicePlan')">+ Add Service Plan</button>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Plan Name</th><th>Price</th><th>Duration</th><th>Features</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="sp-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== AUCTIONS ===== -->
+    <div class="page-section" id="page-auctions">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Auctions</h1><p>Manage vehicle auctions</p></div>
+        <button class="btn-create" onclick="openModal('auction')">+ Create Auction</button>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Auction ID</th><th>Vehicle</th><th>Start Date</th><th>End Date</th><th>Starting Bid</th><th>Current Bid</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="auc-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== QUOTES ===== -->
+    <div class="page-section" id="page-quotes">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Quotes</h1><p>Manage customer quotes</p></div>
+      </div>
+      <div class="sub-tabs">
+        <button class="sub-tab active" onclick="showQuoteTab('standard', this)">Standard Quotes</button>
+        <button class="sub-tab" onclick="showQuoteTab('demand', this)">Order on Demand</button>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Keyword</label>
+          <input type="text" class="filter-input" id="qt-search" placeholder="Search by SKU, Title, Chassis..." />
+        </div>
+        <div class="filter-group">
+          <label>Manufacturer</label>
+          <select class="filter-select" id="qt-mfr"><option value="">All Brands</option></select>
+        </div>
+        <div class="filter-group">
+          <label>Model</label>
+          <select class="filter-select" id="qt-mdl"><option value="">All Models</option></select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn-filter btn-clear" onclick="clearFilters('quotes')">Clear All</button>
+          <button class="btn-filter btn-apply" onclick="renderQuotes()">🔍 Apply Filter</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr>
+            <th>ID</th><th>SKU</th><th>Vehicle</th><th>Year</th><th>Chassis</th><th>Customer</th><th>Web Price</th><th>Quoted Price</th><th>Down Payment</th><th>Dates</th><th>Status</th>
+          </tr></thead>
+          <tbody id="qt-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== ORDERS ===== -->
+    <div class="page-section" id="page-orders">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Orders</h1><p>Manage customer orders</p></div>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Order#</th><th>Customer</th><th>Vehicle</th><th>Amount</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="ord-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== INQUIRIES ===== -->
+    <div class="page-section" id="page-inquiries">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Inquiries</h1><p>Manage customer inquiries</p></div>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Search</label>
+          <input type="text" class="filter-input" id="inq-search" placeholder="Search by name, email, vehicle..." />
+        </div>
+        <div class="filter-group">
+          <label>Status</label>
+          <select class="filter-select" id="inq-status"><option value="">All Status</option><option value="new">New</option><option value="contacted">Contacted</option><option value="closed">Closed</option></select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn-filter btn-clear" onclick="clearFilters('inquiries')">Clear All</button>
+          <button class="btn-filter btn-apply" onclick="renderInquiries()">🔍 Apply Filters</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Vehicle Interest</th><th>Message</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="inq-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== CONTENT: SLIDER ===== -->
+    <div class="page-section" id="page-content-slider">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Homepage Slider</h1><p>Manage hero carousel slides</p></div>
+        <button class="btn-create" onclick="openModal('slide')">+ Add Slide</button>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Image</th><th>Title</th><th>Subtitle</th><th>CTA Text</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="slide-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== CONTENT: TOPIC PAGES ===== -->
+    <div class="page-section" id="page-content-topic">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Topic Pages</h1><p>Manage informational topic pages</p></div>
+        <button class="btn-create" onclick="openModal('topicPage')">+ Add Topic Page</button>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Title</th><th>Slug</th><th>Content Preview</th><th>Status</th><th>Created At</th><th>Actions</th></tr></thead>
+          <tbody id="topic-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== CONTENT: BLOGS ===== -->
+    <div class="page-section" id="page-content-blogs">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Blogs</h1><p>Manage blog articles</p></div>
+        <button class="btn-create" onclick="openModal('blog')">+ Add Blog Post</button>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Title</th><th>Author</th><th>Category</th><th>Status</th><th>Created At</th><th>Actions</th></tr></thead>
+          <tbody id="blog-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== CONTENT: FAQS ===== -->
+    <div class="page-section" id="page-content-faqs">
+      <div class="page-header">
+        <div class="page-header-left"><h1>FAQs</h1><p>Manage frequently asked questions</p></div>
+        <button class="btn-create" onclick="openModal('faq')">+ Add FAQ</button>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Question</th><th>Answer Preview</th><th>Category</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="faq-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== MARKETING ===== -->
+    <div class="page-section" id="page-marketing">
+      <div class="page-header"><div class="page-header-left"><h1>Marketing</h1><p>Promotions, newsletters and campaigns</p></div></div>
+      <p style="color:#8a9ab5;padding:2rem;text-align:center;">Select a section from the Marketing menu above.</p>
+    </div>
+    <div class="page-section" id="page-marketing-promos">
+      <div class="page-header"><div class="page-header-left"><h1>Promotions</h1></div><button class="btn-create" onclick="openModal('promo')">+ Add Promotion</button></div>
+      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Title</th><th>Discount</th><th>Start</th><th>End</th><th>Status</th><th>Actions</th></tr></thead><tbody id="promo-tbody"></tbody></table></div>
+    </div>
+    <div class="page-section" id="page-marketing-newsletter">
+      <div class="page-header"><div class="page-header-left"><h1>Newsletter Subscribers</h1></div></div>
+      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Email</th><th>Subscribed At</th><th>Status</th><th>Actions</th></tr></thead><tbody id="nl-tbody"></tbody></table></div>
+    </div>
+    <div class="page-section" id="page-marketing-campaigns">
+      <div class="page-header"><div class="page-header-left"><h1>Campaigns</h1></div><button class="btn-create" onclick="openModal('campaign')">+ Create Campaign</button></div>
+      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Name</th><th>Type</th><th>Sent</th><th>Opens</th><th>Status</th><th>Actions</th></tr></thead><tbody id="camp-tbody"></tbody></table></div>
+    </div>
+
+    <!-- ===== SUPPORT ===== -->
+    <div class="page-section" id="page-support">
+      <div class="page-header"><div class="page-header-left"><h1>Support Tickets</h1><p>Manage customer support requests</p></div></div>
+      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Ticket#</th><th>Customer</th><th>Subject</th><th>Priority</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody id="sup-tbody"></tbody></table></div>
+    </div>
+
+    <!-- ===== CAREERS ===== -->
+    <div class="page-section" id="page-careers">
+      <div class="page-header"><div class="page-header-left"><h1>Careers</h1><p>Manage job listings</p></div><button class="btn-create" onclick="openModal('job')">+ Post Job</button></div>
+      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Title</th><th>Department</th><th>Location</th><th>Type</th><th>Applications</th><th>Status</th><th>Actions</th></tr></thead><tbody id="job-tbody"></tbody></table></div>
+    </div>
+
+    <!-- ===== USER MANAGEMENT ===== -->
+    <div class="page-section" id="page-user-management">
+      <div class="page-header"><div class="page-header-left"><h1>User Management</h1><p>Manage admin users and roles</p></div><button class="btn-create" onclick="openModal('user')">+ Add User</button></div>
+      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Last Login</th><th>Status</th><th>Actions</th></tr></thead><tbody id="usr-tbody"></tbody></table></div>
+    </div>
+
+    <!-- ===== REPORTS ===== -->
+    <div class="page-section" id="page-reports">
+      <div class="page-header"><div class="page-header-left"><h1>Reports</h1><p>Analytics and business reports</p></div></div>
+      <div class="stats-grid-admin" id="reports-stats"></div>
+      <div class="dash-grid">
+        <div class="dash-section"><h3>Sales by Manufacturer</h3><div class="bar-chart" id="rpt-mfr-chart"></div></div>
+        <div class="dash-section"><h3>Stock by Fuel Type</h3><div class="bar-chart" id="rpt-fuel-chart"></div></div>
+      </div>
+    </div>
+
+    <!-- ===== SETTINGS ===== -->
+    <div class="page-section" id="page-settings">
+      <div class="page-header"><div class="page-header-left"><h1>Company Settings</h1></div></div>
+      <div class="sub-tabs">
+        <button class="sub-tab active" onclick="showSettingsTab('company', this)">Company Info</button>
+        <button class="sub-tab" onclick="showSettingsTab('freights', this)">Freights</button>
+        <button class="sub-tab" onclick="showSettingsTab('locations', this)">Showroom / Office Location</button>
+        <button class="sub-tab" onclick="showSettingsTab('email', this)">Email Settings</button>
+        <button class="sub-tab" onclick="showSettingsTab('seo', this)">SEO Settings</button>
+        <button class="sub-tab" onclick="showSettingsTab('api', this)">API Integrations</button>
+        <button class="sub-tab" onclick="showSettingsTab('translation', this)">Translation</button>
+        <button class="sub-tab" onclick="showSettingsTab('currency', this)">Currency</button>
+      </div>
+
+      <!-- Company Info -->
+      <div id="settings-company" class="settings-body">
+        <div class="settings-two-col">
+          <div>
+            <div class="settings-section-title">Company Information</div>
+            <div class="form-group" style="margin-bottom:1rem">
+              <label>Company Name</label>
+              <input class="form-control" id="s-name" value="NipponAuto Uganda" />
+            </div>
+            <div class="form-group" style="margin-bottom:1rem">
+              <label>Company Email</label>
+              <div class="input-icon-wrap"><span class="input-icon">✉️</span><input class="form-control" id="s-email" value="info@nipponauto.ug" /></div>
+            </div>
+            <div class="form-group" style="margin-bottom:1rem">
+              <label>Company Phone</label>
+              <div class="flag-select"><span class="flag">🇺🇬</span><input class="form-control" id="s-phone" value="+256 700 123 456" /></div>
+            </div>
+            <div class="form-group" style="margin-bottom:1rem">
+              <label>WhatsApp Number</label>
+              <div class="flag-select"><span class="flag">🇺🇬</span><input class="form-control" id="s-whatsapp" value="+256 700 123 456" /></div>
+            </div>
+            <div class="form-group" style="margin-bottom:1rem">
+              <label>Address</label>
+              <input class="form-control" id="s-address" value="Plot 45, Nakawa Industrial Road, Kampala, Uganda" />
+            </div>
+            <div class="form-group">
+              <label>Working Hours</label>
+              <input class="form-control" id="s-hours" value="Mon–Sat: 8:00 AM – 6:00 PM EAT" />
+            </div>
+          </div>
+          <div>
+            <div class="settings-section-title">Social Media Links</div>
+            <div class="form-group" style="margin-bottom:1rem">
+              <label>Facebook</label>
+              <div class="input-icon-wrap"><span class="input-icon">📘</span><input class="form-control" id="s-fb" placeholder="https://facebook.com/..." /></div>
+            </div>
+            <div class="form-group" style="margin-bottom:1rem">
+              <label>Twitter / X</label>
+              <div class="input-icon-wrap"><span class="input-icon">🐦</span><input class="form-control" id="s-tw" placeholder="https://x.com/..." /></div>
+            </div>
+            <div class="form-group" style="margin-bottom:1rem">
+              <label>YouTube</label>
+              <div class="input-icon-wrap"><span class="input-icon">▶️</span><input class="form-control" id="s-yt" placeholder="https://youtube.com/..." /></div>
+            </div>
+            <div class="form-group" style="margin-bottom:1rem">
+              <label>LinkedIn</label>
+              <div class="input-icon-wrap"><span class="input-icon">💼</span><input class="form-control" id="s-li" placeholder="https://linkedin.com/..." /></div>
+            </div>
+            <div class="form-group" style="margin-bottom:1rem">
+              <label>TikTok</label>
+              <div class="input-icon-wrap"><span class="input-icon">🎵</span><input class="form-control" id="s-tt" placeholder="https://tiktok.com/..." /></div>
+            </div>
+            <div class="form-group">
+              <label>Instagram</label>
+              <div class="input-icon-wrap"><span class="input-icon">📸</span><input class="form-control" id="s-ig" placeholder="https://instagram.com/..." /></div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-save-row"><button class="btn-save" onclick="saveSettings('company')">Save Changes</button></div>
+      </div>
+
+      <!-- Freights -->
+      <div id="settings-freights" class="settings-body" style="display:none">
+        <div class="page-header" style="margin-bottom:1rem">
+          <div class="page-header-left"><h1 style="font-size:1.1rem">Freight / Shipping Rates</h1></div>
+          <button class="btn-create" onclick="openModal('freight')">+ Add Rate</button>
+        </div>
+        <div class="table-wrap"><table class="admin-table"><thead><tr><th>Region</th><th>Method</th><th>Est. Cost (USD)</th><th>Transit Days</th><th>Notes</th><th>Actions</th></tr></thead><tbody id="freight-tbody"></tbody></table></div>
+      </div>
+
+      <!-- Locations -->
+      <div id="settings-locations" class="settings-body" style="display:none">
+        <div class="page-header" style="margin-bottom:1rem">
+          <div class="page-header-left"><h1 style="font-size:1.1rem">Showroom / Office Locations</h1></div>
+          <button class="btn-create" onclick="openModal('location')">+ Add Location</button>
+        </div>
+        <div class="table-wrap"><table class="admin-table"><thead><tr><th>Name</th><th>Address</th><th>City</th><th>Phone</th><th>Primary</th><th>Status</th><th>Actions</th></tr></thead><tbody id="loc-tbody"></tbody></table></div>
+      </div>
+
+      <!-- Email Settings -->
+      <div id="settings-email" class="settings-body" style="display:none">
+        <div class="settings-section-title">SMTP Configuration</div>
+        <div class="form-row">
+          <div class="form-group"><label>SMTP Host</label><input class="form-control" id="s-smtp-host" placeholder="smtp.gmail.com" /></div>
+          <div class="form-group"><label>SMTP Port</label><input class="form-control" id="s-smtp-port" placeholder="587" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>SMTP Username</label><input class="form-control" id="s-smtp-user" placeholder="your@email.com" /></div>
+          <div class="form-group"><label>SMTP Password</label><input class="form-control" type="password" id="s-smtp-pass" placeholder="••••••••" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Sender Name</label><input class="form-control" id="s-sender-name" value="NipponAuto Uganda" /></div>
+          <div class="form-group"><label>Sender Email</label><input class="form-control" id="s-sender-email" value="info@nipponauto.ug" /></div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group"><label>Email Footer Text</label><textarea class="form-control" id="s-email-footer">© 2025 NipponAuto Uganda. All rights reserved. Plot 45, Nakawa Industrial Road, Kampala.</textarea></div>
+        </div>
+        <div class="settings-save-row" style="gap:.5rem">
+          <button class="btn-cancel" onclick="testEmail()">📧 Send Test Email</button>
+          <button class="btn-save" onclick="saveSettings('email')">Save Changes</button>
+        </div>
+      </div>
+
+      <!-- SEO Settings -->
+      <div id="settings-seo" class="settings-body" style="display:none">
+        <div class="settings-section-title">SEO Configuration</div>
+        <div class="form-row full"><div class="form-group"><label>Site Title</label><input class="form-control" id="s-seo-title" value="NipponAuto Uganda — Kampala's #1 Source for Genuine Japanese Cars" /></div></div>
+        <div class="form-row full"><div class="form-group"><label>Meta Description</label><textarea class="form-control" id="s-seo-desc">NipponAuto Uganda — 2000+ genuine Japanese vehicles imported to Kampala. Toyota, Nissan, Honda, Subaru and more.</textarea></div></div>
+        <div class="form-row full"><div class="form-group"><label>Meta Keywords</label><input class="form-control" id="s-seo-kw" value="Japanese cars Uganda, used cars Kampala, Toyota Uganda, NipponAuto" /></div></div>
+        <div class="form-row full"><div class="form-group"><label>OG Image URL (Social Share Image)</label><input class="form-control" id="s-og-img" placeholder="https://..." /></div></div>
+        <div class="form-row">
+          <div class="form-group"><label>Google Analytics ID</label><input class="form-control" id="s-ga" placeholder="G-XXXXXXXXXX" /></div>
+          <div class="form-group"><label>Google Tag Manager ID</label><input class="form-control" id="s-gtm" placeholder="GTM-XXXXXXX" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Facebook Pixel ID</label><input class="form-control" id="s-fb-pixel" placeholder="XXXXXXXXXXXXXXXX" /></div>
+          <div class="form-group"><label>Canonical URL</label><input class="form-control" id="s-canonical" placeholder="https://nipponauto.ug" /></div>
+        </div>
+        <div class="form-row full"><div class="form-group"><label>Robots.txt Content</label><textarea class="form-control" id="s-robots" style="min-height:100px">User-agent: *
+Allow: /
+Disallow: /admin/</textarea></div></div>
+        <div class="settings-save-row"><button class="btn-save" onclick="saveSettings('seo')">Save SEO Settings</button></div>
+      </div>
+
+      <!-- API Integrations -->
+      <div id="settings-api" class="settings-body" style="display:none">
+        <div class="settings-section-title">API Integrations</div>
+        <div class="table-wrap"><table class="admin-table">
+          <thead><tr><th>Integration</th><th>API Key / Token</th><th>Status</th><th>Last Synced</th><th>Actions</th></tr></thead>
+          <tbody id="api-tbody"></tbody>
+        </table></div>
+      </div>
+
+      <!-- Translation -->
+      <div id="settings-translation" class="settings-body" style="display:none">
+        <div class="settings-section-title">Language Settings</div>
+        <div class="form-group" style="margin-bottom:1.5rem;max-width:300px">
+          <label>Default Language</label>
+          <select class="form-control" id="s-default-lang"><option value="en">🇬🇧 English</option><option value="lg">🇺🇬 Luganda</option><option value="sw">🇹🇿 Swahili</option></select>
+        </div>
+        <div class="table-wrap"><table class="admin-table">
+          <thead><tr><th>Language</th><th>Code</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="lang-tbody"></tbody>
+        </table></div>
+      </div>
+
+      <!-- Currency -->
+      <div id="settings-currency" class="settings-body" style="display:none">
+        <div class="settings-section-title">Currency Settings</div>
+        <p style="color:#8a9ab5;font-size:.83rem;margin-bottom:1rem">Base currency: <strong>USD</strong>. Set exchange rates for display currencies.</p>
+        <div class="table-wrap"><table class="admin-table">
+          <thead><tr><th>Currency</th><th>Symbol</th><th>Rate to USD</th><th>Auto-Update</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="curr-tbody"></tbody>
+        </table></div>
+        <div class="settings-save-row"><button class="btn-cancel" onclick="updateRates()">🔄 Update Rates</button></div>
+      </div>
+    </div>
+
+  </div><!-- /admin-content -->
+</div><!-- /admin-shell -->
+
+<!-- ===== MODAL ===== -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="modalTitle">Add Item</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" id="modalSaveBtn" onclick="submitModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" style="position:fixed;bottom:1.5rem;right:1.5rem;background:#0a1628;color:#fff;padding:.75rem 1.25rem;border-radius:8px;font-size:.85rem;z-index:9999;display:none;box-shadow:0 4px 16px rgba(0,0,0,.2);"></div>
+
+<script src="js/admin.js"></script>
+</body>
+</html>
