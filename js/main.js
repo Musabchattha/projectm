@@ -470,3 +470,84 @@ function runCalc() {
   if (!wa) return;
   wa.addEventListener('mouseenter', () => { wa.style.animation = 'none'; });
 })();
+
+/* ---- NipponAuto Admin: Dynamic Inventory from localStorage ---- */
+(function initDynamicInventory() {
+  // Read vehicles from localStorage
+  function getVehicles() {
+    try {
+      return JSON.parse(localStorage.getItem('nipponauto_vehicles') || '[]');
+    } catch(e) { return []; }
+  }
+
+  // Only run on inventory or index page
+  const grid = document.getElementById('inventoryGrid');
+  const newArrivalsGrid = document.querySelector('.arrivals-grid');
+  const vehicles = getVehicles();
+  if (!vehicles.length) return; // Use hardcoded HTML if no admin data
+
+  // If inventory grid exists and has admin vehicles, prepend them
+  if (grid && vehicles.length) {
+    const adminCards = vehicles
+      .filter(v => v.status !== 'Sold')
+      .map(v => buildCard(v))
+      .join('');
+    grid.insertAdjacentHTML('afterbegin', adminCards);
+  }
+
+  // If new arrivals exists, show newest 4 "New Arrival" flagged vehicles
+  if (newArrivalsGrid) {
+    const newOnes = vehicles.filter(v => v.isNewArrival && v.status !== 'Sold').slice(0, 4);
+    if (newOnes.length) {
+      newOnes.forEach(v => {
+        newArrivalsGrid.insertAdjacentHTML('afterbegin', buildCard(v, true));
+      });
+    }
+  }
+
+  function buildCard(v, isNew) {
+    const ugx = Number(v.priceUGX).toLocaleString();
+    const usd = Math.round(Number(v.priceUGX) / 3700).toLocaleString();
+    const badge = isNew ? 'new' : (v.isFeatured ? 'featured' : '');
+    const badgeLabel = isNew ? 'New' : (v.isFeatured ? 'Featured' : '');
+    const img = v.imageUrl || `https://picsum.photos/seed/${v.make}${v.year}/600/380`;
+    const wa = `https://wa.me/256700123456?text=Hi, I'm interested in ${v.make} ${v.model} (${v.year})`;
+    return `
+    <article class="vehicle-card"
+      data-make="${(v.make||'').toLowerCase()}"
+      data-name="${v.make} ${v.model}"
+      data-year="${v.year}"
+      data-price="${v.priceUGX}"
+      data-body="${(v.bodyType||'').toLowerCase()}"
+      data-fuel="${(v.fuelType||'').toLowerCase()}"
+      data-trans="${(v.transmission||'').toLowerCase()}"
+      data-steering="${(v.steering||'rhd').toLowerCase()}">
+      <div class="card-img-wrap">
+        <img src="${img}" alt="${v.make} ${v.model}" loading="lazy"/>
+        ${badge ? `<span class="card-badge ${badge}">${badgeLabel}</span>` : ''}
+        <button class="card-fav" title="Save">🤍</button>
+      </div>
+      <div class="card-body">
+        <p class="card-make">${v.make}</p>
+        <h3 class="card-name">${v.model}</h3>
+        <div class="card-meta-row">
+          <span class="card-stock">${v.stockNo || ''}</span>
+          <span class="card-grade">${v.grade || ''}</span>
+        </div>
+        <div class="card-specs">
+          <span class="card-spec">📅 ${v.year}</span>
+          <span class="card-spec">🛣️ ${Number(v.mileage||0).toLocaleString()} km</span>
+          <span class="card-spec">&#9981; ${v.fuelType}</span>
+          <span class="card-spec steering-badge">${v.steering||'RHD'}</span>
+        </div>
+        <div class="card-footer">
+          <div class="card-price"><span>CIF Kampala</span>UGX ${ugx}<br><small>~$${usd}</small></div>
+          <div class="card-actions">
+            <a href="vehicle-detail.html" class="btn btn-navy btn-sm">View Details</a>
+            <a href="${wa}" class="btn btn-wa btn-sm" target="_blank" rel="noopener">💬</a>
+          </div>
+        </div>
+      </div>
+    </article>`;
+  }
+})();

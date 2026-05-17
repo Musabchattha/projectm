@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — NipponAuto Uganda</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="login-logo-icon">&#9654;</span>
+      <div>
+        <div class="login-logo-title">NipponAuto</div>
+        <div class="login-logo-sub">Uganda &mdash; Admin Panel</div>
+      </div>
+    </div>
+    <h2 class="login-heading">Sign In</h2>
+    <p class="login-desc">Enter your admin password to continue.</p>
+    <div class="login-field">
+      <label for="loginPassword">Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter password" autocomplete="current-password" />
+    </div>
+    <div id="loginError" class="login-error" style="display:none">Incorrect password. Please try again.</div>
+    <button class="btn-login" id="loginBtn">Login</button>
+    <a href="index.html" class="login-back">&larr; Back to Website</a>
+  </div>
+</div>
+
+<!-- ===== ADMIN DASHBOARD ===== -->
+<div id="dashboard" class="dashboard" style="display:none">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span class="sidebar-brand-icon">&#9654;</span>
+      <div>
+        <div class="sidebar-brand-title">NipponAuto</div>
+        <div class="sidebar-brand-sub">Admin Panel</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-section="inventory">
+        <span class="nav-icon">&#128663;</span> Inventory
+      </button>
+      <button class="nav-item" data-section="addEdit">
+        <span class="nav-icon">&#43;</span> Add / Edit Vehicle
+      </button>
+      <button class="nav-item" data-section="inquiries">
+        <span class="nav-icon">&#128140;</span> Inquiries
+      </button>
+      <button class="nav-item" data-section="settings">
+        <span class="nav-icon">&#9881;</span> Settings
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" id="logoutBtn">&#128275; Logout</button>
+      <a href="index.html" class="sidebar-back-link">&larr; Back to Website</a>
+    </div>
+  </aside>
+
+  <!-- Mobile Top Bar -->
+  <div class="mobile-topbar">
+    <button class="mobile-menu-btn" id="mobileMenuBtn">&#9776;</button>
+    <span class="mobile-title">NipponAuto Admin</span>
+    <button class="btn-logout-sm" id="logoutBtnMobile">Logout</button>
+  </div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- ===== INVENTORY SECTION ===== -->
+    <section id="sectionInventory" class="section active">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">Vehicle Inventory</h1>
+          <p class="section-sub">Manage all vehicles listed on the website.</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-gold" id="addVehicleBtn">&#43; Add New Vehicle</button>
+          <button class="btn btn-outline" id="exportJsonBtn">&#8659; Export JSON</button>
+          <label class="btn btn-outline" id="importJsonLabel">
+            &#8657; Import JSON
+            <input type="file" id="importJsonInput" accept=".json" style="display:none" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total Vehicles</div>
+          <div class="stat-value" id="statTotal">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">In Stock</div>
+          <div class="stat-value green" id="statInStock">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Reserved</div>
+          <div class="stat-value orange" id="statReserved">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Sold</div>
+          <div class="stat-value grey" id="statSold">0</div>
+        </div>
+      </div>
+
+      <!-- Inventory Table -->
+      <div class="table-wrapper">
+        <table class="inv-table" id="invTable">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Make &amp; Model</th>
+              <th>Year</th>
+              <th>Price (UGX)</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="invTableBody">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+        <div id="emptyState" class="empty-state">
+          <div class="empty-icon">&#128663;</div>
+          <p>No vehicles yet. Click <strong>Add New Vehicle</strong> to get started.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ADD / EDIT VEHICLE SECTION ===== -->
+    <section id="sectionAddEdit" class="section">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title" id="formTitle">Add New Vehicle</h1>
+          <p class="section-sub">Fill in the vehicle details below.</p>
+        </div>
+        <button class="btn btn-outline" id="cancelFormBtn">&larr; Cancel</button>
+      </div>
+
+      <form id="vehicleForm" class="vehicle-form" novalidate>
+        <input type="hidden" id="editId" />
+
+        <fieldset class="form-group">
+          <legend>Basic Information</legend>
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="fMake">Make <span class="req">*</span></label>
+              <select id="fMake" required>
+                <option value="">Select Make</option>
+                <option>Toyota</option>
+                <option>Nissan</option>
+                <option>Honda</option>
+                <option>Subaru</option>
+                <option>Mitsubishi</option>
+                <option>Isuzu</option>
+                <option>Land Rover</option>
+                <option>Lexus</option>
+                <option>Mercedes-Benz</option>
+                <option>Other</option>
+              </select>
+              <span class="field-error" id="fMakeError"></span>
+            </div>
+            <div class="form-field">
+              <label for="fModel">Model <span class="req">*</span></label>
+              <input type="text" id="fModel" placeholder="e.g. Land Cruiser Prado" required />
+              <span class="field-error" id="fModelError"></span>
+            </div>
+            <div class="form-field">
+              <label for="fYear">Year <span class="req">*</span></label>
+              <input type="number" id="fYear" min="2000" max="2025" placeholder="2023" required />
+              <span class="field-error" id="fYearError"></span>
+            </div>
+            <div class="form-field">
+              <label for="fMileage">Mileage (km) <span class="req">*</span></label>
+              <input type="number" id="fMileage" min="0" placeholder="45000" required />
+              <span class="field-error" id="fMileageError"></span>
+            </div>
+            <div class="form-field">
+              <label for="fEngineCC">Engine CC</label>
+              <input type="number" id="fEngineCC" min="500" placeholder="2700" />
+            </div>
+            <div class="form-field">
+              <label for="fFuelType">Fuel Type</label>
+              <select id="fFuelType">
+                <option value="">Select</option>
+                <option>Petrol</option>
+                <option>Diesel</option>
+                <option>Hybrid</option>
+                <option>Electric</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="fTransmission">Transmission</label>
+              <select id="fTransmission">
+                <option value="">Select</option>
+                <option>Automatic</option>
+                <option>Manual</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="fSteering">Steering</label>
+              <select id="fSteering">
+                <option value="">Select</option>
+                <option>RHD</option>
+                <option>LHD</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="fBodyType">Body Type</label>
+              <select id="fBodyType">
+                <option value="">Select</option>
+                <option>SUV/4WD</option>
+                <option>Sedan</option>
+                <option>Van/Minivan</option>
+                <option>Pickup</option>
+                <option>Wagon</option>
+                <option>Coupe</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="fColour">Colour</label>
+              <input type="text" id="fColour" placeholder="Pearl White" />
+            </div>
+            <div class="form-field">
+              <label for="fDoors">Doors</label>
+              <input type="number" id="fDoors" min="2" max="6" placeholder="4" />
+            </div>
+            <div class="form-field">
+              <label for="fSeats">Seats</label>
+              <input type="number" id="fSeats" min="1" max="12" placeholder="5" />
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-group">
+          <legend>Pricing &amp; Stock</legend>
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="fPriceUGX">Price (UGX) <span class="req">*</span></label>
+              <input type="number" id="fPriceUGX" min="0" placeholder="85000000" required />
+              <span class="field-error" id="fPriceUGXError"></span>
+            </div>
+            <div class="form-field">
+              <label for="fGrade">Grade</label>
+              <select id="fGrade">
+                <option value="">Select Grade</option>
+                <option>Grade 3</option>
+                <option>Grade 3.5</option>
+                <option>Grade 4</option>
+                <option>Grade 4.5</option>
+                <option>Grade 5</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="fStatus">Status <span class="req">*</span></label>
+              <select id="fStatus" required>
+                <option value="">Select Status</option>
+                <option>In Stock</option>
+                <option>Reserved</option>
+                <option>Sold</option>
+              </select>
+              <span class="field-error" id="fStatusError"></span>
+            </div>
+            <div class="form-field">
+              <label for="fStockNo">Stock Number <small>(auto-generated if blank)</small></label>
+              <input type="text" id="fStockNo" placeholder="NUG-2025-0001" />
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-group">
+          <legend>Media &amp; Description</legend>
+          <div class="form-grid">
+            <div class="form-field form-field--full">
+              <label for="fImageUrl">Image URL</label>
+              <input type="text" id="fImageUrl" placeholder="https://example.com/car.jpg" />
+            </div>
+            <div class="form-field form-field--full">
+              <label for="fDescription">Description</label>
+              <textarea id="fDescription" rows="4" placeholder="Describe the vehicle condition, history, features..."></textarea>
+            </div>
+            <div class="form-field form-field--full">
+              <label for="fFeatures">Features <small>(comma-separated)</small></label>
+              <textarea id="fFeatures" rows="2" placeholder="AC, Leather Seats, Sunroof, Backup Camera, ..."></textarea>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-group">
+          <legend>Listing Options</legend>
+          <div class="form-checks">
+            <label class="check-label">
+              <input type="checkbox" id="fFeatured" />
+              <span>Featured &mdash; show on homepage featured section</span>
+            </label>
+            <label class="check-label">
+              <input type="checkbox" id="fNewArrival" />
+              <span>New Arrival &mdash; show in new arrivals section</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-gold btn-lg">&#10003; Save Vehicle</button>
+          <button type="button" class="btn btn-outline btn-lg" id="cancelFormBtn2">Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ===== INQUIRIES SECTION ===== -->
+    <section id="sectionInquiries" class="section">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">Inquiries</h1>
+          <p class="section-sub">Customer messages and contact form submissions.</p>
+        </div>
+      </div>
+      <div class="coming-soon-banner">
+        <div class="coming-soon-icon">&#128140;</div>
+        <h3>Coming Soon</h3>
+        <p>Inquiries submitted via the contact form will appear here once the backend integration is complete.</p>
+      </div>
+      <!-- Sample Mock Inquiry Card -->
+      <div class="inquiry-card mock">
+        <div class="inquiry-header">
+          <div class="inquiry-avatar">JK</div>
+          <div>
+            <div class="inquiry-name">John Kato <span class="inquiry-badge">New</span></div>
+            <div class="inquiry-meta">john.kato@email.com &bull; +256 712 345 678 &bull; 2 days ago</div>
+          </div>
+        </div>
+        <div class="inquiry-body">
+          Hi, I&rsquo;m interested in the Toyota Land Cruiser Prado listed on your website. Can you let me know if it&rsquo;s still available and the final price including registration?
+        </div>
+        <div class="inquiry-actions">
+          <a href="#" class="btn btn-sm btn-navy">Reply via Email</a>
+          <a href="#" class="btn btn-sm btn-wa">WhatsApp</a>
+          <button class="btn btn-sm btn-outline">Mark as Read</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SETTINGS SECTION ===== -->
+    <section id="sectionSettings" class="section">
+      <div class="section-header">
+        <div>
+          <h1 class="section-title">Settings</h1>
+          <p class="section-sub">Business information displayed across the website.</p>
+        </div>
+      </div>
+      <form id="settingsForm" class="vehicle-form">
+        <fieldset class="form-group">
+          <legend>Business Information</legend>
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="sBizName">Business Name</label>
+              <input type="text" id="sBizName" placeholder="NipponAuto Uganda" />
+            </div>
+            <div class="form-field">
+              <label for="sPhone">Phone Number</label>
+              <input type="text" id="sPhone" placeholder="+256 700 123 456" />
+            </div>
+            <div class="form-field">
+              <label for="sWhatsApp">WhatsApp Number</label>
+              <input type="text" id="sWhatsApp" placeholder="256700123456" />
+            </div>
+            <div class="form-field">
+              <label for="sEmail">Email Address</label>
+              <input type="email" id="sEmail" placeholder="info@nipponauto.co.ug" />
+            </div>
+            <div class="form-field form-field--full">
+              <label for="sAddress">Address</label>
+              <input type="text" id="sAddress" placeholder="Plot 42, Kampala Road, Kampala, Uganda" />
+            </div>
+          </div>
+        </fieldset>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-gold btn-lg">&#10003; Save Settings</button>
+        </div>
+      </form>
+    </section>
+
+  </main>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container"></div>
+
+<script>
+'use strict';
+
+/* ========== Constants ========== */
+const LS_VEHICLES = 'nipponauto_vehicles';
+const LS_SETTINGS = 'nipponauto_settings';
+const ADMIN_PASSWORD = 'nippon2025';
+
+/* ========== Toast ========== */
+function showToast(msg, type) {
+  type = type || 'success';
+  var container = document.getElementById('toastContainer');
+  var toast = document.createElement('div');
+  toast.className = 'toast toast-' + type;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      toast.classList.add('toast-show');
+    });
+  });
+  setTimeout(function() {
+    toast.classList.remove('toast-show');
+    setTimeout(function() { toast.remove(); }, 400);
+  }, 3000);
+}
+
+/* ========== localStorage Helpers ========== */
+function getVehicles() {
+  try { return JSON.parse(localStorage.getItem(LS_VEHICLES) || '[]'); } catch(e) { return []; }
+}
+function saveVehicles(arr) {
+  localStorage.setItem(LS_VEHICLES, JSON.stringify(arr));
+}
+function getSettings() {
+  try { return JSON.parse(localStorage.getItem(LS_SETTINGS) || '{}'); } catch(e) { return {}; }
+}
+function saveSettings(obj) {
+  localStorage.setItem(LS_SETTINGS, JSON.stringify(obj));
+}
+
+/* ========== Generate Stock Number ========== */
+function generateStockNo() {
+  var year = new Date().getFullYear();
+  var rand = Math.floor(1000 + Math.random() * 9000);
+  return 'NUG-' + year + '-' + rand;
+}
+
+/* ========== Login ========== */
+(function initLogin() {
+  var loginScreen = document.getElementById('loginScreen');
+  var dashboard = document.getElementById('dashboard');
+  var loginBtn = document.getElementById('loginBtn');
+  var loginPwd = document.getElementById('loginPassword');
+  var loginError = document.getElementById('loginError');
+  var logoutBtn = document.getElementById('logoutBtn');
+  var logoutBtnMobile = document.getElementById('logoutBtnMobile');
+
+  function tryLogin() {
+    var pwd = loginPwd.value.trim();
+    if (pwd === ADMIN_PASSWORD) {
+      loginScreen.style.display = 'none';
+      dashboard.style.display = 'flex';
+      loginError.style.display = 'none';
+      loginPwd.value = '';
+      renderInventory();
+      loadSettings();
+    } else {
+      loginError.style.display = 'block';
+      loginPwd.value = '';
+      loginPwd.focus();
+    }
+  }
+
+  loginBtn.addEventListener('click', tryLogin);
+  loginPwd.addEventListener('keydown', function(e) { if (e.key === 'Enter') tryLogin(); });
+
+  function doLogout() {
+    dashboard.style.display = 'none';
+    loginScreen.style.display = 'flex';
+    loginPwd.value = '';
+    loginError.style.display = 'none';
+  }
+  if (logoutBtn) logoutBtn.addEventListener('click', doLogout);
+  if (logoutBtnMobile) logoutBtnMobile.addEventListener('click', doLogout);
+})();
+
+/* ========== Navigation ========== */
+(function initNav() {
+  var navItems = document.querySelectorAll('.nav-item');
+  var sections = document.querySelectorAll('.section');
+
+  function activateSection(name) {
+    sections.forEach(function(s) { s.classList.remove('active'); });
+    navItems.forEach(function(n) { n.classList.remove('active'); });
+    var target = document.getElementById('section' + name.charAt(0).toUpperCase() + name.slice(1));
+    if (target) target.classList.add('active');
+    var navBtn = document.querySelector('.nav-item[data-section="' + name + '"]');
+    if (navBtn) navBtn.classList.add('active');
+    closeMobileSidebar();
+  }
+
+  navItems.forEach(function(item) {
+    item.addEventListener('click', function() {
+      activateSection(this.dataset.section);
+      if (this.dataset.section === 'addEdit') {
+        resetForm();
+      }
+    });
+  });
+
+  window._activateSection = activateSection;
+
+  /* Mobile sidebar */
+  var mobileMenuBtn = document.getElementById('mobileMenuBtn');
+  var overlay = document.getElementById('sidebarOverlay');
+  var sidebar = document.getElementById('sidebar');
+  function openMobileSidebar() { sidebar.classList.add('open'); overlay.classList.add('visible'); document.body.style.overflow = 'hidden'; }
+  function closeMobileSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('visible'); document.body.style.overflow = ''; }
+  window.closeMobileSidebar = closeMobileSidebar;
+  if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', openMobileSidebar);
+  if (overlay) overlay.addEventListener('click', closeMobileSidebar);
+})();
+
+/* ========== Inventory Render ========== */
+function renderInventory() {
+  var vehicles = getVehicles();
+  var tbody = document.getElementById('invTableBody');
+  var emptyState = document.getElementById('emptyState');
+  var table = document.getElementById('invTable');
+
+  /* Update stats */
+  document.getElementById('statTotal').textContent = vehicles.length;
+  document.getElementById('statInStock').textContent = vehicles.filter(function(v) { return v.status === 'In Stock'; }).length;
+  document.getElementById('statReserved').textContent = vehicles.filter(function(v) { return v.status === 'Reserved'; }).length;
+  document.getElementById('statSold').textContent = vehicles.filter(function(v) { return v.status === 'Sold'; }).length;
+
+  if (!vehicles.length) {
+    table.style.display = 'none';
+    emptyState.style.display = 'block';
+    return;
+  }
+  table.style.display = 'table';
+  emptyState.style.display = 'none';
+
+  tbody.innerHTML = vehicles.map(function(v, idx) {
+    var img = v.imageUrl ? '<img src="' + escHtml(v.imageUrl) + '" alt="" onerror="this.src=\'https://picsum.photos/seed/' + encodeURIComponent(v.make || 'car') + '/60/40\'" />' : '<div class="thumb-placeholder">No Image</div>';
+    var statusClass = v.status === 'In Stock' ? 'badge-green' : (v.status === 'Reserved' ? 'badge-orange' : 'badge-grey');
+    var ugx = Number(v.priceUGX || 0).toLocaleString();
+    return '<tr>' +
+      '<td class="col-img">' + img + '</td>' +
+      '<td class="col-name"><strong>' + escHtml(v.make || '') + ' ' + escHtml(v.model || '') + '</strong><br><small>' + escHtml(v.stockNo || '') + '</small></td>' +
+      '<td>' + escHtml(String(v.year || '')) + '</td>' +
+      '<td>UGX ' + ugx + '</td>' +
+      '<td><span class="badge ' + statusClass + '">' + escHtml(v.status || '') + '</span></td>' +
+      '<td class="col-actions">' +
+        '<button class="btn btn-sm btn-navy" onclick="editVehicle(' + idx + ')">Edit</button> ' +
+        '<button class="btn btn-sm btn-danger" onclick="deleteVehicle(' + idx + ')">Delete</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* ========== Add / Edit ========== */
+function resetForm() {
+  document.getElementById('editId').value = '';
+  document.getElementById('formTitle').textContent = 'Add New Vehicle';
+  document.getElementById('vehicleForm').reset();
+  document.querySelectorAll('.field-error').forEach(function(el) { el.textContent = ''; });
+}
+
+function editVehicle(idx) {
+  var vehicles = getVehicles();
+  var v = vehicles[idx];
+  if (!v) return;
+  resetForm();
+  document.getElementById('editId').value = idx;
+  document.getElementById('formTitle').textContent = 'Edit Vehicle';
+  setVal('fMake', v.make);
+  setVal('fModel', v.model);
+  setVal('fYear', v.year);
+  setVal('fMileage', v.mileage);
+  setVal('fEngineCC', v.engineCC);
+  setVal('fFuelType', v.fuelType);
+  setVal('fTransmission', v.transmission);
+  setVal('fSteering', v.steering);
+  setVal('fBodyType', v.bodyType);
+  setVal('fColour', v.colour);
+  setVal('fDoors', v.doors);
+  setVal('fSeats', v.seats);
+  setVal('fPriceUGX', v.priceUGX);
+  setVal('fGrade', v.grade);
+  setVal('fStatus', v.status);
+  setVal('fStockNo', v.stockNo);
+  setVal('fImageUrl', v.imageUrl);
+  setVal('fDescription', v.description);
+  setVal('fFeatures', v.features);
+  document.getElementById('fFeatured').checked = !!v.isFeatured;
+  document.getElementById('fNewArrival').checked = !!v.isNewArrival;
+  window._activateSection('addEdit');
+}
+
+function setVal(id, val) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.value = val !== undefined && val !== null ? val : '';
+}
+
+function deleteVehicle(idx) {
+  if (!confirm('Are you sure you want to delete this vehicle? This cannot be undone.')) return;
+  var vehicles = getVehicles();
+  vehicles.splice(idx, 1);
+  saveVehicles(vehicles);
+  renderInventory();
+  showToast('Vehicle deleted.', 'error');
+}
+
+/* Form Submission */
+(function initVehicleForm() {
+  var form = document.getElementById('vehicleForm');
+  if (!form) return;
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var valid = true;
+
+    function requireField(id, label) {
+      var el = document.getElementById(id);
+      var err = document.getElementById(id + 'Error');
+      if (!el || !el.value.trim()) {
+        if (err) err.textContent = label + ' is required.';
+        valid = false;
+        return true;
+      } else {
+        if (err) err.textContent = '';
+        return false;
+      }
+    }
+
+    requireField('fMake', 'Make');
+    requireField('fModel', 'Model');
+    requireField('fYear', 'Year');
+    requireField('fMileage', 'Mileage');
+    requireField('fPriceUGX', 'Price');
+    requireField('fStatus', 'Status');
+
+    if (!valid) {
+      var firstErr = form.querySelector('.field-error:not(:empty)');
+      if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    var vehicles = getVehicles();
+    var editIdx = document.getElementById('editId').value;
+    var stockNo = document.getElementById('fStockNo').value.trim() || generateStockNo();
+
+    var vehicle = {
+      make: document.getElementById('fMake').value,
+      model: document.getElementById('fModel').value.trim(),
+      year: parseInt(document.getElementById('fYear').value),
+      mileage: parseInt(document.getElementById('fMileage').value),
+      engineCC: parseInt(document.getElementById('fEngineCC').value) || '',
+      fuelType: document.getElementById('fFuelType').value,
+      transmission: document.getElementById('fTransmission').value,
+      steering: document.getElementById('fSteering').value,
+      bodyType: document.getElementById('fBodyType').value,
+      colour: document.getElementById('fColour').value.trim(),
+      doors: parseInt(document.getElementById('fDoors').value) || '',
+      seats: parseInt(document.getElementById('fSeats').value) || '',
+      priceUGX: parseInt(document.getElementById('fPriceUGX').value),
+      grade: document.getElementById('fGrade').value,
+      status: document.getElementById('fStatus').value,
+      stockNo: stockNo,
+      imageUrl: document.getElementById('fImageUrl').value.trim(),
+      description: document.getElementById('fDescription').value.trim(),
+      features: document.getElementById('fFeatures').value.trim(),
+      isFeatured: document.getElementById('fFeatured').checked,
+      isNewArrival: document.getElementById('fNewArrival').checked
+    };
+
+    if (editIdx !== '') {
+      vehicles[parseInt(editIdx)] = vehicle;
+      showToast('Vehicle updated successfully!');
+    } else {
+      vehicles.push(vehicle);
+      showToast('Vehicle added successfully!');
+    }
+
+    saveVehicles(vehicles);
+    renderInventory();
+    window._activateSection('inventory');
+    resetForm();
+  });
+})();
+
+/* Add New Vehicle button */
+document.getElementById('addVehicleBtn').addEventListener('click', function() {
+  resetForm();
+  window._activateSection('addEdit');
+});
+
+/* Cancel buttons */
+['cancelFormBtn', 'cancelFormBtn2'].forEach(function(id) {
+  var btn = document.getElementById(id);
+  if (btn) btn.addEventListener('click', function() {
+    resetForm();
+    window._activateSection('inventory');
+  });
+});
+
+/* ========== Export JSON ========== */
+document.getElementById('exportJsonBtn').addEventListener('click', function() {
+  var vehicles = getVehicles();
+  var blob = new Blob([JSON.stringify(vehicles, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'vehicles.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Exported ' + vehicles.length + ' vehicle(s) to vehicles.json');
+});
+
+/* ========== Import JSON ========== */
+document.getElementById('importJsonInput').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      var data = JSON.parse(evt.target.result);
+      if (!Array.isArray(data)) throw new Error('Expected an array');
+      var existing = getVehicles();
+      var combined = existing.concat(data);
+      saveVehicles(combined);
+      renderInventory();
+      showToast('Imported ' + data.length + ' vehicle(s) successfully!');
+    } catch(err) {
+      showToast('Import failed: Invalid JSON format.', 'error');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+/* ========== Settings ========== */
+function loadSettings() {
+  var s = getSettings();
+  setVal('sBizName', s.bizName);
+  setVal('sPhone', s.phone);
+  setVal('sWhatsApp', s.whatsApp);
+  setVal('sEmail', s.email);
+  setVal('sAddress', s.address);
+}
+
+(function initSettings() {
+  var form = document.getElementById('settingsForm');
+  if (!form) return;
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var s = {
+      bizName: document.getElementById('sBizName').value.trim(),
+      phone: document.getElementById('sPhone').value.trim(),
+      whatsApp: document.getElementById('sWhatsApp').value.trim(),
+      email: document.getElementById('sEmail').value.trim(),
+      address: document.getElementById('sAddress').value.trim()
+    };
+    saveSettings(s);
+    showToast('Settings saved successfully!');
+  });
+})();
+</script>
+</body>
+</html>
