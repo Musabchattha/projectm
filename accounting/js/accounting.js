@@ -3338,7 +3338,12 @@ function setPOSpecFieldsLocked(locked) {
 function onPOModelCodeChange() {
   const codeSel = document.getElementById('po-code-sel');
   if (!codeSel) return;
-  if (!codeSel.value) { setPOSpecFieldsLocked(false); return; }
+  if (!codeSel.value) {
+    setPOSpecFieldsLocked(false);
+    const chassisEl = document.getElementById('po-chassis');
+    if (chassisEl && chassisEl.value.indexOf('-') !== -1 && chassisEl.value.split('-')[1] === '') chassisEl.value = '';
+    return;
+  }
   const mc = DB.load('nau_model_codes').find(c => c.id === Number(codeSel.value));
   if (!mc) { setPOSpecFieldsLocked(false); return; }
   const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined && val !== null && val !== '') el.value = val; };
@@ -3357,6 +3362,20 @@ function onPOModelCodeChange() {
     Array.from(steerSel.options).forEach(o => { o.selected = o.value === mc.steeringPosition || o.text === mc.steeringPosition; });
   }
   setPOSpecFieldsLocked(true);
+  // Pre-fill chassis prefix with model code; operator types the serial after the dash
+  const chassisEl = document.getElementById('po-chassis');
+  if (chassisEl && mc.code) {
+    const prefix = mc.code.toUpperCase() + '-';
+    // Only set prefix if field is empty or currently holds a different code prefix
+    if (!chassisEl.value || chassisEl.value.indexOf('-') === -1) {
+      chassisEl.value = prefix;
+    } else {
+      // Replace whatever was before the first dash with the new code
+      chassisEl.value = prefix + chassisEl.value.split('-').slice(1).join('-');
+    }
+    chassisEl.focus();
+    chassisEl.setSelectionRange(chassisEl.value.length, chassisEl.value.length);
+  }
 }
 
 // ===== PURCHASE ORDER STATS BAR =====
