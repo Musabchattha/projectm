@@ -2882,6 +2882,13 @@ Object.assign(modalConfigs, {
     getData: id => DB.load('nau_purchase_orders').find(p => p.id === id),
     form: d => {
       const vends = DB.load('nau_vendors');
+      const mfrs = DB.load('nau_manufacturers');
+      const allModels = DB.load('nau_models');
+      const allCodes = DB.load('nau_model_codes');
+      const selMfrId = d ? (d.manufacturerId || '') : '';
+      const filteredModels = selMfrId ? allModels.filter(m => m.manufacturerId === Number(selMfrId)) : allModels;
+      const selModelId = d ? (d.modelId || '') : '';
+      const filteredCodes = selModelId ? allCodes.filter(c => c.modelId === Number(selModelId)) : (selMfrId ? allCodes.filter(c => filteredModels.some(m => m.id === c.modelId)) : allCodes);
       return `
       <div class="form-row">
         <div class="form-group">
@@ -2900,11 +2907,19 @@ Object.assign(modalConfigs, {
       <div class="form-row">
         <div class="form-group">
           <label>Make <span class="required">*</span></label>
-          <input class="form-control" id="po-make" value="${d ? d.vehicleMake || '' : ''}" placeholder="e.g. Toyota" />
+          <select class="form-control" id="po-make-sel" onchange="onPOMakeChange()">
+            <option value="">-- Select Manufacturer --</option>
+            ${mfrs.map(m => `<option value="${m.id}" data-name="${m.name}" ${d && d.manufacturerId === m.id ? 'selected' : ''}>${m.name}</option>`).join('')}
+          </select>
+          <input type="hidden" id="po-make" value="${d ? d.vehicleMake || '' : ''}" />
         </div>
         <div class="form-group">
           <label>Model <span class="required">*</span></label>
-          <input class="form-control" id="po-model" value="${d ? d.vehicleModel || '' : ''}" placeholder="e.g. Hilux D-Cab" />
+          <select class="form-control" id="po-model-sel" onchange="onPOModelChange()">
+            <option value="">-- Select Model --</option>
+            ${filteredModels.map(m => `<option value="${m.id}" data-name="${m.name}" ${d && d.modelId === m.id ? 'selected' : ''}>${m.name}</option>`).join('')}
+          </select>
+          <input type="hidden" id="po-model" value="${d ? d.vehicleModel || '' : ''}" />
         </div>
         <div class="form-group">
           <label>Year</label>
@@ -2913,8 +2928,21 @@ Object.assign(modalConfigs, {
       </div>
       <div class="form-row">
         <div class="form-group">
+          <label>Model Code</label>
+          <select class="form-control" id="po-code-sel" onchange="onPOModelCodeChange()">
+            <option value="">-- Select model code --</option>
+            ${filteredCodes.map(c => `<option value="${c.id}"
+              data-eng-code="${c.engineCode||''}"
+              data-eng-cc="${c.engineCC||''}"
+              data-fuel="${c.fuelType||''}"
+              data-drive="${c.drivetrain||''}"
+              data-steer="${c.steeringPosition||''}"
+              ${d && d.modelCodeId === c.id ? 'selected' : ''}>${c.code}${c.engineCode ? ' — ' + c.engineCode : ''}${c.engineCC ? ' ' + c.engineCC + 'cc' : ''}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
           <label>Chassis Number</label>
-          <input class="form-control" id="po-chassis" value="${d ? d.vehicleChassis || '' : ''}" style="font-family:monospace" placeholder="e.g. MROYA3AV-703071210" />
+          <input class="form-control" id="po-chassis" value="${d ? d.vehicleChassis || '' : ''}" style="font-family:monospace" placeholder="e.g. GDJ150-037397" />
         </div>
         <div class="form-group">
           <label>Colour</label>
@@ -2923,12 +2951,18 @@ Object.assign(modalConfigs, {
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Engine (cc)</label>
-          <input class="form-control" type="number" id="po-engine" value="${d ? d.engineCC || '' : ''}" placeholder="e.g. 2800" />
+          <label>Engine Code</label>
+          <input class="form-control" id="po-eng-code" value="${d ? d.engineCode || '' : ''}" placeholder="e.g. 1GD-FTV" style="font-family:monospace" />
         </div>
         <div class="form-group">
-          <label>Body Type</label>
-          <input class="form-control" id="po-body" value="${d ? d.bodyType || '' : ''}" placeholder="e.g. D/Cabin" />
+          <label>Engine (cc)</label>
+          <input class="form-control" type="number" id="po-engine" value="${d ? d.engineCC || '' : ''}" placeholder="e.g. 2755" />
+        </div>
+        <div class="form-group">
+          <label>Drivetrain</label>
+          <select class="form-control" id="po-drive">
+            ${['4WD','2WD','AWD','RWD'].map(dr => `<option ${d && d.drivetrain===dr?'selected':''}>${dr}</option>`).join('')}
+          </select>
         </div>
       </div>
       <div class="form-row">
@@ -2943,6 +2977,18 @@ Object.assign(modalConfigs, {
           <select class="form-control" id="po-trans">
             ${['Automatic','Manual','CVT'].map(t => `<option ${d && d.transmission===t?'selected':''}>${t}</option>`).join('')}
           </select>
+        </div>
+        <div class="form-group">
+          <label>Steering</label>
+          <select class="form-control" id="po-steer">
+            ${['RHD','LHD'].map(s => `<option ${d && d.steeringPosition===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Body Type</label>
+          <input class="form-control" id="po-body" value="${d ? d.bodyType || '' : ''}" placeholder="e.g. D/Cabin" />
         </div>
       </div>
       <div style="margin:.75rem 0 .4rem;font-weight:700;font-size:.85rem;color:#0a1628;border-bottom:1px solid #e8ecf0;padding-bottom:.3rem">Pricing &amp; Dates</div>
@@ -2979,21 +3025,34 @@ Object.assign(modalConfigs, {
     },
     collect: () => {
       const vendorName = document.getElementById('po-vendor').value.trim();
-      const vehicleMake = document.getElementById('po-make').value.trim();
-      const vehicleModel = document.getElementById('po-model').value.trim();
+      const makeSel = document.getElementById('po-make-sel');
+      const modelSel = document.getElementById('po-model-sel');
+      const vehicleMake = makeSel && makeSel.selectedIndex > 0 ? makeSel.options[makeSel.selectedIndex].dataset.name : document.getElementById('po-make').value.trim();
+      const vehicleModel = modelSel && modelSel.selectedIndex > 0 ? modelSel.options[modelSel.selectedIndex].dataset.name : document.getElementById('po-model').value.trim();
       const purchasePrice = parseFloat(document.getElementById('po-price').value) || 0;
       if (!vendorName) { toast('Vendor name is required'); return null; }
-      if (!vehicleMake || !vehicleModel) { toast('Vehicle Make and Model are required'); return null; }
+      if (!vehicleMake) { toast('Manufacturer is required'); return null; }
+      if (!vehicleModel) { toast('Model is required'); return null; }
       if (!purchasePrice) { toast('Purchase price is required'); return null; }
+      const codeSel = document.getElementById('po-code-sel');
+      const modelCodeId = codeSel && codeSel.value ? Number(codeSel.value) : null;
       return {
-        vendorName, vehicleMake, vehicleModel,
+        vendorName,
+        manufacturerId: makeSel && makeSel.value ? Number(makeSel.value) : null,
+        vehicleMake,
+        modelId: modelSel && modelSel.value ? Number(modelSel.value) : null,
+        vehicleModel,
+        modelCodeId,
         vehicleYear: document.getElementById('po-year').value,
         vehicleChassis: document.getElementById('po-chassis').value.trim(),
         color: document.getElementById('po-color').value.trim(),
+        engineCode: document.getElementById('po-eng-code').value.trim(),
         engineCC: document.getElementById('po-engine').value,
         bodyType: document.getElementById('po-body').value.trim(),
         fuelType: document.getElementById('po-fuel').value,
+        drivetrain: document.getElementById('po-drive').value,
         transmission: document.getElementById('po-trans').value,
+        steeringPosition: document.getElementById('po-steer').value,
         purchasePrice, sellingPrice: parseFloat(document.getElementById('po-sell-price').value) || null,
         currency: document.getElementById('po-currency').value,
         purchaseDate: document.getElementById('po-date').value,
@@ -3212,6 +3271,68 @@ function onPOVendorChange() {
   const opt = sel.options[sel.selectedIndex];
   const nameEl = document.getElementById('po-vendor');
   if (nameEl && opt && opt.value) nameEl.value = opt.value;
+}
+
+function onPOMakeChange() {
+  const makeSel = document.getElementById('po-make-sel');
+  if (!makeSel) return;
+  const mfrId = Number(makeSel.value);
+  // Cascade: filter models
+  const allModels = DB.load('nau_models');
+  const filtered = mfrId ? allModels.filter(m => m.manufacturerId === mfrId) : allModels;
+  const modelSel = document.getElementById('po-model-sel');
+  if (modelSel) {
+    modelSel.innerHTML = '<option value="">-- Select Model --</option>' +
+      filtered.map(m => `<option value="${m.id}" data-name="${m.name}">${m.name}</option>`).join('');
+  }
+  // Clear model code
+  const codeSel = document.getElementById('po-code-sel');
+  if (codeSel) codeSel.innerHTML = '<option value="">-- Select model code --</option>';
+}
+
+function onPOModelChange() {
+  const modelSel = document.getElementById('po-model-sel');
+  if (!modelSel) return;
+  const modelId = Number(modelSel.value);
+  const allCodes = DB.load('nau_model_codes');
+  const filtered = modelId ? allCodes.filter(c => c.modelId === modelId) : [];
+  const codeSel = document.getElementById('po-code-sel');
+  if (codeSel) {
+    codeSel.innerHTML = '<option value="">-- Select model code --</option>' +
+      filtered.map(c => `<option value="${c.id}"
+        data-eng-code="${c.engineCode||''}"
+        data-eng-cc="${c.engineCC||''}"
+        data-fuel="${c.fuelType||''}"
+        data-drive="${c.drivetrain||''}"
+        data-steer="${c.steeringPosition||''}"
+        >${c.code}${c.engineCode ? ' — ' + c.engineCode : ''}${c.engineCC ? ' ' + c.engineCC + 'cc' : ''}</option>`).join('');
+  }
+}
+
+function onPOModelCodeChange() {
+  const codeSel = document.getElementById('po-code-sel');
+  if (!codeSel || !codeSel.value) return;
+  const opt = codeSel.options[codeSel.selectedIndex];
+  if (!opt) return;
+  // Auto-fill spec fields from model code data attributes
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+  set('po-eng-code', opt.dataset.engCode);
+  set('po-engine',   opt.dataset.engCc);
+  // Fuel select
+  const fuelSel = document.getElementById('po-fuel');
+  if (fuelSel && opt.dataset.fuel) {
+    Array.from(fuelSel.options).forEach(o => { o.selected = o.text === opt.dataset.fuel; });
+  }
+  // Drivetrain select
+  const driveSel = document.getElementById('po-drive');
+  if (driveSel && opt.dataset.drive) {
+    Array.from(driveSel.options).forEach(o => { o.selected = o.text === opt.dataset.drive; });
+  }
+  // Steering select
+  const steerSel = document.getElementById('po-steer');
+  if (steerSel && opt.dataset.steer) {
+    Array.from(steerSel.options).forEach(o => { o.selected = o.text === opt.dataset.steer; });
+  }
 }
 
 // ===== PURCHASE ORDER STATS BAR =====

@@ -634,9 +634,24 @@ function renderUsers() {
 function renderModelCodes() {
   const data = DB.load('nau_model_codes');
   document.getElementById('mc-tbody').innerHTML = data.length ? data.map(c=>`
-    <tr><td><strong>${c.code}</strong></td><td>${getModelName(c.modelId)}</td><td>${getMFRName(c.mfrId)}</td><td>${c.description||'-'}</td>
-    <td><div class="row-actions"><button class="btn-row" onclick="openModal('modelCode',${c.id})">✏️</button><button class="btn-row btn-row-delete" onclick="deletePage('nau_model_codes',${c.id},renderModelCodes)">🗑️</button></div></td></tr>`).join('')
-    : '<tr><td colspan="5" class="table-empty"><span class="empty-icon">🔢</span>No model codes yet.</td></tr>';
+    <tr>
+      <td><strong style="font-family:monospace">${c.code}</strong></td>
+      <td>${getMFRName(c.mfrId)}</td>
+      <td>${getModelName(c.modelId)}</td>
+      <td style="font-family:monospace;font-size:.82rem">${c.engineCode||'-'}</td>
+      <td>${c.engineCC ? c.engineCC+'cc' : '-'}</td>
+      <td>${c.fuelType||'-'}</td>
+      <td>${c.drivetrain||'-'}</td>
+      <td>${c.description||'-'}</td>
+      <td><div class="row-actions"><button class="btn-row" onclick="openModal('modelCode',${c.id})">✏️</button><button class="btn-row btn-row-delete" onclick="deletePage('nau_model_codes',${c.id},renderModelCodes)">🗑️</button></div></td>
+    </tr>`).join('')
+    : '<tr><td colspan="9" class="table-empty"><span class="empty-icon">🔢</span>No model codes yet.</td></tr>';
+}
+function onMCMfrChange() {
+  const mfrId = Number(document.getElementById('mc-mfr').value);
+  const models = getModels().filter(m => m.manufacturerId === mfrId);
+  const sel = document.getElementById('mc-mdl');
+  if (sel) sel.innerHTML = models.map(m=>`<option value="${m.id}">${m.name}</option>`).join('') || '<option value="">-- No models --</option>';
 }
 function renderReviews() {
   const data = DB.load('nau_reviews');
@@ -948,11 +963,82 @@ const modalConfigs = {
   modelCode: {
     label: 'Model Code',
     getData: id => DB.load('nau_model_codes').find(c=>c.id===id),
-    form: d => `
-      <div class="form-row"><div class="form-group"><label>Code<span class="required">*</span></label><input class="form-control" id="mc-code" value="${d?d.code:''}" /></div>
-      <div class="form-group"><label>Model</label><select class="form-control" id="mc-mdl">${getModels().map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}</select></div></div>
-      <div class="form-row full"><div class="form-group"><label>Description</label><textarea class="form-control" id="mc-desc">${d?d.description:''}</textarea></div></div>`,
-    collect: () => { const code = document.getElementById('mc-code').value.trim(); if(!code){toast('⚠️ Code required');return null;} return {code, modelId:Number(document.getElementById('mc-mdl').value), description:document.getElementById('mc-desc').value}; },
+    form: d => {
+      const mfrs = getMFRs();
+      const models = getModels();
+      const selMfrId = d ? d.mfrId : (mfrs[0] ? mfrs[0].id : '');
+      const filteredModels = models.filter(m => m.manufacturerId === Number(selMfrId));
+      return `
+      <div class="form-row">
+        <div class="form-group">
+          <label>Code <span class="required">*</span></label>
+          <input class="form-control" id="mc-code" value="${d?d.code:''}" placeholder="e.g. GDJ150" style="font-family:monospace;font-weight:700" />
+        </div>
+        <div class="form-group">
+          <label>Manufacturer</label>
+          <select class="form-control" id="mc-mfr" onchange="onMCMfrChange()">
+            ${mfrs.map(m=>`<option value="${m.id}" ${d && d.mfrId===m.id?'selected':''}>${m.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Model</label>
+          <select class="form-control" id="mc-mdl">
+            ${filteredModels.map(m=>`<option value="${m.id}" ${d && d.modelId===m.id?'selected':''}>${m.name}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Engine Code</label>
+          <input class="form-control" id="mc-eng-code" value="${d?d.engineCode||'':''}" placeholder="e.g. 1GD-FTV" style="font-family:monospace" />
+        </div>
+        <div class="form-group">
+          <label>Engine CC</label>
+          <input class="form-control" type="number" id="mc-eng-cc" value="${d?d.engineCC||'':''}" placeholder="e.g. 2755" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fuel Type</label>
+          <select class="form-control" id="mc-fuel">
+            ${['Diesel','Petrol','Hybrid','Electric','Other'].map(f=>`<option ${d&&d.fuelType===f?'selected':''}>${f}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Drivetrain</label>
+          <select class="form-control" id="mc-drive">
+            ${['4WD','2WD','AWD','RWD'].map(dr=>`<option ${d&&d.drivetrain===dr?'selected':''}>${dr}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Steering Position</label>
+          <select class="form-control" id="mc-steer">
+            ${['RHD','LHD'].map(s=>`<option ${d&&d.steeringPosition===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label>Description</label>
+          <textarea class="form-control" id="mc-desc">${d?d.description||'':''}</textarea>
+        </div>
+      </div>`;
+    },
+    collect: () => {
+      const code = document.getElementById('mc-code').value.trim();
+      if (!code) { toast('⚠️ Code required'); return null; }
+      return {
+        code,
+        mfrId: Number(document.getElementById('mc-mfr').value),
+        modelId: Number(document.getElementById('mc-mdl').value),
+        engineCode: document.getElementById('mc-eng-code').value.trim(),
+        engineCC: Number(document.getElementById('mc-eng-cc').value) || null,
+        fuelType: document.getElementById('mc-fuel').value,
+        drivetrain: document.getElementById('mc-drive').value,
+        steeringPosition: document.getElementById('mc-steer').value,
+        description: document.getElementById('mc-desc').value
+      };
+    },
     create: d => { const all=DB.load('nau_model_codes'); all.push({id:DB.nextId('nau_model_codes'),...d,createdAt:nowISO()}); DB.save('nau_model_codes',all); },
     update: (id,d) => { const all=DB.load('nau_model_codes'); const i=all.findIndex(c=>c.id===id); if(i>-1){all[i]={...all[i],...d};DB.save('nau_model_codes',all);} },
     refresh: renderModelCodes
@@ -1884,6 +1970,24 @@ function seedData() {
     {id:20,name:'LX570',manufacturerId:8,description:'',status:true,createdAt:'2026-03-16T09:00:00Z'}
   ];
   saveModels(models);
+
+  // Model Codes
+  DB.save('nau_model_codes', [
+    {id:1,  code:'GDJ150',   mfrId:1, modelId:1,  engineCode:'1GD-FTV', engineCC:2755, fuelType:'Diesel',  drivetrain:'4WD', steeringPosition:'RHD', description:'Land Cruiser Prado 2.8D 4WD (2015+)', createdAt:'2026-03-16T09:00:00Z'},
+    {id:2,  code:'KDJ150',   mfrId:1, modelId:1,  engineCode:'1KD-FTV', engineCC:3000, fuelType:'Diesel',  drivetrain:'4WD', steeringPosition:'RHD', description:'Land Cruiser Prado 3.0D 4WD (pre-2015)', createdAt:'2026-03-16T09:00:00Z'},
+    {id:3,  code:'GUN156',   mfrId:1, modelId:2,  engineCode:'1GD-FTV', engineCC:2755, fuelType:'Diesel',  drivetrain:'4WD', steeringPosition:'RHD', description:'Fortuner 2.8D 4WD (2016+)', createdAt:'2026-03-16T09:00:00Z'},
+    {id:4,  code:'GUN125',   mfrId:1, modelId:3,  engineCode:'1GD-FTV', engineCC:2755, fuelType:'Diesel',  drivetrain:'4WD', steeringPosition:'RHD', description:'Hilux D-Cab 2.8D 4WD (2016+)', createdAt:'2026-03-16T09:00:00Z'},
+    {id:5,  code:'GUN135',   mfrId:1, modelId:3,  engineCode:'1GD-FTV', engineCC:2755, fuelType:'Diesel',  drivetrain:'4WD', steeringPosition:'RHD', description:'Hilux D-Cab 2.8D 4x4 Extra Cab', createdAt:'2026-03-16T09:00:00Z'},
+    {id:6,  code:'KDH201',   mfrId:1, modelId:5,  engineCode:'2KD-FTV', engineCC:2694, fuelType:'Diesel',  drivetrain:'2WD', steeringPosition:'RHD', description:'Hiace 2.7D 2WD (standard)', createdAt:'2026-03-16T09:00:00Z'},
+    {id:7,  code:'GGL25',    mfrId:8, modelId:19, engineCode:'2GR-FE',  engineCC:3456, fuelType:'Petrol',  drivetrain:'AWD', steeringPosition:'RHD', description:'Lexus RX350 AWD 3.5V6', createdAt:'2026-03-16T09:00:00Z'},
+    {id:8,  code:'Y62',      mfrId:2, modelId:9,  engineCode:'VK56VD',  engineCC:5552, fuelType:'Petrol',  drivetrain:'4WD', steeringPosition:'RHD', description:'Nissan Patrol Y62 5.6V8 4WD', createdAt:'2026-03-16T09:00:00Z'},
+    {id:9,  code:'NT32',     mfrId:2, modelId:10, engineCode:'QR25DE',  engineCC:2500, fuelType:'Petrol',  drivetrain:'AWD', steeringPosition:'RHD', description:'Nissan X-Trail 2.5 AWD', createdAt:'2026-03-16T09:00:00Z'},
+    {id:10, code:'GK5',      mfrId:3, modelId:12, engineCode:'L15B',    engineCC:1496, fuelType:'Petrol',  drivetrain:'2WD', steeringPosition:'RHD', description:'Honda Fit 1.5 2WD', createdAt:'2026-03-16T09:00:00Z'},
+    {id:11, code:'V93W',     mfrId:5, modelId:15, engineCode:'4M41',    engineCC:3200, fuelType:'Diesel',  drivetrain:'4WD', steeringPosition:'RHD', description:'Mitsubishi Pajero 3.2D 4WD', createdAt:'2026-03-16T09:00:00Z'},
+    {id:12, code:'TFR86',    mfrId:6, modelId:16, engineCode:'4JJ1',    engineCC:2999, fuelType:'Diesel',  drivetrain:'4WD', steeringPosition:'RHD', description:'Isuzu D-Max 3.0D 4WD', createdAt:'2026-03-16T09:00:00Z'},
+    {id:13, code:'AGH35',    mfrId:1, modelId:4,  engineCode:'2AR-FE',  engineCC:2494, fuelType:'Petrol',  drivetrain:'2WD', steeringPosition:'RHD', description:'Toyota Alphard 2.5 2WD', createdAt:'2026-03-16T09:00:00Z'},
+    {id:14, code:'AYH30',    mfrId:1, modelId:4,  engineCode:'2AZ-FXE', engineCC:2362, fuelType:'Hybrid',  drivetrain:'AWD', steeringPosition:'RHD', description:'Toyota Alphard Hybrid AWD', createdAt:'2026-03-16T09:00:00Z'}
+  ]);
 
   // Vehicles
   const vehicles = [
