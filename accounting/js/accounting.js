@@ -2942,7 +2942,16 @@ Object.assign(modalConfigs, {
         </div>
         <div class="form-group">
           <label>Chassis Number</label>
-          <input class="form-control" id="po-chassis" value="${d ? d.vehicleChassis || '' : ''}" style="font-family:monospace" placeholder="e.g. GDJ150-037397" />
+          <div style="display:flex;align-items:stretch;">
+            <input id="po-chassis-prefix" readonly
+              value="${d && d.vehicleChassis && d.vehicleChassis.includes('-') ? d.vehicleChassis.split('-')[0]+'-' : (d && d.modelCodeId ? (()=>{const mc=DB.load('nau_model_codes').find(c=>c.id===d.modelCodeId);return mc?mc.code.toUpperCase()+'-':''})() : '')}"
+              style="font-family:monospace;width:110px;flex-shrink:0;background:#f1f5f9;color:#374151;border:1px solid #d1d5db;border-right:none;border-radius:4px 0 0 4px;padding:.45rem .6rem;font-size:.88rem;"
+              placeholder="Code-" />
+            <input class="form-control" id="po-chassis-serial"
+              value="${d && d.vehicleChassis && d.vehicleChassis.includes('-') ? d.vehicleChassis.split('-').slice(1).join('-') : (d && d.vehicleChassis && !d.vehicleChassis.includes('-') ? d.vehicleChassis : '')}"
+              style="font-family:monospace;border-radius:0 4px 4px 0;"
+              placeholder="e.g. 037397" />
+          </div>
         </div>
         <div class="form-group">
           <label>Colour</label>
@@ -3044,7 +3053,7 @@ Object.assign(modalConfigs, {
         vehicleModel,
         modelCodeId,
         vehicleYear: document.getElementById('po-year').value,
-        vehicleChassis: document.getElementById('po-chassis').value.trim(),
+        vehicleChassis: (document.getElementById('po-chassis-prefix').value||'') + (document.getElementById('po-chassis-serial').value.trim()||''),
         color: document.getElementById('po-color').value.trim(),
         engineCode: document.getElementById('po-eng-code').value.trim(),
         engineCC: document.getElementById('po-engine').value,
@@ -3316,8 +3325,10 @@ function onPOModelChange() {
         data-steer="${c.steeringPosition||''}"
         >${c.code}${c.engineCode ? ' — ' + c.engineCode : ''}${c.engineCC ? ' ' + c.engineCC + 'cc' : ''}</option>`).join('');
   }
-  // Unlock spec fields when model changes (code selection is reset)
+  // Unlock spec fields and clear chassis prefix when model changes
   setPOSpecFieldsLocked(false);
+  const prefixEl = document.getElementById('po-chassis-prefix');
+  if (prefixEl) prefixEl.value = '';
 }
 
 function setPOSpecFieldsLocked(locked) {
@@ -3344,8 +3355,8 @@ function onPOModelCodeChange() {
   if (!codeSel) return;
   if (!codeSel.value) {
     setPOSpecFieldsLocked(false);
-    const chassisEl = document.getElementById('po-chassis');
-    if (chassisEl && chassisEl.value.indexOf('-') !== -1 && chassisEl.value.split('-')[1] === '') chassisEl.value = '';
+    const prefixEl = document.getElementById('po-chassis-prefix');
+    if (prefixEl) prefixEl.value = '';
     return;
   }
   const mc = DB.load('nau_model_codes').find(c => c.id === Number(codeSel.value));
@@ -3366,26 +3377,11 @@ function onPOModelCodeChange() {
     Array.from(steerSel.options).forEach(o => { o.selected = o.value === mc.steeringPosition || o.text === mc.steeringPosition; });
   }
   setPOSpecFieldsLocked(true);
-  // Pre-fill chassis number: set model code prefix if field is empty,
-  // or swap prefix if only the bare prefix was there (no serial yet)
-  const chassisEl = document.getElementById('po-chassis');
-  if (chassisEl && mc.code) {
-    const prefix = mc.code.toUpperCase() + '-';
-    const cur = chassisEl.value.trim();
-    const hasSerial = cur.includes('-') && cur.split('-').slice(1).join('-').trim() !== '';
-    if (!cur) {
-      // Empty — set prefix so operator just types the serial
-      chassisEl.value = prefix;
-      chassisEl.focus();
-      chassisEl.setSelectionRange(chassisEl.value.length, chassisEl.value.length);
-    } else if (!hasSerial) {
-      // Only prefix present — update it to match selected code
-      chassisEl.value = prefix;
-      chassisEl.focus();
-      chassisEl.setSelectionRange(chassisEl.value.length, chassisEl.value.length);
-    }
-    // If a full chassis already exists (editing), leave it untouched
-  }
+  // Set the read-only prefix field to the model code and focus the serial field
+  const prefixEl = document.getElementById('po-chassis-prefix');
+  if (prefixEl && mc.code) prefixEl.value = mc.code.toUpperCase() + '-';
+  const serialEl = document.getElementById('po-chassis-serial');
+  if (serialEl) { serialEl.focus(); serialEl.setSelectionRange(serialEl.value.length, serialEl.value.length); }
 }
 
 // ===== PURCHASE ORDER STATS BAR =====
