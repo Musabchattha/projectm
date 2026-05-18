@@ -157,10 +157,19 @@ function navigate(page) {
   const renders = {
     dashboard: renderDashboard,
     invoices: renderInvoices,
+    'credit-notes': renderCreditNotes,
     bills: renderBills,
+    'vendor-credit-notes': renderVendorCreditNotes,
     payments: renderPayments,
     receipts: renderReceipts,
     accounts: renderAccounts,
+    'bank-statements': renderBankStatements,
+    'journal-entries': renderJournalEntries,
+    coa: renderCOA,
+    journals: renderJournals,
+    taxes: renderTaxes,
+    'customers-acc': renderCustomersAcc,
+    vendors: renderVendors,
     reports: () => { showReportTab('pnl'); }
   };
   if (renders[page]) renders[page]();
@@ -1086,7 +1095,16 @@ function showReportTab(tab) {
   const sec = document.getElementById('rpt-' + tab);
   if (sec) sec.style.display = 'block';
 
-  const renders = { pnl: renderPNL, aging: renderAging, expenses: renderExpenseBreakdown };
+  const renders = {
+    pnl: renderPNL,
+    'trial-balance': renderTrialBalance,
+    'balance-sheet': renderBalanceSheet,
+    'general-ledger': renderGeneralLedger,
+    aging: renderAging,
+    'aged-payables': renderAgedPayables,
+    'tax-report': renderTaxReport,
+    expenses: renderExpenseBreakdown
+  };
   if (renders[tab]) renders[tab]();
 }
 
@@ -1334,11 +1352,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) logoutBtn.addEventListener('click', () => { AUTH.logout(); init(); });
 
-  // Nav items
-  document.querySelectorAll('.nav-item[data-page]').forEach(item => {
-    item.addEventListener('click', () => navigate(item.dataset.page));
-  });
-
   // Modal close
   document.getElementById('modalBackdrop').addEventListener('click', e => {
     if (e.target === document.getElementById('modalBackdrop')) closeModal();
@@ -1371,12 +1384,37 @@ document.addEventListener('DOMContentLoaded', () => {
   // Report date filter apply
   const rptApply = document.getElementById('rpt-apply');
   if (rptApply) rptApply.addEventListener('click', () => {
-    const renders = { pnl: renderPNL, aging: renderAging, expenses: renderExpenseBreakdown };
+    const renders = {
+      pnl: renderPNL, 'trial-balance': renderTrialBalance, 'balance-sheet': renderBalanceSheet,
+      'general-ledger': renderGeneralLedger, aging: renderAging, 'aged-payables': renderAgedPayables,
+      'tax-report': renderTaxReport, expenses: renderExpenseBreakdown
+    };
     if (renders[currentReportTab]) renders[currentReportTab]();
   });
 
+  // Sidebar nav items (flat)
+  document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+    item.addEventListener('click', () => navigate(item.dataset.page));
+  });
+
+  // Sidebar sub-items
+  document.querySelectorAll('.nav-sub-item[data-page]').forEach(item => {
+    item.addEventListener('click', () => navigate(item.dataset.page));
+  });
+
+  // Sidebar accordion parents
+  document.querySelectorAll('.nav-parent[data-group]').forEach(parent => {
+    parent.addEventListener('click', () => {
+      const sub = document.getElementById(parent.dataset.group);
+      if (sub) {
+        const isOpen = sub.classList.toggle('open');
+        parent.classList.toggle('open', isOpen);
+      }
+    });
+  });
+
   // Refresh pay-acct-filter when navigating to payments
-  document.querySelectorAll('.nav-item[data-page="payments"]').forEach(el => {
+  document.querySelectorAll('.nav-item[data-page="payments"],.nav-sub-item[data-page="payments"]').forEach(el => {
     el.addEventListener('click', () => {
       setTimeout(() => {
         const f = document.getElementById('pay-acct-filter');
@@ -1386,5 +1424,1439 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Init
+  seedAccountingData();
   init();
 });
+
+// ===== SEED ACCOUNTING DATA =====
+function seedAccountingData() {
+  // Chart of Accounts
+  if (!DB.load('nau_coa').length) {
+    DB.save('nau_coa', [
+      { id:1, code:'1000', name:'Cash & Bank', type:'asset', subtype:'current_asset', parentId:null, active:true },
+      { id:2, code:'1010', name:'Cash - USD', type:'asset', subtype:'current_asset', parentId:1, active:true },
+      { id:3, code:'1020', name:'Cash - UGX', type:'asset', subtype:'current_asset', parentId:1, active:true },
+      { id:4, code:'1030', name:'Stanbic Bank USD', type:'asset', subtype:'current_asset', parentId:1, active:true },
+      { id:5, code:'1040', name:'Stanbic Bank UGX', type:'asset', subtype:'current_asset', parentId:1, active:true },
+      { id:6, code:'1100', name:'Accounts Receivable', type:'asset', subtype:'current_asset', parentId:null, active:true },
+      { id:7, code:'1200', name:'Inventory', type:'asset', subtype:'current_asset', parentId:null, active:true },
+      { id:8, code:'1300', name:'Fixed Assets', type:'asset', subtype:'fixed_asset', parentId:null, active:true },
+      { id:9, code:'2000', name:'Accounts Payable', type:'liability', subtype:'current_liability', parentId:null, active:true },
+      { id:10, code:'2100', name:'VAT Payable', type:'liability', subtype:'current_liability', parentId:null, active:true },
+      { id:11, code:'2200', name:'Customer Deposits', type:'liability', subtype:'current_liability', parentId:null, active:true },
+      { id:12, code:'3000', name:"Owner's Equity", type:'equity', subtype:'equity', parentId:null, active:true },
+      { id:13, code:'3100', name:'Retained Earnings', type:'equity', subtype:'equity', parentId:null, active:true },
+      { id:14, code:'4000', name:'Sales Revenue', type:'revenue', subtype:'revenue', parentId:null, active:true },
+      { id:15, code:'4100', name:'Other Income', type:'revenue', subtype:'revenue', parentId:null, active:true },
+      { id:16, code:'5000', name:'Cost of Goods Sold', type:'expense', subtype:'cogs', parentId:null, active:true },
+      { id:17, code:'6000', name:'Operating Expenses', type:'expense', subtype:'operating_expense', parentId:null, active:true },
+      { id:18, code:'6010', name:'Salaries & Wages', type:'expense', subtype:'operating_expense', parentId:17, active:true },
+      { id:19, code:'6020', name:'Rent & Utilities', type:'expense', subtype:'operating_expense', parentId:17, active:true },
+      { id:20, code:'6030', name:'Marketing & Advertising', type:'expense', subtype:'operating_expense', parentId:17, active:true }
+    ]);
+  }
+
+  // Journals
+  if (!DB.load('nau_journals').length) {
+    DB.save('nau_journals', [
+      { id:1, name:'Sales Journal', type:'sales', prefix:'INV', defaultAccount:'Accounts Receivable', active:true },
+      { id:2, name:'Purchase Journal', type:'purchase', prefix:'BILL', defaultAccount:'Accounts Payable', active:true },
+      { id:3, name:'Bank Journal - USD', type:'bank', prefix:'BNK-USD', defaultAccount:'Stanbic Bank USD', active:true },
+      { id:4, name:'Bank Journal - UGX', type:'bank', prefix:'BNK-UGX', defaultAccount:'Stanbic Bank UGX', active:true },
+      { id:5, name:'Cash Journal - USD', type:'cash', prefix:'CSH-USD', defaultAccount:'Cash - USD', active:true },
+      { id:6, name:'General Journal', type:'general', prefix:'JNL', defaultAccount:'', active:true }
+    ]);
+  }
+
+  // Taxes
+  if (!DB.load('nau_taxes').length) {
+    DB.save('nau_taxes', [
+      { id:1, name:'VAT 18%', rate:18, type:'percentage', scope:'both', taxAccount:'VAT Payable', active:true },
+      { id:2, name:'Zero-Rated (0%)', rate:0, type:'percentage', scope:'both', taxAccount:'VAT Payable', active:true },
+      { id:3, name:'Exempt', rate:0, type:'percentage', scope:'sale', taxAccount:'', active:true },
+      { id:4, name:'Withholding Tax 6%', rate:6, type:'percentage', scope:'purchase', taxAccount:'VAT Payable', active:true }
+    ]);
+  }
+
+  // Customers
+  if (!DB.load('nau_customers_acc').length) {
+    DB.save('nau_customers_acc', [
+      { id:1, name:'Musab Khalid', email:'musab@example.com', phone:'+256 700 111 001', address:'Kampala, Uganda', tin:'TIN-001-MK', currency:'USD', paymentTerms:30, notes:'', createdAt: nowISO() },
+      { id:2, name:'Grace Nakato', email:'grace.nakato@gmail.com', phone:'+256 700 222 002', address:'Entebbe, Uganda', tin:'TIN-002-GN', currency:'USD', paymentTerms:15, notes:'', createdAt: nowISO() },
+      { id:3, name:'John Mugisha', email:'j.mugisha@business.ug', phone:'+256 700 333 003', address:'Jinja, Uganda', tin:'TIN-003-JM', currency:'USD', paymentTerms:30, notes:'Corporate client', createdAt: nowISO() }
+    ]);
+  }
+
+  // Vendors
+  if (!DB.load('nau_vendors').length) {
+    DB.save('nau_vendors', [
+      { id:1, name:'Toyota Uganda Ltd', email:'sales@toyota.ug', phone:'+256 414 001 001', address:'Industrial Area, Kampala', tin:'TIN-T001', currency:'USD', paymentTerms:30, notes:'Main vehicle supplier', createdAt: nowISO() },
+      { id:2, name:'Motul Uganda', email:'info@motul.ug', phone:'+256 414 002 002', address:'Nakawa, Kampala', tin:'TIN-M002', currency:'UGX', paymentTerms:14, notes:'Lubricants & oils', createdAt: nowISO() },
+      { id:3, name:'Kampala Tyres', email:'orders@kampalatyres.ug', phone:'+256 414 003 003', address:'Kisenyi, Kampala', tin:'TIN-K003', currency:'UGX', paymentTerms:7, notes:'Tyre supplier', createdAt: nowISO() }
+    ]);
+  }
+
+  // Bank Statements
+  if (!DB.load('nau_bank_statements').length) {
+    const lines = [
+      { date:'2026-05-01', ref:'TRF-001', description:'Opening deposit', debit:50000, credit:0, balance:50000, reconciled:true },
+      { date:'2026-05-03', ref:'INV-2026-001', description:'Vehicle sale payment - Musab Khalid', debit:49000, credit:0, balance:99000, reconciled:true },
+      { date:'2026-05-05', ref:'PMT-OUT-001', description:'Vehicle purchase - Toyota Uganda', debit:0, credit:32000, balance:67000, reconciled:false },
+      { date:'2026-05-10', ref:'INV-2026-002', description:'Toyota Prado sale - Grace Nakato', debit:42000, credit:0, balance:109000, reconciled:false },
+      { date:'2026-05-15', ref:'BILL-001', description:'Freight charges', debit:0, credit:3500, balance:105500, reconciled:false }
+    ];
+    DB.save('nau_bank_statements', [
+      { id:1, accountId:'Stanbic Bank USD', statementDate:'2026-05-31', openingBalance:50000, closingBalance:105500, currency:'USD', lines, createdAt: nowISO() }
+    ]);
+  }
+
+  // Journal Entries
+  if (!DB.load('nau_journal_entries').length) {
+    DB.save('nau_journal_entries', [
+      { id:1, entryNo:'JNL-2026-0001', journalId:6, journalName:'General Journal', date:'2026-05-01', ref:'Opening', narration:'Opening balances', status:'Posted', createdAt: nowISO(),
+        lines:[
+          { accountCode:'1010', accountName:'Cash - USD', debit:50000, credit:0, description:'Opening cash' },
+          { accountCode:'3000', accountName:"Owner's Equity", debit:0, credit:50000, description:'Opening equity' }
+        ]},
+      { id:2, entryNo:'JNL-2026-0002', journalId:1, journalName:'Sales Journal', date:'2026-05-03', ref:'INV-2026-001', narration:'Sale - Toyota Hilux to Musab Khalid', status:'Posted', createdAt: nowISO(),
+        lines:[
+          { accountCode:'1100', accountName:'Accounts Receivable', debit:49000, credit:0, description:'Invoice amount' },
+          { accountCode:'4000', accountName:'Sales Revenue', debit:0, credit:49000, description:'Vehicle sale' }
+        ]},
+      { id:3, entryNo:'JNL-2026-0003', journalId:6, journalName:'General Journal', date:'2026-05-05', ref:'BILL-2026-001', narration:'Vehicle purchase cost', status:'Draft', createdAt: nowISO(),
+        lines:[
+          { accountCode:'5000', accountName:'Cost of Goods Sold', debit:32000, credit:0, description:'Cost of vehicle' },
+          { accountCode:'2000', accountName:'Accounts Payable', debit:0, credit:32000, description:'Toyota Uganda invoice' }
+        ]}
+    ]);
+  }
+}
+
+// ===== CHART OF ACCOUNTS =====
+function renderCOA() {
+  const q = (document.getElementById('coa-search')||{}).value||'';
+  const typeF = (document.getElementById('coa-type-filter')||{}).value||'';
+  const coa = DB.load('nau_coa').filter(a => {
+    const mQ = !q || (a.code+a.name).toLowerCase().includes(q.toLowerCase());
+    const mT = !typeF || a.type === typeF;
+    return mQ && mT;
+  }).sort((a,b) => a.code.localeCompare(b.code));
+
+  const typeColor = { asset:'badge-paid', liability:'badge-overdue', equity:'badge-sent', revenue:'badge-invoice', expense:'badge-draft' };
+  const tbody = document.getElementById('coa-tbody');
+  if (!tbody) return;
+  const allCoa = DB.load('nau_coa');
+  tbody.innerHTML = coa.length ? coa.map(a => {
+    const isChild = a.parentId;
+    const parent = isChild ? allCoa.find(x=>x.id===a.parentId) : null;
+    return `<tr>
+      <td style="font-family:monospace;font-weight:600">${a.code}</td>
+      <td style="padding-left:${isChild?'1.75rem':'0'}">
+        ${isChild?'↳ ':''}${a.name}
+        ${parent?`<div style="font-size:.72rem;color:#9ca3af">${parent.code} ${parent.name}</div>`:''}
+      </td>
+      <td><span class="badge ${typeColor[a.type]||'badge-draft'}">${a.type}</span></td>
+      <td style="font-size:.8rem;color:#6b7280">${a.subtype||'-'}</td>
+      <td>
+        <label class="toggle-switch">
+          <input type="checkbox" ${a.active?'checked':''} onchange="toggleCOA(${a.id},this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </td>
+      <td>
+        <div class="row-actions">
+          <button class="btn-row" onclick="openModal('coa',${a.id})">✏️</button>
+          <button class="btn-row btn-row-delete" onclick="deleteItem('nau_coa',${a.id},renderCOA)">🗑️</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="6" class="table-empty"><span class="empty-icon">📒</span>No accounts found.</td></tr>';
+}
+
+function toggleCOA(id, active) {
+  const coa = DB.load('nau_coa');
+  const a = coa.find(x=>x.id===id);
+  if (a) { a.active = active; DB.save('nau_coa', coa); toast('Updated'); }
+}
+
+// ===== JOURNALS =====
+function renderJournals() {
+  const rows = DB.load('nau_journals');
+  const typeIcons = { sales:'🧾', purchase:'📋', bank:'🏦', cash:'💵', general:'📓' };
+  const tbody = document.getElementById('journals-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.length ? rows.map(j => `
+    <tr>
+      <td><strong>${j.name}</strong></td>
+      <td>${typeIcons[j.type]||''} ${j.type}</td>
+      <td><span style="font-family:monospace;font-size:.82rem">${j.prefix||'-'}</span></td>
+      <td style="font-size:.82rem">${j.defaultAccount||'-'}</td>
+      <td>
+        <label class="toggle-switch">
+          <input type="checkbox" ${j.active?'checked':''} onchange="toggleJournal(${j.id},this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </td>
+      <td>
+        <div class="row-actions">
+          <button class="btn-row" onclick="openModal('journal',${j.id})">✏️</button>
+          <button class="btn-row btn-row-delete" onclick="deleteItem('nau_journals',${j.id},renderJournals)">🗑️</button>
+        </div>
+      </td>
+    </tr>`).join('')
+    : '<tr><td colspan="6" class="table-empty"><span class="empty-icon">📓</span>No journals configured.</td></tr>';
+}
+
+function toggleJournal(id, active) {
+  const rows = DB.load('nau_journals');
+  const j = rows.find(x=>x.id===id);
+  if (j) { j.active = active; DB.save('nau_journals', rows); toast('Updated'); }
+}
+
+// ===== TAXES =====
+function renderTaxes() {
+  const rows = DB.load('nau_taxes');
+  const tbody = document.getElementById('taxes-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.length ? rows.map(t => `
+    <tr>
+      <td><strong>${t.name}</strong></td>
+      <td class="amount-mono">${t.rate}%</td>
+      <td><span class="badge badge-draft">${t.scope}</span></td>
+      <td style="font-size:.82rem">${t.taxAccount||'-'}</td>
+      <td>
+        <label class="toggle-switch">
+          <input type="checkbox" ${t.active?'checked':''} onchange="toggleTax(${t.id},this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </td>
+      <td>
+        <div class="row-actions">
+          <button class="btn-row" onclick="openModal('tax',${t.id})">✏️</button>
+          <button class="btn-row btn-row-delete" onclick="deleteItem('nau_taxes',${t.id},renderTaxes)">🗑️</button>
+        </div>
+      </td>
+    </tr>`).join('')
+    : '<tr><td colspan="6" class="table-empty"><span class="empty-icon">💹</span>No taxes configured.</td></tr>';
+}
+
+function toggleTax(id, active) {
+  const rows = DB.load('nau_taxes');
+  const t = rows.find(x=>x.id===id);
+  if (t) { t.active = active; DB.save('nau_taxes', rows); toast('Updated'); }
+}
+
+function taxOptions(selectedId) {
+  const taxes = DB.load('nau_taxes').filter(t=>t.active);
+  return `<option value="">No Tax</option>` + taxes.map(t =>
+    `<option value="${t.id}" data-rate="${t.rate}" ${selectedId==t.id?'selected':''}>${t.name} (${t.rate}%)</option>`
+  ).join('');
+}
+
+// ===== CUSTOMERS =====
+function renderCustomersAcc() {
+  const q = (document.getElementById('cacc-search')||{}).value||'';
+  const rows = DB.load('nau_customers_acc').filter(c =>
+    !q || (c.name+c.email+(c.tin||'')).toLowerCase().includes(q.toLowerCase())
+  );
+  const invoices = DB.load('nau_invoices');
+  const tbody = document.getElementById('cacc-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.length ? rows.map(c => {
+    const outstanding = invoices.filter(i=>i.customerName===c.name && ['Draft','Sent','Partially Paid'].includes(i.status))
+      .reduce((s,i)=>s+(Number(i.totalAmount||0)-Number(i.paidAmount||0)),0);
+    return `<tr>
+      <td><strong>${c.name}</strong></td>
+      <td style="font-size:.82rem">${c.email||'-'}</td>
+      <td style="font-size:.82rem">${c.phone||'-'}</td>
+      <td style="font-family:monospace;font-size:.78rem">${c.tin||'-'}</td>
+      <td><span class="badge badge-draft">${c.currency||'USD'}</span></td>
+      <td>${c.paymentTerms||30} days</td>
+      <td class="amount-mono" style="color:${outstanding>0?'#f59e0b':'#6b7280'}">${outstanding>0?fmtMoney(outstanding):'-'}</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn-row" onclick="openModal('customerAcc',${c.id})">✏️</button>
+          <button class="btn-row btn-row-delete" onclick="deleteItem('nau_customers_acc',${c.id},renderCustomersAcc)">🗑️</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="8" class="table-empty"><span class="empty-icon">👤</span>No customers yet.</td></tr>';
+}
+
+function customerAccOptions(selectedName) {
+  const custs = DB.load('nau_customers_acc');
+  if (!custs.length) return `<option value="">-- No customers. Add from Customers menu. --</option>`;
+  return `<option value="">-- Select Customer --</option>` + custs.map(c =>
+    `<option value="${c.name}" ${c.name===selectedName?'selected':''}>${c.name}</option>`
+  ).join('');
+}
+
+// ===== VENDORS =====
+function renderVendors() {
+  const q = (document.getElementById('vend-search')||{}).value||'';
+  const rows = DB.load('nau_vendors').filter(v =>
+    !q || (v.name+v.email+(v.tin||'')).toLowerCase().includes(q.toLowerCase())
+  );
+  const bills = DB.load('nau_bills');
+  const tbody = document.getElementById('vend-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.length ? rows.map(v => {
+    const outstanding = bills.filter(b=>b.vendor===v.name && b.status==='Pending')
+      .reduce((s,b)=>s+Number(b.amount||0),0);
+    return `<tr>
+      <td><strong>${v.name}</strong></td>
+      <td style="font-size:.82rem">${v.email||'-'}</td>
+      <td style="font-size:.82rem">${v.phone||'-'}</td>
+      <td style="font-family:monospace;font-size:.78rem">${v.tin||'-'}</td>
+      <td><span class="badge badge-draft">${v.currency||'USD'}</span></td>
+      <td>${v.paymentTerms||30} days</td>
+      <td class="amount-mono" style="color:${outstanding>0?'#c0392b':'#6b7280'}">${outstanding>0?fmtMoney(outstanding):'-'}</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn-row" onclick="openModal('vendor',${v.id})">✏️</button>
+          <button class="btn-row btn-row-delete" onclick="deleteItem('nau_vendors',${v.id},renderVendors)">🗑️</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="8" class="table-empty"><span class="empty-icon">🏢</span>No vendors yet.</td></tr>';
+}
+
+function vendorOptions(selectedName) {
+  const vends = DB.load('nau_vendors');
+  if (!vends.length) return `<option value="">-- No vendors. Add from Vendors menu. --</option>`;
+  return `<option value="">-- Select Vendor or type below --</option>` + vends.map(v =>
+    `<option value="${v.name}" ${v.name===selectedName?'selected':''}>${v.name}</option>`
+  ).join('');
+}
+
+// ===== CREDIT NOTES =====
+function genCNNo() {
+  const rows = DB.load('nau_credit_notes');
+  return `CN-${new Date().getFullYear()}-${String(rows.length+1).padStart(3,'0')}`;
+}
+
+function renderCreditNotes() {
+  const q = (document.getElementById('cn-search')||{}).value||'';
+  const st = (document.getElementById('cn-status-filter')||{}).value||'';
+  const rows = DB.load('nau_credit_notes').filter(c => {
+    const mQ = !q || (c.cnNo+c.customerName+(c.invoiceRef||'')).toLowerCase().includes(q.toLowerCase());
+    const mS = !st || c.status===st;
+    return mQ && mS;
+  }).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const tbody = document.getElementById('cn-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.length ? rows.map(cn => `
+    <tr>
+      <td><strong style="font-family:monospace">${cn.cnNo}</strong></td>
+      <td style="font-family:monospace;font-size:.82rem">${cn.invoiceRef||'-'}</td>
+      <td>${cn.customerName}</td>
+      <td style="font-size:.82rem;color:#6b7280">${cn.reason||'-'}</td>
+      <td class="amount-mono"><strong>${fmtMoney(cn.amount)}</strong></td>
+      <td><span class="badge ${cn.status==='Confirmed'?'badge-paid':'badge-draft'}">${cn.status}</span></td>
+      <td>${fmtDate(cn.createdAt)}</td>
+      <td>
+        <div class="row-actions">
+          ${cn.status==='Draft'?`<button class="btn-row" title="Confirm" onclick="confirmCN(${cn.id})">✅</button>`:''}
+          ${cn.status==='Draft'?`<button class="btn-row btn-row-delete" onclick="deleteItem('nau_credit_notes',${cn.id},renderCreditNotes)">🗑️</button>`:''}
+        </div>
+      </td>
+    </tr>`).join('')
+    : '<tr><td colspan="8" class="table-empty"><span class="empty-icon">📄</span>No credit notes found.</td></tr>';
+}
+
+function confirmCN(id) {
+  const cns = DB.load('nau_credit_notes');
+  const cn = cns.find(x=>x.id===id);
+  if (!cn) return;
+  cn.status = 'Confirmed';
+  DB.save('nau_credit_notes', cns);
+  // Apply to linked invoice
+  if (cn.invoiceId) {
+    const invs = DB.load('nau_invoices');
+    const inv = invs.find(i=>i.id===cn.invoiceId);
+    if (inv) {
+      inv.paidAmount = (inv.paidAmount||0) + cn.amount;
+      if (inv.paidAmount >= inv.totalAmount) { inv.status = 'Paid'; inv.paidAt = nowISO(); }
+      else { inv.status = 'Partially Paid'; }
+      DB.save('nau_invoices', invs);
+    }
+  }
+  toast('Credit note confirmed and applied to invoice.');
+  renderCreditNotes();
+}
+
+// ===== VENDOR CREDIT NOTES =====
+function genVCNNo() {
+  const rows = DB.load('nau_vendor_credit_notes');
+  return `VCN-${new Date().getFullYear()}-${String(rows.length+1).padStart(3,'0')}`;
+}
+
+function renderVendorCreditNotes() {
+  const q = (document.getElementById('vcn-search')||{}).value||'';
+  const st = (document.getElementById('vcn-status-filter')||{}).value||'';
+  const rows = DB.load('nau_vendor_credit_notes').filter(v => {
+    const mQ = !q || (v.vcnNo+v.vendorName+(v.billRef||'')).toLowerCase().includes(q.toLowerCase());
+    const mS = !st || v.status===st;
+    return mQ && mS;
+  }).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const tbody = document.getElementById('vcn-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.length ? rows.map(v => `
+    <tr>
+      <td><strong style="font-family:monospace">${v.vcnNo}</strong></td>
+      <td style="font-family:monospace;font-size:.82rem">${v.billRef||'-'}</td>
+      <td>${v.vendorName}</td>
+      <td style="font-size:.82rem;color:#6b7280">${v.reason||'-'}</td>
+      <td class="amount-mono"><strong>${fmtMoney(v.amount)}</strong></td>
+      <td><span class="badge ${v.status==='Confirmed'?'badge-paid':'badge-draft'}">${v.status}</span></td>
+      <td>${fmtDate(v.createdAt)}</td>
+      <td>
+        <div class="row-actions">
+          ${v.status==='Draft'?`<button class="btn-row" onclick="confirmVCN(${v.id})">✅</button>`:''}
+          ${v.status==='Draft'?`<button class="btn-row btn-row-delete" onclick="deleteItem('nau_vendor_credit_notes',${v.id},renderVendorCreditNotes)">🗑️</button>`:''}
+        </div>
+      </td>
+    </tr>`).join('')
+    : '<tr><td colspan="8" class="table-empty"><span class="empty-icon">📄</span>No vendor credit notes found.</td></tr>';
+}
+
+function confirmVCN(id) {
+  const rows = DB.load('nau_vendor_credit_notes');
+  const vcn = rows.find(x=>x.id===id);
+  if (!vcn) return;
+  vcn.status = 'Confirmed';
+  DB.save('nau_vendor_credit_notes', rows);
+  toast('Vendor credit note confirmed.');
+  renderVendorCreditNotes();
+}
+
+// ===== BANK STATEMENTS =====
+let _bsDetailId = null;
+
+function renderBankStatements() {
+  const acctF = (document.getElementById('bs-acct-filter')||{}).value||'';
+  const rows = DB.load('nau_bank_statements').filter(s => !acctF || s.accountId===acctF)
+    .sort((a,b)=>new Date(b.statementDate)-new Date(a.statementDate));
+  const tbody = document.getElementById('bs-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.length ? rows.map(s => {
+    const lines = s.lines||[];
+    const reconciled = lines.filter(l=>l.reconciled).length;
+    return `<tr>
+      <td><strong>BST-${String(s.id).padStart(3,'0')}</strong></td>
+      <td>${s.accountId}</td>
+      <td>${s.statementDate||'-'}</td>
+      <td class="amount-mono">${fmtMoney(s.openingBalance, s.currency||'USD')}</td>
+      <td class="amount-mono">${fmtMoney(s.closingBalance, s.currency||'USD')}</td>
+      <td>${lines.length} lines</td>
+      <td>${reconciled}/${lines.length}</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn-row" onclick="openBSDetail(${s.id})" title="View Lines">👁️</button>
+          <button class="btn-row btn-row-delete" onclick="deleteItem('nau_bank_statements',${s.id},renderBankStatements)">🗑️</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="8" class="table-empty"><span class="empty-icon">🏦</span>No bank statements yet.</td></tr>';
+}
+
+function openBSDetail(id) {
+  _bsDetailId = id;
+  const s = DB.load('nau_bank_statements').find(x=>x.id===id);
+  if (!s) return;
+  document.getElementById('bs-detail-title').textContent = `${s.accountId} — ${s.statementDate}`;
+  const lines = s.lines||[];
+  const totalIn = lines.reduce((sum,l)=>sum+Number(l.debit||0),0);
+  const totalOut = lines.reduce((sum,l)=>sum+Number(l.credit||0),0);
+  document.getElementById('bs-detail-summary').innerHTML = `
+    <div class="bs-summary-row">
+      <span>Opening Balance: <strong>${fmtMoney(s.openingBalance, s.currency||'USD')}</strong></span>
+      <span>Money In: <strong style="color:#10b981">${fmtMoney(totalIn, s.currency||'USD')}</strong></span>
+      <span>Money Out: <strong style="color:#c0392b">${fmtMoney(totalOut, s.currency||'USD')}</strong></span>
+      <span>Closing Balance: <strong>${fmtMoney(s.closingBalance, s.currency||'USD')}</strong></span>
+    </div>`;
+  document.getElementById('bs-lines-tbody').innerHTML = lines.length ? lines.map((l,idx) => `
+    <tr>
+      <td>${l.date||'-'}</td>
+      <td style="font-family:monospace;font-size:.8rem">${l.ref||'-'}</td>
+      <td style="font-size:.82rem">${l.description||'-'}</td>
+      <td class="amount-mono" style="color:#10b981">${l.debit?fmtMoney(l.debit):'-'}</td>
+      <td class="amount-mono" style="color:#c0392b">${l.credit?fmtMoney(l.credit):'-'}</td>
+      <td class="amount-mono">${fmtMoney(l.balance)}</td>
+      <td>
+        <label class="toggle-switch">
+          <input type="checkbox" ${l.reconciled?'checked':''} onchange="toggleBSLine(${id},${idx},this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </td>
+    </tr>`).join('')
+    : '<tr><td colspan="7" class="table-empty">No lines in this statement.</td></tr>';
+  document.getElementById('bs-detail-panel').style.display = 'block';
+}
+
+function toggleBSLine(stmtId, lineIdx, reconciled) {
+  const stmts = DB.load('nau_bank_statements');
+  const s = stmts.find(x=>x.id===stmtId);
+  if (s && s.lines[lineIdx]) { s.lines[lineIdx].reconciled = reconciled; DB.save('nau_bank_statements', stmts); toast('Reconciliation updated'); }
+}
+
+function populateBSFilter() {
+  const sel = document.getElementById('bs-acct-filter');
+  if (!sel) return;
+  const accts = DB.load('nau_payment_accounts');
+  sel.innerHTML = '<option value="">All Accounts</option>' + accts.map(a=>
+    `<option value="${a.name}">${a.name}</option>`).join('');
+}
+
+// ===== JOURNAL ENTRIES =====
+let _jeEditId = null;
+let _jeLines = [];
+
+function genJENo() {
+  const rows = DB.load('nau_journal_entries');
+  return `JNL-${new Date().getFullYear()}-${String(rows.length+1).padStart(4,'0')}`;
+}
+
+function renderJournalEntries() {
+  const q = (document.getElementById('je-search')||{}).value||'';
+  const jf = (document.getElementById('je-journal-filter')||{}).value||'';
+  const sf = (document.getElementById('je-status-filter')||{}).value||'';
+  let rows = DB.load('nau_journal_entries').filter(e => {
+    const mQ = !q || (e.entryNo+(e.ref||'')+(e.narration||'')).toLowerCase().includes(q.toLowerCase());
+    const mJ = !jf || String(e.journalId)===jf;
+    const mS = !sf || e.status===sf;
+    return mQ && mJ && mS;
+  }).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+
+  const tbody = document.getElementById('je-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.length ? rows.map(e => {
+    const totalDebit = (e.lines||[]).reduce((s,l)=>s+Number(l.debit||0),0);
+    const totalCredit = (e.lines||[]).reduce((s,l)=>s+Number(l.credit||0),0);
+    return `<tr>
+      <td><strong style="font-family:monospace">${e.entryNo}</strong></td>
+      <td style="font-size:.8rem">${e.journalName||'-'}</td>
+      <td>${e.date||'-'}</td>
+      <td style="font-size:.8rem;font-family:monospace">${e.ref||'-'}</td>
+      <td style="font-size:.8rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.narration||'-'}</td>
+      <td class="amount-mono" style="color:#10b981">${fmtMoney(totalDebit)}</td>
+      <td class="amount-mono" style="color:#c0392b">${fmtMoney(totalCredit)}</td>
+      <td><span class="badge ${e.status==='Posted'?'badge-paid':'badge-draft'}">${e.status}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="btn-row" onclick="viewJELines(${e.id})" title="View lines">👁️</button>
+          ${e.status==='Draft'?`<button class="btn-row" onclick="openJournalEntryModal(${e.id})" title="Edit">✏️</button>`:''}
+          ${e.status==='Draft'?`<button class="btn-row btn-row-delete" onclick="deleteItem('nau_journal_entries',${e.id},renderJournalEntries)">🗑️</button>`:''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="9" class="table-empty"><span class="empty-icon">📝</span>No journal entries yet.</td></tr>';
+
+  // Populate journal filter
+  const jfEl = document.getElementById('je-journal-filter');
+  if (jfEl && !jfEl.options.length || (jfEl && jfEl.options.length < 2)) {
+    const journals = DB.load('nau_journals');
+    jfEl.innerHTML = '<option value="">All Journals</option>' + journals.map(j=>
+      `<option value="${j.id}">${j.name}</option>`).join('');
+  }
+}
+
+function viewJELines(id) {
+  const e = DB.load('nau_journal_entries').find(x=>x.id===id);
+  if (!e) return;
+  const lines = (e.lines||[]).map(l=>
+    `<tr><td style="font-family:monospace">${l.accountCode||''}</td><td>${l.accountName}</td><td style="font-size:.8rem">${l.description||''}</td><td class="amount-mono" style="color:#10b981">${l.debit?fmtMoney(l.debit):''}</td><td class="amount-mono" style="color:#c0392b">${l.credit?fmtMoney(l.credit):''}</td></tr>`
+  ).join('');
+  document.getElementById('modalTitle').textContent = `${e.entryNo} — ${e.narration||'Journal Entry'}`;
+  document.getElementById('modalBody').innerHTML = `
+    <p style="font-size:.82rem;color:#6b7280;margin-bottom:.75rem">Journal: ${e.journalName||'-'} | Date: ${e.date||'-'} | Ref: ${e.ref||'-'} | Status: ${e.status}</p>
+    <div class="table-wrap"><table class="acc-table"><thead><tr><th>Code</th><th>Account</th><th>Description</th><th>Debit</th><th>Credit</th></tr></thead><tbody>${lines}</tbody></table></div>`;
+  document.getElementById('modalSaveBtn').style.display = 'none';
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+function openJournalEntryModal(id) {
+  _jeEditId = id || null;
+  const e = id ? DB.load('nau_journal_entries').find(x=>x.id===id) : null;
+  _jeLines = e ? JSON.parse(JSON.stringify(e.lines||[])) : [
+    { accountCode:'', accountName:'', debit:0, credit:0, description:'' },
+    { accountCode:'', accountName:'', debit:0, credit:0, description:'' }
+  ];
+  const journals = DB.load('nau_journals');
+  document.getElementById('jeModalTitle').textContent = id ? `Edit Journal Entry — ${e.entryNo}` : 'New Journal Entry';
+  document.getElementById('jeModalBody').innerHTML = `
+    <div class="form-row">
+      <div class="form-group">
+        <label>Journal <span class="required">*</span></label>
+        <select class="form-control" id="je-journal-sel">
+          <option value="">-- Select Journal --</option>
+          ${journals.map(j=>`<option value="${j.id}" data-name="${j.name}" ${e&&e.journalId===j.id?'selected':''}>${j.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Date <span class="required">*</span></label>
+        <input class="form-control" type="date" id="je-date" value="${e?e.date:new Date().toISOString().split('T')[0]}" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Reference</label>
+        <input class="form-control" id="je-ref" value="${e?e.ref||'':''}" placeholder="e.g. INV-2026-001" />
+      </div>
+      <div class="form-group">
+        <label>Narration</label>
+        <input class="form-control" id="je-narration" value="${e?e.narration||'':''}" placeholder="Brief description" />
+      </div>
+    </div>
+    <div style="margin:1rem 0 .5rem;font-weight:700;font-size:.88rem;color:#0a1628">Journal Lines</div>
+    <div class="table-wrap" style="overflow-x:auto">
+      <table class="je-table" id="je-lines-table">
+        <thead><tr><th style="min-width:90px">Code</th><th style="min-width:180px">Account <span class="required">*</span></th><th style="min-width:140px">Description</th><th style="min-width:120px">Debit</th><th style="min-width:120px">Credit</th><th></th></tr></thead>
+        <tbody id="je-lines-body"></tbody>
+        <tfoot><tr class="je-totals-row">
+          <td colspan="3" style="text-align:right;font-weight:700;font-size:.84rem">Totals</td>
+          <td class="amount-mono" id="je-total-debit" style="color:#10b981;font-weight:700">$0</td>
+          <td class="amount-mono" id="je-total-credit" style="color:#c0392b;font-weight:700">$0</td>
+          <td></td>
+        </tr></tfoot>
+      </table>
+    </div>
+    <button class="je-add-btn" onclick="addJELine()">+ Add Line</button>
+    <div id="je-balance-msg" style="margin-top:.5rem;font-size:.82rem"></div>`;
+  renderJELines();
+  document.getElementById('jeModalBackdrop').classList.add('open');
+}
+
+function renderJELines() {
+  const coa = DB.load('nau_coa').filter(a=>a.active);
+  const coaOpts = coa.map(a=>`<option value="${a.code}" data-name="${a.name}">${a.code} — ${a.name}</option>`).join('');
+  const tbody = document.getElementById('je-lines-body');
+  if (!tbody) return;
+  tbody.innerHTML = _jeLines.map((l,i) => `
+    <tr>
+      <td style="width:90px">
+        <input class="form-control" style="font-size:.8rem;padding:.3rem .4rem;font-family:monospace" value="${l.accountCode||''}" oninput="jeLineCodeChange(${i},this.value)" placeholder="Code" />
+      </td>
+      <td>
+        <select class="form-control" style="font-size:.82rem;padding:.3rem .4rem" onchange="jeLineAccChange(${i},this)">
+          <option value="">-- Account --</option>${coaOpts}
+        </select>
+      </td>
+      <td><input class="form-control" style="font-size:.82rem;padding:.3rem .4rem" value="${l.description||''}" oninput="jeLine(${i},'description',this.value)" /></td>
+      <td><input class="form-control amount-input" style="font-size:.82rem;padding:.3rem .4rem;text-align:right" type="number" min="0" step="0.01" value="${l.debit||''}" oninput="jeLine(${i},'debit',this.value);jeLine(${i},'credit',0);updateJETotals()" placeholder="0.00" /></td>
+      <td><input class="form-control amount-input" style="font-size:.82rem;padding:.3rem .4rem;text-align:right" type="number" min="0" step="0.01" value="${l.credit||''}" oninput="jeLine(${i},'credit',this.value);jeLine(${i},'debit',0);updateJETotals()" placeholder="0.00" /></td>
+      <td><button class="btn-row btn-row-delete" onclick="removeJELine(${i})" ${_jeLines.length<=2?'disabled':''}>✕</button></td>
+    </tr>`).join('');
+
+  // Set selected in each account dropdown
+  _jeLines.forEach((l,i) => {
+    const rows = tbody.querySelectorAll('tr');
+    if (!rows[i]) return;
+    const sel = rows[i].querySelector('select');
+    if (sel && l.accountCode) sel.value = l.accountCode;
+  });
+  updateJETotals();
+}
+
+function addJELine() {
+  _jeLines.push({ accountCode:'', accountName:'', debit:0, credit:0, description:'' });
+  renderJELines();
+}
+
+function removeJELine(idx) {
+  if (_jeLines.length <= 2) return;
+  _jeLines.splice(idx, 1);
+  renderJELines();
+}
+
+function jeLine(idx, field, val) {
+  if (!_jeLines[idx]) return;
+  _jeLines[idx][field] = (field==='debit'||field==='credit') ? (parseFloat(val)||0) : val;
+}
+
+function jeLineAccChange(idx, sel) {
+  const opt = sel.options[sel.selectedIndex];
+  _jeLines[idx].accountCode = opt.value;
+  _jeLines[idx].accountName = opt.dataset.name||opt.text;
+}
+
+function jeLineCodeChange(idx, code) {
+  _jeLines[idx].accountCode = code;
+  const coa = DB.load('nau_coa').find(a=>a.code===code);
+  if (coa) { _jeLines[idx].accountName = coa.name; renderJELines(); }
+}
+
+function updateJETotals() {
+  const td = _jeLines.reduce((s,l)=>s+Number(l.debit||0),0);
+  const tc = _jeLines.reduce((s,l)=>s+Number(l.credit||0),0);
+  const tdEl = document.getElementById('je-total-debit');
+  const tcEl = document.getElementById('je-total-credit');
+  const msgEl = document.getElementById('je-balance-msg');
+  if (tdEl) tdEl.textContent = fmtMoney(td);
+  if (tcEl) tcEl.textContent = fmtMoney(tc);
+  if (msgEl) {
+    if (Math.abs(td-tc) < 0.01) {
+      msgEl.innerHTML = '<span style="color:#10b981;font-weight:600">✓ Balanced — debits equal credits</span>';
+    } else {
+      msgEl.innerHTML = `<span style="color:#c0392b;font-weight:600">⚠ Out of balance by ${fmtMoney(Math.abs(td-tc))}</span>`;
+    }
+  }
+}
+
+function saveJournalEntry(status) {
+  const journalSel = document.getElementById('je-journal-sel');
+  const journalId = Number(journalSel.value);
+  const journalName = journalSel.options[journalSel.selectedIndex]?.dataset.name || '';
+  const date = document.getElementById('je-date').value;
+  if (!journalId) { toast('Select a journal'); return; }
+  if (!date) { toast('Date is required'); return; }
+
+  const td = _jeLines.reduce((s,l)=>s+Number(l.debit||0),0);
+  const tc = _jeLines.reduce((s,l)=>s+Number(l.credit||0),0);
+  if (_jeLines.some(l=>!l.accountCode&&!l.accountName)) { toast('All lines must have an account'); return; }
+  if (status==='Posted' && Math.abs(td-tc)>0.01) { toast('Cannot post: debits must equal credits'); return; }
+
+  const entries = DB.load('nau_journal_entries');
+  if (_jeEditId) {
+    const idx = entries.findIndex(e=>e.id===_jeEditId);
+    if (idx>-1) entries[idx] = { ...entries[idx], journalId, journalName, date, ref: document.getElementById('je-ref').value, narration: document.getElementById('je-narration').value, status, lines: _jeLines };
+    DB.save('nau_journal_entries', entries);
+    toast('Journal entry updated');
+  } else {
+    entries.push({ id: DB.nextId('nau_journal_entries'), entryNo: genJENo(), journalId, journalName, date, ref: document.getElementById('je-ref').value, narration: document.getElementById('je-narration').value, status, lines: _jeLines, createdAt: nowISO() });
+    DB.save('nau_journal_entries', entries);
+    toast(status==='Posted' ? 'Journal entry posted' : 'Draft saved');
+  }
+  closeJEModal();
+  renderJournalEntries();
+}
+
+function closeJEModal() {
+  document.getElementById('jeModalBackdrop').classList.remove('open');
+  _jeEditId = null;
+  _jeLines = [];
+}
+
+// ===== REPORTS: TRIAL BALANCE =====
+function renderTrialBalance() {
+  const coa = DB.load('nau_coa').filter(a=>a.active);
+  const entries = DB.load('nau_journal_entries').filter(e=>e.status==='Posted');
+  const invoices = DB.load('nau_invoices');
+  const bills = DB.load('nau_bills');
+  const payments = DB.load('nau_payments');
+
+  // Build account balances from posted journal entries
+  const balances = {};
+  entries.forEach(e => {
+    (e.lines||[]).forEach(l => {
+      if (!l.accountCode) return;
+      if (!balances[l.accountCode]) balances[l.accountCode] = { debit:0, credit:0 };
+      balances[l.accountCode].debit += Number(l.debit||0);
+      balances[l.accountCode].credit += Number(l.credit||0);
+    });
+  });
+
+  // Also derive from invoices (AR) and bills (AP)
+  invoices.filter(i=>['Paid','Partially Paid','Sent'].includes(i.status)).forEach(i=>{
+    if (!balances['1100']) balances['1100'] = { debit:0, credit:0 };
+    balances['1100'].debit += Number(i.totalAmount||0);
+    if (!balances['4000']) balances['4000'] = { debit:0, credit:0 };
+    balances['4000'].credit += Number(i.salePrice||0);
+    if (i.taxAmount) {
+      if (!balances['2100']) balances['2100'] = { debit:0, credit:0 };
+      balances['2100'].credit += Number(i.taxAmount||0);
+    }
+  });
+  payments.filter(p=>p.type==='invoice').forEach(p=>{
+    if (!balances['1100']) balances['1100'] = { debit:0, credit:0 };
+    balances['1100'].credit += Number(p.amount||0);
+    if (!balances['1030']) balances['1030'] = { debit:0, credit:0 };
+    balances['1030'].debit += Number(p.amount||0);
+  });
+  bills.filter(b=>['Paid','Pending'].includes(b.status)).forEach(b=>{
+    if (!balances['2000']) balances['2000'] = { debit:0, credit:0 };
+    balances['2000'].credit += Number(b.amount||0);
+    if (!balances['5000']) balances['5000'] = { debit:0, credit:0 };
+    balances['5000'].debit += Number(b.amount||0);
+  });
+  payments.filter(p=>p.type==='bill').forEach(p=>{
+    if (!balances['2000']) balances['2000'] = { debit:0, credit:0 };
+    balances['2000'].debit += Number(p.amount||0);
+    if (!balances['1030']) balances['1030'] = { debit:0, credit:0 };
+    balances['1030'].credit += Number(p.amount||0);
+  });
+
+  const totalDebit = Object.values(balances).reduce((s,b)=>s+b.debit,0);
+  const totalCredit = Object.values(balances).reduce((s,b)=>s+b.credit,0);
+
+  const el = document.getElementById('trial-balance-content');
+  if (!el) return;
+  const rows = coa.map(a => {
+    const b = balances[a.code] || { debit:0, credit:0 };
+    if (!b.debit && !b.credit) return '';
+    return `<tr>
+      <td style="font-family:monospace">${a.code}</td>
+      <td>${a.name}</td>
+      <td><span class="badge badge-draft" style="font-size:.72rem">${a.type}</span></td>
+      <td class="amount-mono" style="color:#10b981">${b.debit?fmtMoney(b.debit):'-'}</td>
+      <td class="amount-mono" style="color:#c0392b">${b.credit?fmtMoney(b.credit):'-'}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `<div class="report-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
+      <h3 style="font-size:1rem;font-weight:700">Trial Balance</h3>
+      <span style="font-size:.8rem;color:#6b7280">All posted transactions</span>
+    </div>
+    <div class="table-wrap"><table class="acc-table">
+      <thead><tr><th>Code</th><th>Account</th><th>Type</th><th>Debit</th><th>Credit</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="5" class="table-empty">No posted transactions yet.</td></tr>'}</tbody>
+      <tfoot><tr style="background:#f4f6fa;font-weight:700">
+        <td colspan="3" style="text-align:right;padding:.75rem">TOTALS</td>
+        <td class="amount-mono" style="color:#10b981">${fmtMoney(totalDebit)}</td>
+        <td class="amount-mono" style="color:#c0392b">${fmtMoney(totalCredit)}</td>
+      </tr></tfoot>
+    </table></div>
+    <p style="margin-top:.75rem;font-size:.8rem;color:${Math.abs(totalDebit-totalCredit)<0.01?'#10b981':'#c0392b'};font-weight:600">
+      ${Math.abs(totalDebit-totalCredit)<0.01?'✓ Trial balance is balanced':'⚠ Out of balance by '+fmtMoney(Math.abs(totalDebit-totalCredit))}
+    </p>
+  </div>`;
+}
+
+// ===== REPORTS: BALANCE SHEET =====
+function renderBalanceSheet() {
+  const invoices = DB.load('nau_invoices');
+  const bills = DB.load('nau_bills');
+  const payments = DB.load('nau_payments');
+
+  const totalRevenue = invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+Number(i.totalAmount||0),0);
+  const totalExpenses = bills.filter(b=>b.status==='Paid').reduce((s,b)=>s+Number(b.amount||0),0);
+  const netProfit = totalRevenue - totalExpenses;
+
+  const cash = payments.filter(p=>p.type==='invoice').reduce((s,p)=>s+Number(p.amount||0),0)
+             - payments.filter(p=>p.type==='bill').reduce((s,p)=>s+Number(p.amount||0),0);
+  const ar = invoices.filter(i=>['Sent','Partially Paid','Draft'].includes(i.status))
+    .reduce((s,i)=>s+(Number(i.totalAmount||0)-Number(i.paidAmount||0)),0);
+  const ap = bills.filter(b=>b.status==='Pending').reduce((s,b)=>s+Number(b.amount||0),0);
+
+  const totalAssets = cash + ar;
+  const totalLiabilities = ap;
+  const equity = totalAssets - totalLiabilities;
+
+  const el = document.getElementById('balance-sheet-content');
+  if (!el) return;
+  el.innerHTML = `<div class="bs-grid">
+    <div class="bs-section">
+      <h3>Assets</h3>
+      <div class="bs-row"><span>Cash &amp; Bank</span><span class="amount-mono">${fmtMoney(Math.max(cash,0))}</span></div>
+      <div class="bs-row"><span>Accounts Receivable</span><span class="amount-mono">${fmtMoney(ar)}</span></div>
+      <div class="bs-row bs-subtotal"><span>Total Assets</span><span class="amount-mono">${fmtMoney(totalAssets)}</span></div>
+    </div>
+    <div class="bs-section">
+      <h3>Liabilities &amp; Equity</h3>
+      <div class="bs-row"><span>Accounts Payable</span><span class="amount-mono" style="color:#c0392b">${fmtMoney(ap)}</span></div>
+      <div class="bs-row bs-subtotal"><span>Total Liabilities</span><span class="amount-mono" style="color:#c0392b">${fmtMoney(totalLiabilities)}</span></div>
+      <div style="margin-top:1rem">
+        <div class="bs-row"><span>Retained Earnings</span><span class="amount-mono">${fmtMoney(netProfit)}</span></div>
+        <div class="bs-row"><span>Total Equity (Net)</span><span class="amount-mono">${fmtMoney(equity)}</span></div>
+      </div>
+      <div class="bs-row bs-subtotal"><span>Liabilities + Equity</span><span class="amount-mono">${fmtMoney(totalAssets)}</span></div>
+    </div>
+  </div>
+  <p style="margin-top:.75rem;font-size:.8rem;color:${Math.abs(totalAssets-(totalLiabilities+equity))<0.01?'#10b981':'#c0392b'};font-weight:600">
+    ${Math.abs(totalAssets-(totalLiabilities+equity))<0.01?'✓ Balance sheet is balanced':'⚠ Assets ≠ Liabilities + Equity'}
+  </p>`;
+}
+
+// ===== REPORTS: GENERAL LEDGER =====
+function renderGeneralLedger() {
+  const acctFilter = (document.getElementById('gl-account-filter')||{}).value||'';
+  const { from, to } = getDateRange();
+
+  // Populate account filter
+  const sel = document.getElementById('gl-account-filter');
+  if (sel && sel.options.length < 2) {
+    const coa = DB.load('nau_coa');
+    sel.innerHTML = '<option value="">All Accounts</option>' + coa.map(a=>`<option value="${a.code}">${a.code} — ${a.name}</option>`).join('');
+  }
+
+  const entries = DB.load('nau_journal_entries').filter(e=>e.status==='Posted');
+  const txns = [];
+  entries.forEach(e => {
+    (e.lines||[]).forEach(l => {
+      if (!l.accountCode) return;
+      if (acctFilter && l.accountCode !== acctFilter) return;
+      if (from && e.date < from) return;
+      if (to && e.date > to) return;
+      txns.push({ date:e.date, entryNo:e.entryNo, description:l.description||e.narration, accountCode:l.accountCode, accountName:l.accountName, debit:Number(l.debit||0), credit:Number(l.credit||0) });
+    });
+  });
+  txns.sort((a,b)=>a.date.localeCompare(b.date));
+
+  let running = 0;
+  const rows = txns.map(t => {
+    running += t.debit - t.credit;
+    return `<tr>
+      <td>${t.date||'-'}</td>
+      <td style="font-family:monospace;font-size:.8rem">${t.entryNo}</td>
+      <td style="font-size:.8rem">${t.description||'-'}</td>
+      <td style="font-size:.8rem">${t.accountCode} ${t.accountName}</td>
+      <td class="amount-mono" style="color:#10b981">${t.debit?fmtMoney(t.debit):''}</td>
+      <td class="amount-mono" style="color:#c0392b">${t.credit?fmtMoney(t.credit):''}</td>
+      <td class="amount-mono" style="color:${running>=0?'#10b981':'#c0392b'}">${fmtMoney(Math.abs(running))} ${running<0?'Cr':'Dr'}</td>
+    </tr>`;
+  }).join('');
+
+  const el = document.getElementById('general-ledger-content');
+  if (!el) return;
+  el.innerHTML = `<div class="report-card">
+    <h3 style="margin-bottom:1.25rem;font-size:1rem;font-weight:700">General Ledger${acctFilter?' — '+acctFilter:''}</h3>
+    <div class="table-wrap"><table class="acc-table">
+      <thead><tr><th>Date</th><th>Entry No</th><th>Description</th><th>Account</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="7" class="table-empty">No posted transactions found.</td></tr>'}</tbody>
+    </table></div>
+  </div>`;
+}
+
+// ===== REPORTS: AGED PAYABLES =====
+function renderAgedPayables() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const bills = DB.load('nau_bills').filter(b=>['Pending','Overdue'].includes(b.status));
+
+  const groups = [
+    { label:'Current (Not Yet Due)', cls:'aging-current', items:[] },
+    { label:'1–30 Days Overdue', cls:'aging-30', items:[] },
+    { label:'31–60 Days Overdue', cls:'aging-60', items:[] },
+    { label:'60+ Days Overdue', cls:'aging-90', items:[] }
+  ];
+
+  bills.forEach(b => {
+    if (!b.dueDate) { groups[0].items.push(b); return; }
+    const due = new Date(b.dueDate+'T00:00:00');
+    const diff = Math.floor((today-due)/(1000*60*60*24));
+    if (diff<=0) groups[0].items.push(b);
+    else if (diff<=30) groups[1].items.push(b);
+    else if (diff<=60) groups[2].items.push(b);
+    else groups[3].items.push(b);
+  });
+
+  const el = document.getElementById('aged-payables-content');
+  if (!el) return;
+  el.innerHTML = groups.map(g => {
+    const total = g.items.reduce((s,b)=>s+Number(b.amount||0),0);
+    return `<div class="aging-group">
+      <div class="aging-group-header">
+        <span class="aging-group-label ${g.cls}">${g.label}</span>
+        <span class="aging-total">${g.items.length} bill(s) — <strong>${fmtMoney(total)}</strong></span>
+      </div>
+      ${g.items.length?`<div class="table-wrap table-scroll"><table class="acc-table">
+        <thead><tr><th>Bill No</th><th>Vendor</th><th>Category</th><th>Amount</th><th>Due Date</th></tr></thead>
+        <tbody>${g.items.map(b=>`<tr>
+          <td><strong>${b.billNo}</strong></td><td>${b.vendor}</td>
+          <td>${b.category||'-'}</td><td class="amount-mono">${fmtMoney(b.amount)}</td>
+          <td>${b.dueDate?fmtDate(b.dueDate+'T00:00:00'):'-'}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>`:'<p style="color:#9ca3af;font-size:.82rem;padding:.5rem 0">No bills in this category.</p>'}
+    </div>`;
+  }).join('');
+}
+
+// ===== REPORTS: TAX REPORT =====
+function renderTaxReport() {
+  const { from, to } = getDateRange();
+  const invoices = DB.load('nau_invoices').filter(i => {
+    if (!['Paid','Sent','Partially Paid'].includes(i.status)) return false;
+    if (from && i.createdAt < from) return false;
+    if (to && i.createdAt > to+'T23:59:59Z') return false;
+    return true;
+  });
+  const bills = DB.load('nau_bills').filter(b => {
+    if (!['Paid','Pending'].includes(b.status)) return false;
+    if (from && b.createdAt < from) return false;
+    if (to && b.createdAt > to+'T23:59:59Z') return false;
+    return true;
+  });
+
+  const outputTax = invoices.reduce((s,i)=>s+Number(i.taxAmount||0),0);
+  const outputBase = invoices.reduce((s,i)=>s+Number(i.salePrice||0),0);
+  const inputTax = 0; // Bills don't currently track tax separately
+  const netVAT = outputTax - inputTax;
+
+  const el = document.getElementById('tax-report-content');
+  if (!el) return;
+  el.innerHTML = `<div class="report-card">
+    <h3 style="margin-bottom:1.25rem;font-size:1rem;font-weight:700">Tax Report / VAT Return</h3>
+    <div class="pnl-row"><span style="font-weight:700">Output VAT (Sales)</span></div>
+    <div class="pnl-row" style="padding-left:1.5rem"><span>Taxable Sales Amount</span><span class="amount-mono">${fmtMoney(outputBase)}</span></div>
+    <div class="pnl-row" style="padding-left:1.5rem"><span>Output VAT Collected</span><span class="amount-green">${fmtMoney(outputTax)}</span></div>
+    <div class="pnl-row" style="padding-left:1.5rem;font-size:.82rem;color:#6b7280"><span>Number of Tax Invoices</span><span>${invoices.filter(i=>i.taxAmount>0).length}</span></div>
+    <hr style="margin:.75rem 0;border-color:#e8ecf0">
+    <div class="pnl-row"><span style="font-weight:700">Input VAT (Purchases)</span></div>
+    <div class="pnl-row" style="padding-left:1.5rem"><span>Input VAT Paid on Bills</span><span class="amount-red">${fmtMoney(inputTax)}</span></div>
+    <hr style="margin:.75rem 0;border-color:#e8ecf0">
+    <div class="pnl-row sub-total">
+      <span>Net VAT Payable to URA</span>
+      <span class="${netVAT>=0?'amount-green':'amount-red'}">${fmtMoney(Math.abs(netVAT))} ${netVAT<0?'(Refund)':''}</span>
+    </div>
+    <p style="margin-top:1rem;font-size:.78rem;color:#9ca3af">Note: Add tax to bills by setting tax amounts on bill records. This report uses VAT amounts from invoices.</p>
+  </div>`;
+}
+
+// ===== NEW MODAL CONFIGS =====
+Object.assign(modalConfigs, {
+  coa: {
+    label: 'Account',
+    getData: id => DB.load('nau_coa').find(a=>a.id===id),
+    form: d => {
+      const coa = DB.load('nau_coa');
+      const subtypes = { asset:['current_asset','fixed_asset'], liability:['current_liability','long_term_liability'], equity:['equity'], revenue:['revenue'], expense:['cogs','operating_expense','other_expense'] };
+      const typeVal = d ? d.type : 'asset';
+      return `
+      <div class="form-row">
+        <div class="form-group">
+          <label>Account Code <span class="required">*</span></label>
+          <input class="form-control" id="coa-code" value="${d?d.code||'':''}" placeholder="e.g. 1100" style="font-family:monospace" />
+        </div>
+        <div class="form-group">
+          <label>Account Name <span class="required">*</span></label>
+          <input class="form-control" id="coa-name" value="${d?d.name||'':''}" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type <span class="required">*</span></label>
+          <select class="form-control" id="coa-type" onchange="updateCoaSubtypes()">
+            ${['asset','liability','equity','revenue','expense'].map(t=>`<option value="${t}" ${typeVal===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Subtype</label>
+          <select class="form-control" id="coa-subtype">
+            ${(subtypes[typeVal]||[]).map(st=>`<option ${d&&d.subtype===st?'selected':''}>${st}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Parent Account</label>
+        <select class="form-control" id="coa-parent">
+          <option value="">-- None (top-level) --</option>
+          ${coa.filter(a=>!a.parentId&&(!d||a.id!==d.id)).map(a=>`<option value="${a.id}" ${d&&d.parentId===a.id?'selected':''}>${a.code} ${a.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="toggle-switch">
+          <input type="checkbox" id="coa-active" ${!d||d.active?'checked':''}>
+          <span class="toggle-slider"></span>
+          <span>Active</span>
+        </label>
+      </div>`;
+    },
+    collect: () => {
+      const code = document.getElementById('coa-code').value.trim();
+      const name = document.getElementById('coa-name').value.trim();
+      if (!code||!name) { toast('Code and Name are required'); return null; }
+      return { code, name, type: document.getElementById('coa-type').value, subtype: document.getElementById('coa-subtype').value, parentId: Number(document.getElementById('coa-parent').value)||null, active: document.getElementById('coa-active').checked };
+    },
+    create: d => { const all=DB.load('nau_coa'); all.push({id:DB.nextId('nau_coa'),...d}); DB.save('nau_coa',all); },
+    update: (id,d) => { const all=DB.load('nau_coa'); const i=all.findIndex(x=>x.id===id); if(i>-1){all[i]={...all[i],...d};DB.save('nau_coa',all);} },
+    refresh: renderCOA
+  },
+
+  journal: {
+    label: 'Journal',
+    getData: id => DB.load('nau_journals').find(j=>j.id===id),
+    form: d => `
+      <div class="form-row">
+        <div class="form-group">
+          <label>Journal Name <span class="required">*</span></label>
+          <input class="form-control" id="jnl-name" value="${d?d.name||'':''}" />
+        </div>
+        <div class="form-group">
+          <label>Type <span class="required">*</span></label>
+          <select class="form-control" id="jnl-type">
+            ${['sales','purchase','bank','cash','general'].map(t=>`<option ${d&&d.type===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Entry Prefix</label>
+          <input class="form-control" id="jnl-prefix" value="${d?d.prefix||'':''}" placeholder="e.g. INV" style="font-family:monospace" />
+        </div>
+        <div class="form-group">
+          <label>Default Account</label>
+          <input class="form-control" id="jnl-acct" value="${d?d.defaultAccount||'':''}" placeholder="e.g. Accounts Receivable" />
+        </div>
+      </div>`,
+    collect: () => {
+      const name = document.getElementById('jnl-name').value.trim();
+      if (!name) { toast('Journal name is required'); return null; }
+      return { name, type: document.getElementById('jnl-type').value, prefix: document.getElementById('jnl-prefix').value.trim(), defaultAccount: document.getElementById('jnl-acct').value.trim(), active: true };
+    },
+    create: d => { const all=DB.load('nau_journals'); all.push({id:DB.nextId('nau_journals'),...d}); DB.save('nau_journals',all); },
+    update: (id,d) => { const all=DB.load('nau_journals'); const i=all.findIndex(x=>x.id===id); if(i>-1){all[i]={...all[i],...d};DB.save('nau_journals',all);} },
+    refresh: renderJournals
+  },
+
+  tax: {
+    label: 'Tax',
+    getData: id => DB.load('nau_taxes').find(t=>t.id===id),
+    form: d => `
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tax Name <span class="required">*</span></label>
+          <input class="form-control" id="tax-name" value="${d?d.name||'':''}" placeholder="e.g. VAT 18%" />
+        </div>
+        <div class="form-group">
+          <label>Rate (%) <span class="required">*</span></label>
+          <input class="form-control" type="number" id="tax-rate" value="${d?d.rate||0:0}" min="0" max="100" step="0.01" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Scope</label>
+          <select class="form-control" id="tax-scope">
+            <option value="both" ${!d||d.scope==='both'?'selected':''}>Both (Sale &amp; Purchase)</option>
+            <option value="sale" ${d&&d.scope==='sale'?'selected':''}>Sales only</option>
+            <option value="purchase" ${d&&d.scope==='purchase'?'selected':''}>Purchases only</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tax Account</label>
+          <input class="form-control" id="tax-acct" value="${d?d.taxAccount||'':''}" placeholder="e.g. VAT Payable" />
+        </div>
+      </div>`,
+    collect: () => {
+      const name = document.getElementById('tax-name').value.trim();
+      if (!name) { toast('Tax name is required'); return null; }
+      return { name, rate: parseFloat(document.getElementById('tax-rate').value)||0, type:'percentage', scope: document.getElementById('tax-scope').value, taxAccount: document.getElementById('tax-acct').value.trim(), active: true };
+    },
+    create: d => { const all=DB.load('nau_taxes'); all.push({id:DB.nextId('nau_taxes'),...d}); DB.save('nau_taxes',all); },
+    update: (id,d) => { const all=DB.load('nau_taxes'); const i=all.findIndex(x=>x.id===id); if(i>-1){all[i]={...all[i],...d};DB.save('nau_taxes',all);} },
+    refresh: renderTaxes
+  },
+
+  customerAcc: {
+    label: 'Customer',
+    getData: id => DB.load('nau_customers_acc').find(c=>c.id===id),
+    form: d => `
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name <span class="required">*</span></label>
+          <input class="form-control" id="cacc-name" value="${d?d.name||'':''}" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input class="form-control" type="email" id="cacc-email" value="${d?d.email||'':''}" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Phone</label>
+          <input class="form-control" id="cacc-phone" value="${d?d.phone||'':''}" />
+        </div>
+        <div class="form-group">
+          <label>TIN / Tax ID</label>
+          <input class="form-control" id="cacc-tin" value="${d?d.tin||'':''}" style="font-family:monospace" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Address</label>
+        <textarea class="form-control" id="cacc-addr" rows="2">${d?d.address||'':''}</textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Currency</label>
+          <select class="form-control" id="cacc-currency">
+            ${['USD','UGX','KES','EUR'].map(c=>`<option ${d&&d.currency===c?'selected':''}>${c}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Payment Terms (days)</label>
+          <input class="form-control" type="number" id="cacc-terms" value="${d?d.paymentTerms||30:30}" min="0" />
+        </div>
+      </div>`,
+    collect: () => {
+      const name = document.getElementById('cacc-name').value.trim();
+      if (!name) { toast('Name is required'); return null; }
+      return { name, email: document.getElementById('cacc-email').value.trim(), phone: document.getElementById('cacc-phone').value.trim(), tin: document.getElementById('cacc-tin').value.trim(), address: document.getElementById('cacc-addr').value.trim(), currency: document.getElementById('cacc-currency').value, paymentTerms: parseInt(document.getElementById('cacc-terms').value)||30 };
+    },
+    create: d => { const all=DB.load('nau_customers_acc'); all.push({id:DB.nextId('nau_customers_acc'),...d,createdAt:nowISO()}); DB.save('nau_customers_acc',all); },
+    update: (id,d) => { const all=DB.load('nau_customers_acc'); const i=all.findIndex(x=>x.id===id); if(i>-1){all[i]={...all[i],...d};DB.save('nau_customers_acc',all);} },
+    refresh: renderCustomersAcc
+  },
+
+  vendor: {
+    label: 'Vendor',
+    getData: id => DB.load('nau_vendors').find(v=>v.id===id),
+    form: d => `
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name <span class="required">*</span></label>
+          <input class="form-control" id="vend-name" value="${d?d.name||'':''}" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input class="form-control" type="email" id="vend-email" value="${d?d.email||'':''}" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Phone</label>
+          <input class="form-control" id="vend-phone" value="${d?d.phone||'':''}" />
+        </div>
+        <div class="form-group">
+          <label>TIN / Tax ID</label>
+          <input class="form-control" id="vend-tin" value="${d?d.tin||'':''}" style="font-family:monospace" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Address</label>
+        <textarea class="form-control" id="vend-addr" rows="2">${d?d.address||'':''}</textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Currency</label>
+          <select class="form-control" id="vend-currency">
+            ${['USD','UGX','KES','EUR'].map(c=>`<option ${d&&d.currency===c?'selected':''}>${c}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Payment Terms (days)</label>
+          <input class="form-control" type="number" id="vend-terms" value="${d?d.paymentTerms||30:30}" min="0" />
+        </div>
+      </div>`,
+    collect: () => {
+      const name = document.getElementById('vend-name').value.trim();
+      if (!name) { toast('Name is required'); return null; }
+      return { name, email: document.getElementById('vend-email').value.trim(), phone: document.getElementById('vend-phone').value.trim(), tin: document.getElementById('vend-tin').value.trim(), address: document.getElementById('vend-addr').value.trim(), currency: document.getElementById('vend-currency').value, paymentTerms: parseInt(document.getElementById('vend-terms').value)||30 };
+    },
+    create: d => { const all=DB.load('nau_vendors'); all.push({id:DB.nextId('nau_vendors'),...d,createdAt:nowISO()}); DB.save('nau_vendors',all); },
+    update: (id,d) => { const all=DB.load('nau_vendors'); const i=all.findIndex(x=>x.id===id); if(i>-1){all[i]={...all[i],...d};DB.save('nau_vendors',all);} },
+    refresh: renderVendors
+  },
+
+  creditNote: {
+    label: 'Credit Note',
+    getData: id => DB.load('nau_credit_notes').find(c=>c.id===id),
+    form: d => {
+      const invoices = DB.load('nau_invoices').filter(i=>['Sent','Partially Paid','Paid'].includes(i.status));
+      return `
+      <div class="form-row">
+        <div class="form-group">
+          <label>Linked Invoice</label>
+          <select class="form-control" id="cn-invoice" onchange="onCNInvoiceChange()">
+            <option value="">-- None --</option>
+            ${invoices.map(i=>`<option value="${i.id}" data-customer="${i.customerName}" data-amount="${i.totalAmount}" ${d&&d.invoiceId===i.id?'selected':''}>${i.invoiceNo} — ${i.customerName}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Customer Name <span class="required">*</span></label>
+          <input class="form-control" id="cn-customer" value="${d?d.customerName||'':''}" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date</label>
+          <input class="form-control" type="date" id="cn-date" value="${d?d.date:new Date().toISOString().split('T')[0]}" />
+        </div>
+        <div class="form-group">
+          <label>Amount (USD) <span class="required">*</span></label>
+          <input class="form-control" type="number" id="cn-amount" value="${d?d.amount||'':''}" step="0.01" min="0" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Reason <span class="required">*</span></label>
+        <input class="form-control" id="cn-reason" value="${d?d.reason||'':''}" placeholder="Reason for credit note" />
+      </div>`;
+    },
+    collect: () => {
+      const customer = document.getElementById('cn-customer').value.trim();
+      const amount = parseFloat(document.getElementById('cn-amount').value)||0;
+      const reason = document.getElementById('cn-reason').value.trim();
+      if (!customer) { toast('Customer is required'); return null; }
+      if (!amount) { toast('Amount is required'); return null; }
+      if (!reason) { toast('Reason is required'); return null; }
+      const invSel = document.getElementById('cn-invoice');
+      const invoiceId = Number(invSel.value)||null;
+      const inv = invoiceId ? DB.load('nau_invoices').find(i=>i.id===invoiceId) : null;
+      return { customerName:customer, invoiceId, invoiceRef:inv?inv.invoiceNo:null, date:document.getElementById('cn-date').value, amount, reason, status:'Draft' };
+    },
+    create: d => { const all=DB.load('nau_credit_notes'); all.push({id:DB.nextId('nau_credit_notes'),cnNo:genCNNo(),...d,createdAt:nowISO()}); DB.save('nau_credit_notes',all); },
+    update: (id,d) => { const all=DB.load('nau_credit_notes'); const i=all.findIndex(x=>x.id===id); if(i>-1){all[i]={...all[i],...d};DB.save('nau_credit_notes',all);} },
+    refresh: renderCreditNotes
+  },
+
+  vendorCreditNote: {
+    label: 'Vendor Credit Note',
+    getData: id => DB.load('nau_vendor_credit_notes').find(v=>v.id===id),
+    form: d => {
+      const bills = DB.load('nau_bills').filter(b=>['Paid','Pending'].includes(b.status));
+      return `
+      <div class="form-row">
+        <div class="form-group">
+          <label>Linked Bill</label>
+          <select class="form-control" id="vcn-bill" onchange="onVCNBillChange()">
+            <option value="">-- None --</option>
+            ${bills.map(b=>`<option value="${b.id}" data-vendor="${b.vendor}" data-amount="${b.amount}" ${d&&d.billId===b.id?'selected':''}>${b.billNo} — ${b.vendor}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Vendor Name <span class="required">*</span></label>
+          <input class="form-control" id="vcn-vendor" value="${d?d.vendorName||'':''}" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date</label>
+          <input class="form-control" type="date" id="vcn-date" value="${d?d.date:new Date().toISOString().split('T')[0]}" />
+        </div>
+        <div class="form-group">
+          <label>Amount (USD) <span class="required">*</span></label>
+          <input class="form-control" type="number" id="vcn-amount" value="${d?d.amount||'':''}" step="0.01" min="0" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Reason <span class="required">*</span></label>
+        <input class="form-control" id="vcn-reason" value="${d?d.reason||'':''}" placeholder="Reason for vendor credit note" />
+      </div>`;
+    },
+    collect: () => {
+      const vendor = document.getElementById('vcn-vendor').value.trim();
+      const amount = parseFloat(document.getElementById('vcn-amount').value)||0;
+      const reason = document.getElementById('vcn-reason').value.trim();
+      if (!vendor) { toast('Vendor is required'); return null; }
+      if (!amount) { toast('Amount is required'); return null; }
+      if (!reason) { toast('Reason is required'); return null; }
+      const billSel = document.getElementById('vcn-bill');
+      const billId = Number(billSel.value)||null;
+      const bill = billId ? DB.load('nau_bills').find(b=>b.id===billId) : null;
+      return { vendorName:vendor, billId, billRef:bill?bill.billNo:null, date:document.getElementById('vcn-date').value, amount, reason, status:'Draft' };
+    },
+    create: d => { const all=DB.load('nau_vendor_credit_notes'); all.push({id:DB.nextId('nau_vendor_credit_notes'),vcnNo:genVCNNo(),...d,createdAt:nowISO()}); DB.save('nau_vendor_credit_notes',all); },
+    update: (id,d) => { const all=DB.load('nau_vendor_credit_notes'); const i=all.findIndex(x=>x.id===id); if(i>-1){all[i]={...all[i],...d};DB.save('nau_vendor_credit_notes',all);} },
+    refresh: renderVendorCreditNotes
+  },
+
+  bankStatement: {
+    label: 'Bank Statement',
+    getData: id => DB.load('nau_bank_statements').find(s=>s.id===id),
+    form: d => {
+      const accts = DB.load('nau_payment_accounts');
+      return `
+      <div class="form-row">
+        <div class="form-group">
+          <label>Account <span class="required">*</span></label>
+          <select class="form-control" id="bs-acct">
+            <option value="">-- Select Account --</option>
+            ${accts.map(a=>`<option value="${a.name}" ${d&&d.accountId===a.name?'selected':''}>${a.name} (${a.currency})</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Statement Date</label>
+          <input class="form-control" type="date" id="bs-date" value="${d?d.statementDate:new Date().toISOString().split('T')[0]}" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Opening Balance</label>
+          <input class="form-control" type="number" id="bs-opening" value="${d?d.openingBalance||0:0}" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label>Closing Balance</label>
+          <input class="form-control" type="number" id="bs-closing" value="${d?d.closingBalance||0:0}" step="0.01" />
+        </div>
+      </div>`;
+    },
+    collect: () => {
+      const accountId = document.getElementById('bs-acct').value;
+      if (!accountId) { toast('Account is required'); return null; }
+      return { accountId, statementDate:document.getElementById('bs-date').value, openingBalance:parseFloat(document.getElementById('bs-opening').value)||0, closingBalance:parseFloat(document.getElementById('bs-closing').value)||0, currency:'USD', lines:[] };
+    },
+    create: d => { const all=DB.load('nau_bank_statements'); all.push({id:DB.nextId('nau_bank_statements'),...d,createdAt:nowISO()}); DB.save('nau_bank_statements',all); },
+    update: (id,d) => { const all=DB.load('nau_bank_statements'); const i=all.findIndex(x=>x.id===id); if(i>-1){all[i]={...all[i],...d};DB.save('nau_bank_statements',all);} },
+    refresh: renderBankStatements
+  },
+
+  bankLine: {
+    label: 'Statement Line',
+    getData: () => null,
+    form: () => `
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date <span class="required">*</span></label>
+          <input class="form-control" type="date" id="bl-date" value="${new Date().toISOString().split('T')[0]}" />
+        </div>
+        <div class="form-group">
+          <label>Reference</label>
+          <input class="form-control" id="bl-ref" placeholder="e.g. TRF-001" style="font-family:monospace" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input class="form-control" id="bl-desc" placeholder="Transaction description" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Money In (Debit)</label>
+          <input class="form-control" type="number" id="bl-debit" value="0" step="0.01" min="0" />
+        </div>
+        <div class="form-group">
+          <label>Money Out (Credit)</label>
+          <input class="form-control" type="number" id="bl-credit" value="0" step="0.01" min="0" />
+        </div>
+      </div>`,
+    collect: () => ({
+      date: document.getElementById('bl-date').value,
+      ref: document.getElementById('bl-ref').value.trim(),
+      description: document.getElementById('bl-desc').value.trim(),
+      debit: parseFloat(document.getElementById('bl-debit').value)||0,
+      credit: parseFloat(document.getElementById('bl-credit').value)||0,
+      balance: 0,
+      reconciled: false
+    }),
+    create: d => {
+      if (!_bsDetailId) return;
+      const stmts = DB.load('nau_bank_statements');
+      const s = stmts.find(x=>x.id===_bsDetailId);
+      if (!s) return;
+      s.lines = s.lines||[];
+      // Calculate running balance
+      const prevBalance = s.lines.length ? s.lines[s.lines.length-1].balance : s.openingBalance;
+      d.balance = prevBalance + d.debit - d.credit;
+      s.lines.push(d);
+      s.closingBalance = d.balance;
+      DB.save('nau_bank_statements', stmts);
+      openBSDetail(_bsDetailId);
+    },
+    update: () => {},
+    refresh: renderBankStatements
+  }
+});
+
+// Helper for credit note invoice select
+function onCNInvoiceChange() {
+  const sel = document.getElementById('cn-invoice');
+  const opt = sel.options[sel.selectedIndex];
+  if (opt && opt.dataset.customer) {
+    document.getElementById('cn-customer').value = opt.dataset.customer;
+    document.getElementById('cn-amount').value = opt.dataset.amount||'';
+  }
+}
+
+function onVCNBillChange() {
+  const sel = document.getElementById('vcn-bill');
+  const opt = sel.options[sel.selectedIndex];
+  if (opt && opt.dataset.vendor) {
+    document.getElementById('vcn-vendor').value = opt.dataset.vendor;
+    document.getElementById('vcn-amount').value = opt.dataset.amount||'';
+  }
+}
+
+function updateCoaSubtypes() {
+  const type = document.getElementById('coa-type').value;
+  const subtypes = { asset:['current_asset','fixed_asset'], liability:['current_liability','long_term_liability'], equity:['equity'], revenue:['revenue'], expense:['cogs','operating_expense','other_expense'] };
+  const sel = document.getElementById('coa-subtype');
+  if (sel) sel.innerHTML = (subtypes[type]||[]).map(st=>`<option>${st}</option>`).join('');
+}

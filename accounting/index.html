@@ -52,32 +52,67 @@
 
     <nav class="sidebar-nav">
       <div class="nav-item active" data-page="dashboard">
-        <span class="nav-icon">📊</span>
-        <span>Dashboard</span>
+        <span class="nav-icon">📊</span><span>Dashboard</span>
       </div>
-      <div class="nav-item" data-page="invoices">
-        <span class="nav-icon">🧾</span>
-        <span>Invoices</span>
+
+      <div class="nav-group-label">Accounting</div>
+
+      <!-- Invoices accordion -->
+      <div class="nav-parent" data-group="g-invoices">
+        <span class="nav-icon">🧾</span><span>Invoices</span><span class="nav-caret">▾</span>
       </div>
-      <div class="nav-item" data-page="bills">
-        <span class="nav-icon">📋</span>
-        <span>Bills &amp; Expenses</span>
+      <div class="nav-sub" id="g-invoices">
+        <div class="nav-sub-item" data-page="invoices">Customer Invoices</div>
+        <div class="nav-sub-item" data-page="credit-notes">Credit Notes</div>
       </div>
+
+      <!-- Bills accordion -->
+      <div class="nav-parent" data-group="g-bills">
+        <span class="nav-icon">📋</span><span>Bills &amp; Expenses</span><span class="nav-caret">▾</span>
+      </div>
+      <div class="nav-sub" id="g-bills">
+        <div class="nav-sub-item" data-page="bills">Vendor Bills</div>
+        <div class="nav-sub-item" data-page="vendor-credit-notes">Vendor Credit Notes</div>
+      </div>
+
       <div class="nav-item" data-page="payments">
-        <span class="nav-icon">💳</span>
-        <span>Payments</span>
+        <span class="nav-icon">💳</span><span>Payments</span>
       </div>
       <div class="nav-item" data-page="receipts">
-        <span class="nav-icon">🧾</span>
-        <span>Receipts</span>
+        <span class="nav-icon">🧾</span><span>Receipts</span>
+      </div>
+
+      <div class="nav-group-label">Banking</div>
+      <div class="nav-item" data-page="bank-statements">
+        <span class="nav-icon">🏦</span><span>Bank Statements</span>
+      </div>
+      <div class="nav-item" data-page="journal-entries">
+        <span class="nav-icon">📝</span><span>Journal Entries</span>
+      </div>
+
+      <div class="nav-group-label">Configuration</div>
+      <div class="nav-item" data-page="coa">
+        <span class="nav-icon">📒</span><span>Chart of Accounts</span>
+      </div>
+      <div class="nav-item" data-page="journals">
+        <span class="nav-icon">📓</span><span>Journals</span>
+      </div>
+      <div class="nav-item" data-page="taxes">
+        <span class="nav-icon">💹</span><span>Taxes</span>
+      </div>
+      <div class="nav-item" data-page="customers-acc">
+        <span class="nav-icon">👤</span><span>Customers</span>
+      </div>
+      <div class="nav-item" data-page="vendors">
+        <span class="nav-icon">🏢</span><span>Vendors</span>
       </div>
       <div class="nav-item" data-page="accounts">
-        <span class="nav-icon">💰</span>
-        <span>Payment Accounts</span>
+        <span class="nav-icon">💰</span><span>Payment Accounts</span>
       </div>
+
+      <div class="nav-group-label">Reporting</div>
       <div class="nav-item" data-page="reports">
-        <span class="nav-icon">📈</span>
-        <span>Reports</span>
+        <span class="nav-icon">📈</span><span>Reports</span>
       </div>
     </nav>
 
@@ -118,8 +153,6 @@
             <p>Financial overview for NipponAuto Uganda</p>
           </div>
         </div>
-
-        <!-- Stat Cards -->
         <div class="stats-grid">
           <div class="stat-card green">
             <div class="stat-value" id="stat-revenue">$0</div>
@@ -142,16 +175,12 @@
             <div class="stat-sub">Unpaid invoice balances</div>
           </div>
         </div>
-
-        <!-- Recent Tables -->
         <div class="dash-grid">
           <div class="dash-section">
             <h3>Recent Invoices (Last 8)</h3>
             <div class="table-scroll">
               <table class="acc-table">
-                <thead><tr>
-                  <th>Invoice No</th><th>Customer</th><th>Vehicle</th><th>Total</th><th>Status</th><th>Date</th>
-                </tr></thead>
+                <thead><tr><th>Invoice No</th><th>Customer</th><th>Vehicle</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
                 <tbody id="dash-inv-tbody">
                   <tr><td colspan="6" class="table-empty"><span class="empty-icon">🧾</span>Loading...</td></tr>
                 </tbody>
@@ -162,9 +191,7 @@
             <h3>Recent Bills (Last 8)</h3>
             <div class="table-scroll">
               <table class="acc-table">
-                <thead><tr>
-                  <th>Bill No</th><th>Vendor</th><th>Category</th><th>Amount</th><th>Status</th><th>Date</th>
-                </tr></thead>
+                <thead><tr><th>Bill No</th><th>Vendor</th><th>Category</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
                 <tbody id="dash-bill-tbody">
                   <tr><td colspan="6" class="table-empty"><span class="empty-icon">📋</span>Loading...</td></tr>
                 </tbody>
@@ -172,8 +199,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Monthly Chart -->
         <div class="dash-section-full">
           <h3>Monthly Revenue vs Expenses (Last 6 Months)</h3>
           <div id="dash-monthly-chart"></div>
@@ -184,12 +209,11 @@
       <div class="page-section" id="page-invoices">
         <div class="page-header">
           <div class="page-header-left">
-            <h1>Invoices</h1>
+            <h1>Customer Invoices</h1>
             <p>Manage vehicle sale invoices</p>
           </div>
           <button class="btn-create" onclick="openModal('invoice')">+ Create Invoice</button>
         </div>
-
         <div class="filter-bar">
           <div class="filter-group">
             <label>Search</label>
@@ -219,29 +243,53 @@
             <button class="btn-filter btn-apply" onclick="renderInvoices()">Apply</button>
           </div>
         </div>
-
-        <div class="table-meta">
-          <span id="inv-count"></span>
-        </div>
-
+        <div class="table-meta"><span id="inv-count"></span></div>
         <div class="table-wrap table-scroll">
           <table class="acc-table">
             <thead><tr>
-              <th>Invoice No</th>
-              <th>Customer</th>
-              <th>Vehicle</th>
-              <th>Sale Price</th>
-              <th>Discount</th>
-              <th>Tax</th>
-              <th>Total</th>
-              <th>Paid</th>
-              <th>Balance</th>
-              <th>Status</th>
-              <th>Due Date</th>
-              <th>Actions</th>
+              <th>Invoice No</th><th>Customer</th><th>Vehicle</th><th>Sale Price</th><th>Discount</th><th>Tax</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th>Due Date</th><th>Actions</th>
             </tr></thead>
             <tbody id="inv-tbody">
               <tr><td colspan="12" class="table-empty"><span class="empty-icon">🧾</span>No invoices found.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== CREDIT NOTES ===== -->
+      <div class="page-section" id="page-credit-notes">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h1>Credit Notes</h1>
+            <p>Customer credit notes linked to invoices</p>
+          </div>
+          <button class="btn-create" onclick="openModal('creditNote')">+ Create Credit Note</button>
+        </div>
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label>Search</label>
+            <input type="text" class="filter-input" id="cn-search" placeholder="Credit note no, customer..." />
+          </div>
+          <div class="filter-group">
+            <label>Status</label>
+            <select class="filter-select" id="cn-status-filter">
+              <option value="">All Status</option>
+              <option value="Draft">Draft</option>
+              <option value="Confirmed">Confirmed</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button class="btn-filter btn-clear" onclick="clearCNFilters()">Clear</button>
+            <button class="btn-filter btn-apply" onclick="renderCreditNotes()">Apply</button>
+          </div>
+        </div>
+        <div class="table-wrap table-scroll">
+          <table class="acc-table">
+            <thead><tr>
+              <th>CN No</th><th>Invoice Ref</th><th>Customer</th><th>Reason</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="cn-tbody">
+              <tr><td colspan="8" class="table-empty"><span class="empty-icon">📄</span>No credit notes found.</td></tr>
             </tbody>
           </table>
         </div>
@@ -256,7 +304,6 @@
           </div>
           <button class="btn-create" onclick="openModal('bill')">+ Add Bill</button>
         </div>
-
         <div class="filter-bar">
           <div class="filter-group">
             <label>Search</label>
@@ -266,24 +313,17 @@
             <label>Category</label>
             <select class="filter-select" id="bill-cat-filter">
               <option value="">All Categories</option>
-              <option>Vehicle Purchase</option>
-              <option>Freight</option>
-              <option>Insurance</option>
-              <option>Maintenance</option>
-              <option>Salaries</option>
-              <option>Utilities</option>
-              <option>Office Supplies</option>
-              <option>Other</option>
+              <option>Vehicle Purchase</option><option>Freight</option><option>Insurance</option>
+              <option>Maintenance</option><option>Salaries</option><option>Utilities</option>
+              <option>Office Supplies</option><option>Other</option>
             </select>
           </div>
           <div class="filter-group">
             <label>Status</label>
             <select class="filter-select" id="bill-status-filter">
               <option value="">All Status</option>
-              <option value="Pending">Pending</option>
-              <option value="Paid">Paid</option>
-              <option value="Overdue">Overdue</option>
-              <option value="Cancelled">Cancelled</option>
+              <option value="Pending">Pending</option><option value="Paid">Paid</option>
+              <option value="Overdue">Overdue</option><option value="Cancelled">Cancelled</option>
             </select>
           </div>
           <div class="filter-actions">
@@ -291,25 +331,53 @@
             <button class="btn-filter btn-apply" onclick="renderBills()">Apply</button>
           </div>
         </div>
-
-        <div class="table-meta">
-          <span id="bill-count"></span>
-        </div>
-
+        <div class="table-meta"><span id="bill-count"></span></div>
         <div class="table-wrap table-scroll">
           <table class="acc-table">
             <thead><tr>
-              <th>Bill No</th>
-              <th>Vendor</th>
-              <th>Category</th>
-              <th>Vehicle</th>
-              <th>Amount</th>
-              <th>Due Date</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>Bill No</th><th>Vendor</th><th>Category</th><th>Vehicle</th><th>Amount</th><th>Due Date</th><th>Status</th><th>Actions</th>
             </tr></thead>
             <tbody id="bill-tbody">
               <tr><td colspan="8" class="table-empty"><span class="empty-icon">📋</span>No bills found.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== VENDOR CREDIT NOTES ===== -->
+      <div class="page-section" id="page-vendor-credit-notes">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h1>Vendor Credit Notes</h1>
+            <p>Credit notes from vendors linked to bills</p>
+          </div>
+          <button class="btn-create" onclick="openModal('vendorCreditNote')">+ Create Vendor Credit Note</button>
+        </div>
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label>Search</label>
+            <input type="text" class="filter-input" id="vcn-search" placeholder="VCN no, vendor..." />
+          </div>
+          <div class="filter-group">
+            <label>Status</label>
+            <select class="filter-select" id="vcn-status-filter">
+              <option value="">All Status</option>
+              <option value="Draft">Draft</option>
+              <option value="Confirmed">Confirmed</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button class="btn-filter btn-clear" onclick="clearVCNFilters()">Clear</button>
+            <button class="btn-filter btn-apply" onclick="renderVendorCreditNotes()">Apply</button>
+          </div>
+        </div>
+        <div class="table-wrap table-scroll">
+          <table class="acc-table">
+            <thead><tr>
+              <th>VCN No</th><th>Bill Ref</th><th>Vendor</th><th>Reason</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="vcn-tbody">
+              <tr><td colspan="8" class="table-empty"><span class="empty-icon">📄</span>No vendor credit notes found.</td></tr>
             </tbody>
           </table>
         </div>
@@ -323,7 +391,6 @@
             <p>All recorded payments — created via Invoice or Bill record payment flow</p>
           </div>
         </div>
-
         <div class="filter-bar">
           <div class="filter-group">
             <label>Search</label>
@@ -348,20 +415,10 @@
             <button class="btn-filter btn-apply" onclick="renderPayments()">Apply</button>
           </div>
         </div>
-
         <div class="table-wrap table-scroll">
           <table class="acc-table">
             <thead><tr>
-              <th>Payment No</th>
-              <th>Type</th>
-              <th>Reference</th>
-              <th>Issued To</th>
-              <th>Amount</th>
-              <th>Currency</th>
-              <th>Account</th>
-              <th>Date</th>
-              <th>Receipt</th>
-              <th>Actions</th>
+              <th>Payment No</th><th>Type</th><th>Reference</th><th>Issued To</th><th>Amount</th><th>Currency</th><th>Account</th><th>Date</th><th>Receipt</th><th>Actions</th>
             </tr></thead>
             <tbody id="pay-tbody">
               <tr><td colspan="10" class="table-empty"><span class="empty-icon">💳</span>No payments recorded yet.</td></tr>
@@ -378,7 +435,6 @@
             <p>Payment receipts issued to customers and vendors</p>
           </div>
         </div>
-
         <div class="filter-bar">
           <div class="filter-group">
             <label>Search</label>
@@ -389,21 +445,257 @@
             <button class="btn-filter btn-apply" onclick="renderReceipts()">Apply</button>
           </div>
         </div>
-
         <div class="table-wrap table-scroll">
           <table class="acc-table">
             <thead><tr>
-              <th>Receipt No</th>
-              <th>Issued To</th>
-              <th>Reference</th>
-              <th>Amount</th>
-              <th>Currency</th>
-              <th>Account</th>
-              <th>Date</th>
-              <th>Actions</th>
+              <th>Receipt No</th><th>Issued To</th><th>Reference</th><th>Amount</th><th>Currency</th><th>Account</th><th>Date</th><th>Actions</th>
             </tr></thead>
             <tbody id="rec-tbody">
               <tr><td colspan="8" class="table-empty"><span class="empty-icon">🧾</span>No receipts yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== BANK STATEMENTS ===== -->
+      <div class="page-section" id="page-bank-statements">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h1>Bank Statements</h1>
+            <p>Record and reconcile bank account statements</p>
+          </div>
+          <button class="btn-create" onclick="openModal('bankStatement')">+ New Statement</button>
+        </div>
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label>Account</label>
+            <select class="filter-select" id="bs-acct-filter">
+              <option value="">All Accounts</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button class="btn-filter btn-clear" onclick="clearBSFilters()">Clear</button>
+            <button class="btn-filter btn-apply" onclick="renderBankStatements()">Apply</button>
+          </div>
+        </div>
+        <div class="table-wrap table-scroll">
+          <table class="acc-table">
+            <thead><tr>
+              <th>Statement</th><th>Account</th><th>Date</th><th>Opening Balance</th><th>Closing Balance</th><th>Lines</th><th>Reconciled</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="bs-tbody">
+              <tr><td colspan="8" class="table-empty"><span class="empty-icon">🏦</span>No bank statements yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Statement detail panel -->
+        <div id="bs-detail-panel" style="display:none">
+          <div class="bs-detail-header">
+            <h3 id="bs-detail-title">Statement Lines</h3>
+            <div class="bs-detail-actions">
+              <button class="btn-sm btn-outline" onclick="openModal('bankLine')">+ Add Line</button>
+              <button class="btn-sm btn-outline" onclick="closeBSDetail()">✕ Close</button>
+            </div>
+          </div>
+          <div class="bs-summary" id="bs-detail-summary"></div>
+          <div class="table-wrap table-scroll">
+            <table class="acc-table">
+              <thead><tr>
+                <th>Date</th><th>Ref</th><th>Description</th><th>Money In</th><th>Money Out</th><th>Balance</th><th>Reconciled</th>
+              </tr></thead>
+              <tbody id="bs-lines-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== JOURNAL ENTRIES ===== -->
+      <div class="page-section" id="page-journal-entries">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h1>Journal Entries</h1>
+            <p>Double-entry bookkeeping — debits must equal credits</p>
+          </div>
+          <button class="btn-create" onclick="openJournalEntryModal()">+ New Entry</button>
+        </div>
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label>Search</label>
+            <input type="text" class="filter-input" id="je-search" placeholder="Entry no, reference, narration..." />
+          </div>
+          <div class="filter-group">
+            <label>Journal</label>
+            <select class="filter-select" id="je-journal-filter">
+              <option value="">All Journals</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Status</label>
+            <select class="filter-select" id="je-status-filter">
+              <option value="">All</option>
+              <option value="Draft">Draft</option>
+              <option value="Posted">Posted</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button class="btn-filter btn-clear" onclick="clearJEFilters()">Clear</button>
+            <button class="btn-filter btn-apply" onclick="renderJournalEntries()">Apply</button>
+          </div>
+        </div>
+        <div class="table-wrap table-scroll">
+          <table class="acc-table">
+            <thead><tr>
+              <th>Entry No</th><th>Journal</th><th>Date</th><th>Reference</th><th>Narration</th><th>Debit</th><th>Credit</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="je-tbody">
+              <tr><td colspan="9" class="table-empty"><span class="empty-icon">📝</span>No journal entries yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== CHART OF ACCOUNTS ===== -->
+      <div class="page-section" id="page-coa">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h1>Chart of Accounts</h1>
+            <p>Hierarchical list of all financial accounts</p>
+          </div>
+          <button class="btn-create" onclick="openModal('coa')">+ Add Account</button>
+        </div>
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label>Search</label>
+            <input type="text" class="filter-input" id="coa-search" placeholder="Code or account name..." />
+          </div>
+          <div class="filter-group">
+            <label>Type</label>
+            <select class="filter-select" id="coa-type-filter">
+              <option value="">All Types</option>
+              <option value="asset">Asset</option>
+              <option value="liability">Liability</option>
+              <option value="equity">Equity</option>
+              <option value="revenue">Revenue</option>
+              <option value="expense">Expense</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button class="btn-filter btn-clear" onclick="clearCOAFilters()">Clear</button>
+            <button class="btn-filter btn-apply" onclick="renderCOA()">Apply</button>
+          </div>
+        </div>
+        <div class="table-wrap table-scroll">
+          <table class="acc-table">
+            <thead><tr>
+              <th>Code</th><th>Account Name</th><th>Type</th><th>Subtype</th><th>Active</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="coa-tbody">
+              <tr><td colspan="6" class="table-empty"><span class="empty-icon">📒</span>No accounts in chart yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== JOURNALS ===== -->
+      <div class="page-section" id="page-journals">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h1>Journals</h1>
+            <p>Configure accounting journals and entry prefixes</p>
+          </div>
+          <button class="btn-create" onclick="openModal('journal')">+ Add Journal</button>
+        </div>
+        <div class="table-wrap table-scroll">
+          <table class="acc-table">
+            <thead><tr>
+              <th>Journal Name</th><th>Type</th><th>Prefix</th><th>Default Account</th><th>Active</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="journals-tbody">
+              <tr><td colspan="6" class="table-empty"><span class="empty-icon">📓</span>No journals configured.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== TAXES ===== -->
+      <div class="page-section" id="page-taxes">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h1>Tax Configuration</h1>
+            <p>Configure tax rates applied to invoices and bills</p>
+          </div>
+          <button class="btn-create" onclick="openModal('tax')">+ Add Tax</button>
+        </div>
+        <div class="table-wrap table-scroll">
+          <table class="acc-table">
+            <thead><tr>
+              <th>Tax Name</th><th>Rate</th><th>Scope</th><th>Tax Account</th><th>Active</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="taxes-tbody">
+              <tr><td colspan="6" class="table-empty"><span class="empty-icon">💹</span>No taxes configured.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== CUSTOMERS ===== -->
+      <div class="page-section" id="page-customers-acc">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h1>Customers</h1>
+            <p>Customer master directory for invoicing</p>
+          </div>
+          <button class="btn-create" onclick="openModal('customerAcc')">+ Add Customer</button>
+        </div>
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label>Search</label>
+            <input type="text" class="filter-input" id="cacc-search" placeholder="Name, email, TIN..." />
+          </div>
+          <div class="filter-actions">
+            <button class="btn-filter btn-clear" onclick="clearCAccFilters()">Clear</button>
+            <button class="btn-filter btn-apply" onclick="renderCustomersAcc()">Apply</button>
+          </div>
+        </div>
+        <div class="table-wrap table-scroll">
+          <table class="acc-table">
+            <thead><tr>
+              <th>Name</th><th>Email</th><th>Phone</th><th>TIN</th><th>Currency</th><th>Payment Terms</th><th>Outstanding</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="cacc-tbody">
+              <tr><td colspan="8" class="table-empty"><span class="empty-icon">👤</span>No customers yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== VENDORS ===== -->
+      <div class="page-section" id="page-vendors">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h1>Vendors</h1>
+            <p>Vendor master directory for bills and expenses</p>
+          </div>
+          <button class="btn-create" onclick="openModal('vendor')">+ Add Vendor</button>
+        </div>
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label>Search</label>
+            <input type="text" class="filter-input" id="vend-search" placeholder="Name, email, TIN..." />
+          </div>
+          <div class="filter-actions">
+            <button class="btn-filter btn-clear" onclick="clearVendFilters()">Clear</button>
+            <button class="btn-filter btn-apply" onclick="renderVendors()">Apply</button>
+          </div>
+        </div>
+        <div class="table-wrap table-scroll">
+          <table class="acc-table">
+            <thead><tr>
+              <th>Name</th><th>Email</th><th>Phone</th><th>TIN</th><th>Currency</th><th>Payment Terms</th><th>Outstanding</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="vend-tbody">
+              <tr><td colspan="8" class="table-empty"><span class="empty-icon">🏢</span>No vendors yet.</td></tr>
             </tbody>
           </table>
         </div>
@@ -414,11 +706,10 @@
         <div class="page-header">
           <div class="page-header-left">
             <h1>Payment Accounts</h1>
-            <p>Configure bank accounts, cash, and mobile money accounts used for transactions</p>
+            <p>Configure bank accounts, cash, and mobile money accounts</p>
           </div>
           <button class="btn-create" onclick="openModal('account')">+ Add Account</button>
         </div>
-
         <div class="filter-bar">
           <div class="filter-group">
             <label>Search</label>
@@ -449,25 +740,14 @@
             <button class="btn-filter btn-apply" onclick="renderAccounts()">Apply</button>
           </div>
         </div>
-
-        <div class="table-meta">
-          <span id="acct-count"></span>
-        </div>
-
+        <div class="table-meta"><span id="acct-count"></span></div>
         <div class="table-wrap table-scroll">
           <table class="acc-table">
             <thead><tr>
-              <th>Account Name</th>
-              <th>Type</th>
-              <th>Currency</th>
-              <th>Bank / Provider</th>
-              <th>Account No</th>
-              <th>Holder</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>Account Name</th><th>Type</th><th>Currency</th><th>Bank / Provider</th><th>Account No</th><th>Holder</th><th>Status</th><th>Actions</th>
             </tr></thead>
             <tbody id="acct-tbody">
-              <tr><td colspan="8" style="text-align:center;color:#9ca3af;padding:2rem">No accounts configured yet. Add your first account above.</td></tr>
+              <tr><td colspan="8" style="text-align:center;color:#9ca3af;padding:2rem">No accounts configured yet.</td></tr>
             </tbody>
           </table>
         </div>
@@ -481,8 +761,6 @@
             <p>Financial analytics and business reports</p>
           </div>
         </div>
-
-        <!-- Date filter -->
         <div class="filter-bar" style="margin-bottom:1rem">
           <div class="filter-group">
             <label>From Date</label>
@@ -496,15 +774,17 @@
             <button class="btn-filter btn-apply" id="rpt-apply">Apply Filter</button>
           </div>
         </div>
-
-        <!-- Sub tabs -->
         <div class="sub-tabs">
-          <button class="sub-tab report-tab active" data-tab="pnl">Profit &amp; Loss</button>
-          <button class="sub-tab report-tab" data-tab="aging">Invoice Aging</button>
-          <button class="sub-tab report-tab" data-tab="expenses">Expense Breakdown</button>
+          <button class="sub-tab report-tab active" data-tab="pnl">P&amp;L</button>
+          <button class="sub-tab report-tab" data-tab="trial-balance">Trial Balance</button>
+          <button class="sub-tab report-tab" data-tab="balance-sheet">Balance Sheet</button>
+          <button class="sub-tab report-tab" data-tab="general-ledger">General Ledger</button>
+          <button class="sub-tab report-tab" data-tab="aging">Aged Receivables</button>
+          <button class="sub-tab report-tab" data-tab="aged-payables">Aged Payables</button>
+          <button class="sub-tab report-tab" data-tab="tax-report">Tax Report</button>
+          <button class="sub-tab report-tab" data-tab="expenses">Expenses</button>
         </div>
 
-        <!-- P&L -->
         <div id="rpt-pnl" class="report-section">
           <div id="pnl-content"></div>
           <div class="dash-section-full">
@@ -513,12 +793,41 @@
           </div>
         </div>
 
-        <!-- Aging -->
+        <div id="rpt-trial-balance" class="report-section" style="display:none">
+          <div id="trial-balance-content"></div>
+        </div>
+
+        <div id="rpt-balance-sheet" class="report-section" style="display:none">
+          <div id="balance-sheet-content"></div>
+        </div>
+
+        <div id="rpt-general-ledger" class="report-section" style="display:none">
+          <div class="filter-bar" style="margin-bottom:1rem">
+            <div class="filter-group">
+              <label>Account</label>
+              <select class="filter-select" id="gl-account-filter">
+                <option value="">All Accounts</option>
+              </select>
+            </div>
+            <div class="filter-actions">
+              <button class="btn-filter btn-apply" onclick="renderGeneralLedger()">Load</button>
+            </div>
+          </div>
+          <div id="general-ledger-content"></div>
+        </div>
+
         <div id="rpt-aging" class="report-section" style="display:none">
           <div id="aging-content"></div>
         </div>
 
-        <!-- Expense Breakdown -->
+        <div id="rpt-aged-payables" class="report-section" style="display:none">
+          <div id="aged-payables-content"></div>
+        </div>
+
+        <div id="rpt-tax-report" class="report-section" style="display:none">
+          <div id="tax-report-content"></div>
+        </div>
+
         <div id="rpt-expenses" class="report-section" style="display:none">
           <div id="expense-content"></div>
         </div>
@@ -527,10 +836,24 @@
     </div><!-- /acc-content -->
   </main><!-- /acc-main -->
 
-  <!-- Mobile sidebar overlay -->
   <div class="mobile-overlay" id="mobileOverlay"></div>
-
 </div><!-- /appShell -->
+
+<!-- ===== JOURNAL ENTRY MODAL (dedicated, wide) ===== -->
+<div class="modal-backdrop" id="jeModalBackdrop">
+  <div class="modal-card modal-wide">
+    <div class="modal-header">
+      <h3 id="jeModalTitle">New Journal Entry</h3>
+      <button class="modal-close" onclick="closeJEModal()">✕</button>
+    </div>
+    <div class="modal-body" id="jeModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeJEModal()">Cancel</button>
+      <button class="btn-outline-navy" id="jeSaveDraftBtn" onclick="saveJournalEntry('Draft')">Save Draft</button>
+      <button class="btn-save" id="jePostBtn" onclick="saveJournalEntry('Posted')">Post Entry</button>
+    </div>
+  </div>
+</div>
 
 <!-- ===== PRINT OVERLAY ===== -->
 <div id="printOverlay" class="print-overlay">
@@ -556,11 +879,9 @@
   </div>
 </div>
 
-<!-- Toast -->
 <div id="toast"></div>
 
 <script>
-// Clear filter helpers
 function clearInvFilters() {
   ['inv-search','inv-status-filter','inv-date-from','inv-date-to'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   renderInvoices();
@@ -580,6 +901,38 @@ function clearRecFilters() {
 function clearAcctFilters() {
   ['acct-search','acct-type-filter','acct-currency-filter'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   renderAccounts();
+}
+function clearCNFilters() {
+  ['cn-search','cn-status-filter'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  renderCreditNotes();
+}
+function clearVCNFilters() {
+  ['vcn-search','vcn-status-filter'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  renderVendorCreditNotes();
+}
+function clearBSFilters() {
+  const el = document.getElementById('bs-acct-filter'); if(el) el.value = '';
+  renderBankStatements();
+}
+function clearCOAFilters() {
+  ['coa-search','coa-type-filter'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  renderCOA();
+}
+function clearJEFilters() {
+  ['je-search','je-journal-filter','je-status-filter'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  renderJournalEntries();
+}
+function clearCAccFilters() {
+  const el = document.getElementById('cacc-search'); if(el) el.value = '';
+  renderCustomersAcc();
+}
+function clearVendFilters() {
+  const el = document.getElementById('vend-search'); if(el) el.value = '';
+  renderVendors();
+}
+function closeBSDetail() {
+  document.getElementById('bs-detail-panel').style.display = 'none';
+  window._bsDetailId = null;
 }
 </script>
 
