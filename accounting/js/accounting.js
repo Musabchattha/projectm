@@ -149,9 +149,16 @@ function navigate(page) {
   currentPage = page;
 
   // Update nav active state
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.nav-item,.nav-sub-item,.nav-parent').forEach(n => n.classList.remove('active'));
   const navEl = document.querySelector(`.nav-item[data-page="${page}"]`);
   if (navEl) navEl.classList.add('active');
+  const subEl = document.querySelector(`.nav-sub-item[data-page="${page}"]`);
+  if (subEl) {
+    subEl.classList.add('active');
+    // Open the parent accordion group
+    const sub = subEl.closest('.nav-sub');
+    if (sub) { sub.classList.add('open'); const par = sub.previousElementSibling; if (par) par.classList.add('open'); }
+  }
 
   // Render page
   const renders = {
@@ -163,13 +170,14 @@ function navigate(page) {
     payments: renderPayments,
     receipts: renderReceipts,
     accounts: renderAccounts,
-    'bank-statements': renderBankStatements,
+    'bank-statements': () => { populateBSFilter(); renderBankStatements(); },
     'journal-entries': renderJournalEntries,
     coa: renderCOA,
     journals: renderJournals,
     taxes: renderTaxes,
     'customers-acc': renderCustomersAcc,
     vendors: renderVendors,
+    'purchase-orders': renderPurchaseOrders,
     reports: () => { showReportTab('pnl'); }
   };
   if (renders[page]) renders[page]();
@@ -202,7 +210,10 @@ function closeModal() {
   _modalType = null;
   _editId = null;
   _modalSaveOverride = null;
-  document.getElementById('modalSaveBtn').onclick = submitModal;
+  const saveBtn = document.getElementById('modalSaveBtn');
+  saveBtn.onclick = submitModal;
+  saveBtn.style.display = '';
+  saveBtn.textContent = 'Save';
 }
 
 function submitModal() {
@@ -236,7 +247,8 @@ const modalConfigs = {
     createLabel: 'Create ',
     getData: id => DB.load('nau_invoices').find(i => i.id === id),
     form: d => {
-      const vehs = DB.load('nau_vehicles').filter(v => v.status === 'Published' || (d && d.vehicleId === v.id));
+      const vehs = DB.load('nau_vehicles').filter(v => v.status === 'Published' || v.status === 'PUBLISHED' || (d && d.vehicleId === v.id));
+      const custs = DB.load('nau_customers_acc');
       return `
       <div class="form-row full">
         <div class="form-group">
@@ -249,28 +261,35 @@ const modalConfigs = {
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Customer Name <span class="required">*</span></label>
-          <input class="form-control" id="inv-cust-name" value="${d ? d.customerName || '' : ''}" />
+          <label>Customer</label>
+          <select class="form-control" id="inv-cust-sel" onchange="onInvCustomerChange()">
+            <option value="">-- Select from directory --</option>
+            ${custs.map(c => `<option value="${c.id}" data-name="${c.name}" data-email="${c.email||''}" data-phone="${c.phone||''}" data-addr="${c.address||''}" ${d && d.customerName===c.name ? 'selected' : ''}>${c.name}</option>`).join('')}
+          </select>
         </div>
         <div class="form-group">
-          <label>Customer Email</label>
-          <input class="form-control" id="inv-cust-email" value="${d ? d.customerEmail || '' : ''}" />
+          <label>Customer Name <span class="required">*</span></label>
+          <input class="form-control" id="inv-cust-name" value="${d ? d.customerName || '' : ''}" placeholder="Or type manually" />
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
+          <label>Customer Email</label>
+          <input class="form-control" id="inv-cust-email" value="${d ? d.customerEmail || '' : ''}" />
+        </div>
+        <div class="form-group">
           <label>Customer Phone</label>
           <input class="form-control" id="inv-cust-phone" value="${d ? d.customerPhone || '' : ''}" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Customer Address</label>
+          <input class="form-control" id="inv-cust-addr" value="${d ? d.customerAddress || '' : ''}" />
         </div>
         <div class="form-group">
           <label>Due Date</label>
           <input class="form-control" type="date" id="inv-due" value="${d ? d.dueDate || '' : ''}" />
-        </div>
-      </div>
-      <div class="form-row full">
-        <div class="form-group">
-          <label>Customer Address</label>
-          <textarea class="form-control" id="inv-cust-addr" rows="2">${d ? d.customerAddress || '' : ''}</textarea>
         </div>
       </div>
       <div class="form-row">
@@ -285,12 +304,8 @@ const modalConfigs = {
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Include 18% VAT</label>
-          <label class="toggle-switch" style="margin-top:.4rem">
-            <input type="checkbox" id="inv-tax" ${d && d.taxRate ? 'checked' : ''}>
-            <span class="toggle-slider"></span>
-            <span>Include VAT (18%)</span>
-          </label>
+          <label>Tax</label>
+          <select class="form-control" id="inv-tax-sel">${taxOptions(d && d.taxId)}</select>
         </div>
         <div class="form-group">
           <label>Payment Account</label>
@@ -322,10 +337,12 @@ const modalConfigs = {
       if (!customerName) { toast('Customer Name is required'); return null; }
       if (!salePrice) { toast('Sale Price is required'); return null; }
       const discount = parseFloat(document.getElementById('inv-discount').value) || 0;
-      const includeTax = document.getElementById('inv-tax').checked;
-      const taxRate = includeTax ? 18 : 0;
+      const taxSel = document.getElementById('inv-tax-sel');
+      const taxId = Number(taxSel.value) || null;
+      const taxOpt = taxSel.options[taxSel.selectedIndex];
+      const taxRate = taxId ? parseFloat(taxOpt.dataset.rate || 0) : 0;
       const taxable = salePrice - discount;
-      const taxAmount = includeTax ? Math.round(taxable * 0.18 * 100) / 100 : 0;
+      const taxAmount = taxRate ? Math.round(taxable * (taxRate/100) * 100) / 100 : 0;
       const totalAmount = Math.round((taxable + taxAmount) * 100) / 100;
       const vehs = DB.load('nau_vehicles');
       const veh = vehs.find(v => v.id === vehicleId);
@@ -336,7 +353,7 @@ const modalConfigs = {
         customerName, customerEmail: document.getElementById('inv-cust-email').value,
         customerPhone: document.getElementById('inv-cust-phone').value,
         customerAddress: document.getElementById('inv-cust-addr').value,
-        salePrice, discount, taxRate, taxAmount, totalAmount, paidAmount: 0,
+        salePrice, discount, taxId, taxRate, taxAmount, totalAmount, paidAmount: 0,
         currency: 'USD', paymentMethod: document.getElementById('inv-pay-acct').value,
         status, dueDate: document.getElementById('inv-due').value,
         notes: document.getElementById('inv-notes').value
@@ -364,13 +381,23 @@ const modalConfigs = {
     getData: id => DB.load('nau_bills').find(b => b.id === id),
     form: d => {
       const vehs = DB.load('nau_vehicles');
+      const vends = DB.load('nau_vendors');
       return `
       <div class="form-row">
         <div class="form-group">
-          <label>Vendor / Supplier <span class="required">*</span></label>
-          <input class="form-control" id="bill-vendor" value="${d ? d.vendor || '' : ''}" />
+          <label>Vendor</label>
+          <select class="form-control" id="bill-vendor-sel" onchange="onBillVendorChange()">
+            <option value="">-- Select from directory --</option>
+            ${vends.map(v => `<option value="${v.name}" ${d && d.vendor===v.name ? 'selected' : ''}>${v.name}</option>`).join('')}
+          </select>
         </div>
         <div class="form-group">
+          <label>Vendor Name <span class="required">*</span></label>
+          <input class="form-control" id="bill-vendor" value="${d ? d.vendor || '' : ''}" placeholder="Or type manually" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:2">
           <label>Category <span class="required">*</span></label>
           <select class="form-control" id="bill-category">
             ${['Vehicle Purchase', 'Freight', 'Insurance', 'Maintenance', 'Salaries', 'Utilities', 'Office Supplies', 'Other'].map(c => `<option ${d && d.category === c ? 'selected' : ''}>${c}</option>`).join('')}
@@ -1954,7 +1981,7 @@ function renderJournalEntries() {
 
   // Populate journal filter
   const jfEl = document.getElementById('je-journal-filter');
-  if (jfEl && !jfEl.options.length || (jfEl && jfEl.options.length < 2)) {
+  if (jfEl && (!jfEl.options.length || jfEl.options.length < 2)) {
     const journals = DB.load('nau_journals');
     jfEl.innerHTML = '<option value="">All Journals</option>' + journals.map(j=>
       `<option value="${j.id}">${j.name}</option>`).join('');
@@ -2859,4 +2886,334 @@ function updateCoaSubtypes() {
   const subtypes = { asset:['current_asset','fixed_asset'], liability:['current_liability','long_term_liability'], equity:['equity'], revenue:['revenue'], expense:['cogs','operating_expense','other_expense'] };
   const sel = document.getElementById('coa-subtype');
   if (sel) sel.innerHTML = (subtypes[type]||[]).map(st=>`<option>${st}</option>`).join('');
+}
+
+// ===== INVOICE CUSTOMER AUTO-FILL =====
+function onInvCustomerChange() {
+  const sel = document.getElementById('inv-cust-sel');
+  if (!sel) return;
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.dataset.name) return;
+  const nameEl = document.getElementById('inv-cust-name');
+  const emailEl = document.getElementById('inv-cust-email');
+  const phoneEl = document.getElementById('inv-cust-phone');
+  const addrEl = document.getElementById('inv-cust-addr');
+  if (nameEl) nameEl.value = opt.dataset.name;
+  if (emailEl) emailEl.value = opt.dataset.email || '';
+  if (phoneEl) phoneEl.value = opt.dataset.phone || '';
+  if (addrEl) addrEl.value = opt.dataset.addr || '';
+}
+
+// ===== BILL VENDOR AUTO-FILL =====
+function onBillVendorChange() {
+  const sel = document.getElementById('bill-vendor-sel');
+  if (!sel) return;
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.value) return;
+  const nameEl = document.getElementById('bill-vendor');
+  if (nameEl) nameEl.value = opt.value;
+}
+
+// ===== PURCHASE ORDERS =====
+function genPONo() {
+  const rows = DB.load('nau_purchase_orders');
+  return `PO-${new Date().getFullYear()}-${String(rows.length + 1).padStart(4, '0')}`;
+}
+
+function renderPurchaseOrders() {
+  renderPOStats();
+  const q = (document.getElementById('po-search') || {}).value || '';
+  const sf = (document.getElementById('po-status-filter') || {}).value || '';
+  let rows = DB.load('nau_purchase_orders').filter(p => {
+    const mQ = !q || (p.poNo + p.vendorName + (p.vehicleMake||'') + (p.vehicleModel||'')).toLowerCase().includes(q.toLowerCase());
+    const mS = !sf || p.status === sf;
+    return mQ && mS;
+  }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const statusBadge = { Draft:'badge-draft', Confirmed:'badge-sent', Received:'badge-paid', Cancelled:'badge-cancelled' };
+  const tbody = document.getElementById('po-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.length ? rows.map(p => `
+    <tr>
+      <td><strong style="font-family:monospace">${p.poNo}</strong></td>
+      <td><strong>${p.vendorName}</strong></td>
+      <td style="font-size:.82rem">${p.vehicleMake || ''} ${p.vehicleModel || ''} ${p.vehicleYear || ''}</td>
+      <td style="font-family:monospace;font-size:.78rem">${p.vehicleChassis || '-'}</td>
+      <td class="amount-mono"><strong>${fmtMoney(p.purchasePrice, p.currency || 'USD')}</strong></td>
+      <td>${p.purchaseDate || '-'}</td>
+      <td>${p.expectedDelivery || '-'}</td>
+      <td><span class="badge ${statusBadge[p.status] || 'badge-draft'}">${p.status}</span></td>
+      <td>
+        <div class="row-actions">
+          ${p.status === 'Draft' ? `<button class="btn-row" title="Edit" onclick="openModal('purchaseOrder',${p.id})">✏️</button>` : ''}
+          ${p.status === 'Draft' ? `<button class="btn-row" title="Confirm" onclick="confirmPO(${p.id})">✅</button>` : ''}
+          ${p.status === 'Confirmed' ? `<button class="btn-row" title="Mark Received — adds to inventory" onclick="receivePO(${p.id})" style="background:#10b981;color:#fff;border-color:#10b981">📦 Receive</button>` : ''}
+          ${p.vehicleId ? `<button class="btn-row" title="View in inventory" onclick="toast('Vehicle ID: ${p.vehicleId} added to inventory')">🚗</button>` : ''}
+          ${['Draft','Confirmed'].includes(p.status) ? `<button class="btn-row btn-row-delete" onclick="cancelPO(${p.id})">✕</button>` : ''}
+        </div>
+      </td>
+    </tr>`).join('')
+    : '<tr><td colspan="9" class="table-empty"><span class="empty-icon">🛒</span>No purchase orders yet. Create one to start procuring vehicles.</td></tr>';
+
+  // Populate vendor filter
+  const vfEl = document.getElementById('po-vendor-filter');
+  if (vfEl && (!vfEl.options.length || vfEl.options.length < 2)) {
+    const vends = DB.load('nau_vendors');
+    vfEl.innerHTML = '<option value="">All Vendors</option>' + vends.map(v => `<option value="${v.name}">${v.name}</option>`).join('');
+  }
+}
+
+function confirmPO(id) {
+  const rows = DB.load('nau_purchase_orders');
+  const po = rows.find(x => x.id === id);
+  if (!po) return;
+  if (!confirm(`Confirm Purchase Order ${po.poNo} for ${fmtMoney(po.purchasePrice, po.currency)}?`)) return;
+  po.status = 'Confirmed';
+  po.confirmedAt = nowISO();
+  DB.save('nau_purchase_orders', rows);
+  toast('Purchase order confirmed.');
+  renderPurchaseOrders();
+}
+
+function cancelPO(id) {
+  const rows = DB.load('nau_purchase_orders');
+  const po = rows.find(x => x.id === id);
+  if (!po) return;
+  if (!confirm('Cancel this purchase order?')) return;
+  po.status = 'Cancelled';
+  DB.save('nau_purchase_orders', rows);
+  toast('Purchase order cancelled.');
+  renderPurchaseOrders();
+}
+
+function receivePO(id) {
+  const rows = DB.load('nau_purchase_orders');
+  const po = rows.find(x => x.id === id);
+  if (!po) return;
+  if (!confirm(`Mark PO ${po.poNo} as received?\n\nThis will:\n• Add ${po.vehicleMake} ${po.vehicleModel} ${po.vehicleYear} to inventory\n• Create a vendor bill for ${fmtMoney(po.purchasePrice, po.currency)}\n\nProceed?`)) return;
+
+  // 1. Create vehicle in nau_vehicles
+  const vehs = DB.load('nau_vehicles');
+  const manufacturers = DB.load('nau_manufacturers');
+  const mfr = manufacturers.find(m => m.name && m.name.toLowerCase() === (po.vehicleMake||'').toLowerCase());
+  const now = new Date();
+  const sku = `${String(now.getMonth()+1).padStart(2,'0')}-${now.getFullYear()}-${String(DB.nextId('nau_vehicles')).padStart(6,'0')}`;
+  const veh = {
+    id: DB.nextId('nau_vehicles'),
+    sku,
+    manufacturerId: mfr ? mfr.id : null,
+    make: po.vehicleMake || '',
+    model: po.vehicleModel || '',
+    year: po.vehicleYear || '',
+    chassis: po.vehicleChassis || '',
+    engineCC: po.engineCC || '',
+    bodyType: po.bodyType || '',
+    fuelType: po.fuelType || '',
+    transmission: po.transmission || '',
+    color: po.color || '',
+    priceUSD: po.sellingPrice || po.purchasePrice || 0,
+    costUSD: po.purchasePrice || 0,
+    status: 'DRAFT',
+    description: `Received via PO ${po.poNo}. Vendor: ${po.vendorName}.${po.notes ? ' Notes: ' + po.notes : ''}`,
+    createdAt: nowISO()
+  };
+  vehs.push(veh);
+  DB.save('nau_vehicles', vehs);
+
+  // 2. Create bill in nau_bills
+  const bills = DB.load('nau_bills');
+  const bill = {
+    id: DB.nextId('nau_bills'),
+    billNo: genBillNo(),
+    vendor: po.vendorName,
+    category: 'Vehicle Purchase',
+    vehicleId: veh.id,
+    vehicleName: `${po.vehicleMake} ${po.vehicleModel} ${po.vehicleYear}`,
+    description: `Vehicle purchase — PO ${po.poNo}. Chassis: ${po.vehicleChassis || '-'}`,
+    amount: po.purchasePrice,
+    currency: po.currency || 'USD',
+    dueDate: po.expectedDelivery || '',
+    status: 'Pending',
+    paymentMethod: '',
+    notes: `Auto-created from Purchase Order ${po.poNo}`,
+    createdAt: nowISO()
+  };
+  bills.push(bill);
+  DB.save('nau_bills', bills);
+
+  // 3. Update PO
+  po.status = 'Received';
+  po.receivedAt = nowISO();
+  po.vehicleId = veh.id;
+  po.billId = bill.id;
+  DB.save('nau_purchase_orders', rows);
+
+  toast(`✅ Received! Vehicle added to inventory (${sku}), bill created (${bill.billNo}).`);
+  renderPurchaseOrders();
+}
+
+// Purchase Order modal config
+Object.assign(modalConfigs, {
+  purchaseOrder: {
+    label: 'Purchase Order',
+    createLabel: 'Create ',
+    getData: id => DB.load('nau_purchase_orders').find(p => p.id === id),
+    form: d => {
+      const vends = DB.load('nau_vendors');
+      return `
+      <div class="form-row">
+        <div class="form-group">
+          <label>Vendor</label>
+          <select class="form-control" id="po-vend-sel" onchange="onPOVendorChange()">
+            <option value="">-- Select from directory --</option>
+            ${vends.map(v => `<option value="${v.name}" ${d && d.vendorName === v.name ? 'selected' : ''}>${v.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Vendor Name <span class="required">*</span></label>
+          <input class="form-control" id="po-vendor" value="${d ? d.vendorName || '' : ''}" placeholder="Or type manually" />
+        </div>
+      </div>
+      <div style="margin:.75rem 0 .4rem;font-weight:700;font-size:.85rem;color:#0a1628;border-bottom:1px solid #e8ecf0;padding-bottom:.3rem">Vehicle Details</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Make <span class="required">*</span></label>
+          <input class="form-control" id="po-make" value="${d ? d.vehicleMake || '' : ''}" placeholder="e.g. Toyota" />
+        </div>
+        <div class="form-group">
+          <label>Model <span class="required">*</span></label>
+          <input class="form-control" id="po-model" value="${d ? d.vehicleModel || '' : ''}" placeholder="e.g. Hilux D-Cab" />
+        </div>
+        <div class="form-group">
+          <label>Year</label>
+          <input class="form-control" type="number" id="po-year" value="${d ? d.vehicleYear || '' : ''}" placeholder="2025" min="1990" max="2030" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Chassis Number</label>
+          <input class="form-control" id="po-chassis" value="${d ? d.vehicleChassis || '' : ''}" style="font-family:monospace" placeholder="e.g. MROYA3AV-703071210" />
+        </div>
+        <div class="form-group">
+          <label>Colour</label>
+          <input class="form-control" id="po-color" value="${d ? d.color || '' : ''}" placeholder="e.g. White" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Engine (cc)</label>
+          <input class="form-control" type="number" id="po-engine" value="${d ? d.engineCC || '' : ''}" placeholder="e.g. 2800" />
+        </div>
+        <div class="form-group">
+          <label>Body Type</label>
+          <input class="form-control" id="po-body" value="${d ? d.bodyType || '' : ''}" placeholder="e.g. D/Cabin" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fuel Type</label>
+          <select class="form-control" id="po-fuel">
+            ${['Diesel','Petrol','Hybrid','Electric','Other'].map(f => `<option ${d && d.fuelType===f?'selected':''}>${f}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Transmission</label>
+          <select class="form-control" id="po-trans">
+            ${['Automatic','Manual','CVT'].map(t => `<option ${d && d.transmission===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div style="margin:.75rem 0 .4rem;font-weight:700;font-size:.85rem;color:#0a1628;border-bottom:1px solid #e8ecf0;padding-bottom:.3rem">Pricing &amp; Dates</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Purchase Price <span class="required">*</span></label>
+          <input class="form-control" type="number" id="po-price" value="${d ? d.purchasePrice || '' : ''}" step="0.01" min="0" placeholder="Cost from vendor" />
+        </div>
+        <div class="form-group">
+          <label>Selling Price (optional)</label>
+          <input class="form-control" type="number" id="po-sell-price" value="${d ? d.sellingPrice || '' : ''}" step="0.01" min="0" placeholder="Planned sale price" />
+        </div>
+        <div class="form-group">
+          <label>Currency</label>
+          <select class="form-control" id="po-currency">
+            ${['USD','UGX','JPY','KES','EUR'].map(c => `<option ${d && d.currency===c?'selected':''}>${c}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Purchase Date</label>
+          <input class="form-control" type="date" id="po-date" value="${d ? d.purchaseDate || '' : new Date().toISOString().split('T')[0]}" />
+        </div>
+        <div class="form-group">
+          <label>Expected Delivery</label>
+          <input class="form-control" type="date" id="po-delivery" value="${d ? d.expectedDelivery || '' : ''}" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea class="form-control" id="po-notes" rows="2">${d ? d.notes || '' : ''}</textarea>
+      </div>`;
+    },
+    collect: () => {
+      const vendorName = document.getElementById('po-vendor').value.trim();
+      const vehicleMake = document.getElementById('po-make').value.trim();
+      const vehicleModel = document.getElementById('po-model').value.trim();
+      const purchasePrice = parseFloat(document.getElementById('po-price').value) || 0;
+      if (!vendorName) { toast('Vendor name is required'); return null; }
+      if (!vehicleMake || !vehicleModel) { toast('Vehicle Make and Model are required'); return null; }
+      if (!purchasePrice) { toast('Purchase price is required'); return null; }
+      return {
+        vendorName, vehicleMake, vehicleModel,
+        vehicleYear: document.getElementById('po-year').value,
+        vehicleChassis: document.getElementById('po-chassis').value.trim(),
+        color: document.getElementById('po-color').value.trim(),
+        engineCC: document.getElementById('po-engine').value,
+        bodyType: document.getElementById('po-body').value.trim(),
+        fuelType: document.getElementById('po-fuel').value,
+        transmission: document.getElementById('po-trans').value,
+        purchasePrice, sellingPrice: parseFloat(document.getElementById('po-sell-price').value) || null,
+        currency: document.getElementById('po-currency').value,
+        purchaseDate: document.getElementById('po-date').value,
+        expectedDelivery: document.getElementById('po-delivery').value,
+        notes: document.getElementById('po-notes').value.trim(),
+        status: 'Draft'
+      };
+    },
+    create: d => {
+      const all = DB.load('nau_purchase_orders');
+      all.push({ id: DB.nextId('nau_purchase_orders'), poNo: genPONo(), ...d, vehicleId: null, billId: null, createdAt: nowISO() });
+      DB.save('nau_purchase_orders', all);
+    },
+    update: (id, d) => {
+      const all = DB.load('nau_purchase_orders');
+      const i = all.findIndex(x => x.id === id);
+      if (i > -1) { all[i] = { ...all[i], ...d }; DB.save('nau_purchase_orders', all); }
+    },
+    refresh: renderPurchaseOrders
+  }
+});
+
+function onPOVendorChange() {
+  const sel = document.getElementById('po-vend-sel');
+  if (!sel) return;
+  const opt = sel.options[sel.selectedIndex];
+  const nameEl = document.getElementById('po-vendor');
+  if (nameEl && opt && opt.value) nameEl.value = opt.value;
+}
+
+// ===== PURCHASE ORDER STATS BAR =====
+function renderPOStats() {
+  const pos = DB.load('nau_purchase_orders');
+  const el = document.getElementById('po-stats');
+  if (!el) return;
+  const draft = pos.filter(p => p.status === 'Draft').length;
+  const confirmed = pos.filter(p => p.status === 'Confirmed').length;
+  const received = pos.filter(p => p.status === 'Received').length;
+  const totalValue = pos.filter(p => p.status !== 'Cancelled').reduce((s, p) => s + Number(p.purchasePrice || 0), 0);
+  el.innerHTML = `
+    <div class="po-stat"><div class="po-stat-val">${draft}</div><div class="po-stat-label">Draft POs</div></div>
+    <div class="po-stat" style="border-color:#f0a500"><div class="po-stat-val" style="color:#d97706">${confirmed}</div><div class="po-stat-label">Awaiting Receipt</div></div>
+    <div class="po-stat" style="border-color:#10b981"><div class="po-stat-val" style="color:#10b981">${received}</div><div class="po-stat-label">Received → In Inventory</div></div>
+    <div class="po-stat"><div class="po-stat-val">${fmtMoney(totalValue)}</div><div class="po-stat-label">Total Procurement Value</div></div>`;
 }

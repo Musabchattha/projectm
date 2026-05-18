@@ -106,6 +106,9 @@
       <div class="nav-item" data-page="vendors">
         <span class="nav-icon">🏢</span><span>Vendors</span>
       </div>
+      <div class="nav-item" data-page="purchase-orders">
+        <span class="nav-icon">🛒</span><span>Purchase Orders</span>
+      </div>
       <div class="nav-item" data-page="accounts">
         <span class="nav-icon">💰</span><span>Payment Accounts</span>
       </div>
@@ -701,6 +704,75 @@
         </div>
       </div>
 
+      <!-- ===== PURCHASE ORDERS ===== -->
+      <div class="page-section" id="page-purchase-orders">
+        <div class="page-header">
+          <div class="page-header-left">
+            <h1>Purchase Orders</h1>
+            <p>Procure vehicles from vendors — receiving a PO automatically adds the vehicle to inventory and creates a bill</p>
+          </div>
+          <button class="btn-create" onclick="openModal('purchaseOrder')">+ New Purchase Order</button>
+        </div>
+
+        <!-- Summary cards -->
+        <div class="po-stats" id="po-stats"></div>
+
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label>Search</label>
+            <input type="text" class="filter-input" id="po-search" placeholder="PO no, vendor, make, model..." />
+          </div>
+          <div class="filter-group">
+            <label>Vendor</label>
+            <select class="filter-select" id="po-vendor-filter">
+              <option value="">All Vendors</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Status</label>
+            <select class="filter-select" id="po-status-filter">
+              <option value="">All Status</option>
+              <option value="Draft">Draft</option>
+              <option value="Confirmed">Confirmed</option>
+              <option value="Received">Received</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button class="btn-filter btn-clear" onclick="clearPOFilters()">Clear</button>
+            <button class="btn-filter btn-apply" onclick="renderPurchaseOrders()">Apply</button>
+          </div>
+        </div>
+
+        <div class="table-wrap table-scroll">
+          <table class="acc-table">
+            <thead><tr>
+              <th>PO No</th>
+              <th>Vendor</th>
+              <th>Vehicle</th>
+              <th>Chassis</th>
+              <th>Purchase Price</th>
+              <th>PO Date</th>
+              <th>Expected Delivery</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr></thead>
+            <tbody id="po-tbody">
+              <tr><td colspan="9" class="table-empty"><span class="empty-icon">🛒</span>No purchase orders yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Workflow info -->
+        <div class="po-workflow-info">
+          <div class="wf-step"><span class="wf-num">1</span><span>Create PO with vehicle specs &amp; purchase price</span></div>
+          <div class="wf-arrow">→</div>
+          <div class="wf-step"><span class="wf-num">2</span><span>Confirm PO when order is placed with vendor</span></div>
+          <div class="wf-arrow">→</div>
+          <div class="wf-step wf-highlight"><span class="wf-num">3</span><span>Click <strong>📦 Receive</strong> — vehicle added to inventory + bill created automatically</span></div>
+        </div>
+      </div>
+
       <!-- ===== PAYMENT ACCOUNTS ===== -->
       <div class="page-section" id="page-accounts">
         <div class="page-header">
@@ -929,6 +1001,10 @@ function clearCAccFilters() {
 function clearVendFilters() {
   const el = document.getElementById('vend-search'); if(el) el.value = '';
   renderVendors();
+}
+function clearPOFilters() {
+  ['po-search','po-vendor-filter','po-status-filter'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  renderPurchaseOrders();
 }
 function closeBSDetail() {
   document.getElementById('bs-detail-panel').style.display = 'none';
