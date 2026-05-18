@@ -1532,8 +1532,8 @@ function seedAccountingData() {
   // Purchase Orders
   if (!DB.load('nau_purchase_orders').length) {
     DB.save('nau_purchase_orders', [
-      { id:1, poNo:'PO-2026-0001', vendorName:'Tokyo Auto Exports Ltd', vehicleMake:'Toyota', vehicleModel:'Hilux D-Cab', vehicleYear:'2025', vehicleChassis:'MROYA3AV-703071210', color:'White', engineCC:'2800', bodyType:'D/Cabin', fuelType:'Diesel', transmission:'Automatic', purchasePrice:42000, sellingPrice:49000, currency:'USD', purchaseDate:'2026-05-01', expectedDelivery:'2026-06-15', notes:'Port of Mombasa arrival', status:'Draft', vehicleId:null, billId:null, createdAt:'2026-05-01T08:00:00.000Z' },
-      { id:2, poNo:'PO-2026-0002', vendorName:'Osaka Motors International', vehicleMake:'Nissan', vehicleModel:'Patrol Y62', vehicleYear:'2022', vehicleChassis:'JN8AY2ND-603141987', color:'Black', engineCC:'5600', bodyType:'SUV', fuelType:'Petrol', transmission:'Automatic', purchasePrice:30000, sellingPrice:36500, currency:'USD', purchaseDate:'2026-05-05', expectedDelivery:'2026-06-20', notes:'V8 Platinum trim', status:'Confirmed', vehicleId:null, billId:null, confirmedAt:'2026-05-06T09:00:00.000Z', createdAt:'2026-05-05T10:00:00.000Z' }
+      { id:1, poNo:'PO-2026-0001', vendorName:'Tokyo Auto Exports Ltd', manufacturerId:1, vehicleMake:'Toyota', modelId:3, vehicleModel:'Hilux D-Cabin', modelCodeId:4, vehicleYear:'2025', vehicleChassis:'MROYA3AV-703071210', color:'White', engineCode:'1GD-FTV', engineCC:'2755', bodyType:'D/Cabin', fuelType:'Diesel', drivetrain:'4WD', transmission:'Automatic', steeringPosition:'RHD', purchasePrice:42000, sellingPrice:49000, currency:'USD', purchaseDate:'2026-05-01', expectedDelivery:'2026-06-15', notes:'Port of Mombasa arrival', status:'Draft', vehicleId:null, billId:null, createdAt:'2026-05-01T08:00:00.000Z' },
+      { id:2, poNo:'PO-2026-0002', vendorName:'Osaka Motors International', manufacturerId:2, vehicleMake:'Nissan', modelId:9, vehicleModel:'Patrol Y62', modelCodeId:8, vehicleYear:'2022', vehicleChassis:'JN8AY2ND-603141987', color:'Black', engineCode:'VK56VD', engineCC:'5552', bodyType:'SUV', fuelType:'Petrol', drivetrain:'4WD', transmission:'Automatic', steeringPosition:'RHD', purchasePrice:30000, sellingPrice:36500, currency:'USD', purchaseDate:'2026-05-05', expectedDelivery:'2026-06-20', notes:'V8 Platinum trim', status:'Confirmed', vehicleId:null, billId:null, confirmedAt:'2026-05-06T09:00:00.000Z', createdAt:'2026-05-05T10:00:00.000Z' }
     ]);
   }
 
@@ -3214,15 +3214,20 @@ function receivePO(id) {
   const veh = {
     id: DB.nextId('nau_vehicles'),
     sku,
-    manufacturerId: mfr ? mfr.id : null,
+    manufacturerId: po.manufacturerId || (mfr ? mfr.id : null),
+    modelId: po.modelId || null,
+    modelCodeId: po.modelCodeId || null,
     make: po.vehicleMake || '',
     model: po.vehicleModel || '',
     year: po.vehicleYear || '',
     chassis: po.vehicleChassis || '',
+    engineCode: po.engineCode || '',
     engineCC: po.engineCC || '',
     bodyType: po.bodyType || '',
     fuelType: po.fuelType || '',
+    drivetrain: po.drivetrain || '',
     transmission: po.transmission || '',
+    steeringPosition: po.steeringPosition || '',
     color: po.color || '',
     priceUSD: po.sellingPrice || po.purchasePrice || 0,
     costUSD: po.purchasePrice || 0,
