@@ -557,4 +557,14 @@ ul { list-style: none; }
   .newsletter-input-row { flex-direction: column; }
   .story-badge-abs { position: static; margin-top: 1rem; display: inline-flex; gap: 1rem; align-items: center; padding: .75rem 1rem; }
   .story-badge-abs .num { font-size: 1.4rem; }
+  .carousel-arrow { width: 36px; height: 36px; font-size: 1.2rem; }
+  .carousel-arrow.carousel-prev { left: .5rem; }
+  .carousel-arrow.carousel-next { right: .5rem; }
+  .carousel-dot { width: 8px; height: 8px; }
+  .carousel-content { padding: 1.5rem 0; }
+}
+@media (max-width: 480px) {
+  .whatsapp-float { bottom: 1rem; right: 1rem; padding: .55rem .75rem; font-size: .78rem; border-radius: 50%; width: 48px; height: 48px; justify-content: center; }
+  .wa-label { display: none; }
+  .stats-grid { grid-template-columns: 1fr; }
 }

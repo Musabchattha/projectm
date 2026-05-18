@@ -53,6 +53,9 @@
         <button class="btn-nav-action btn-nav-web" onclick="window.open('../index.html')">Web</button>
         <button class="btn-nav-action btn-nav-logout" id="logoutBtn">Logout</button>
       </div>
+      <button class="admin-hamburger" id="adminHamburger" aria-label="Open menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
     <div class="navbar-links">
 
@@ -134,6 +137,61 @@
 
     </div>
   </nav>
+
+  <!-- MOBILE NAV DRAWER -->
+  <div class="admin-mobile-nav" id="adminMobileNav">
+    <div class="amn-header">
+      <span class="amn-brand">🚗 NipponAuto</span>
+      <button class="amn-close" id="adminNavClose">✕</button>
+    </div>
+    <a class="amn-item" data-nav="dashboard">📊 Dashboard</a>
+    <div class="amn-group">
+      <button class="amn-group-toggle">📦 Inventory <span class="amn-arrow">▾</span></button>
+      <div class="amn-sub">
+        <a data-nav="inv-manufacturers">Manufacturers</a>
+        <a data-nav="inv-models">Models</a>
+        <a data-nav="inv-model-codes">Model Codes</a>
+        <a data-nav="inv-vehicles">Vehicles</a>
+        <a data-nav="inv-variables">Manage Variables</a>
+        <a data-nav="inv-reviews">Reviews</a>
+        <a data-nav="inv-service-plans">Service Plans</a>
+      </div>
+    </div>
+    <a class="amn-item" data-nav="auctions">🔨 Auctions</a>
+    <a class="amn-item" data-nav="quotes">💬 Quotes</a>
+    <a class="amn-item" data-nav="orders">📦 Orders</a>
+    <div class="amn-group">
+      <button class="amn-group-toggle">📩 Inquiries <span class="amn-arrow">▾</span></button>
+      <div class="amn-sub">
+        <a data-nav="inquiries">All Inquiries</a>
+        <a data-nav="inquiries-new">New Inquiries</a>
+      </div>
+    </div>
+    <div class="amn-group">
+      <button class="amn-group-toggle">📄 Content <span class="amn-arrow">▾</span></button>
+      <div class="amn-sub">
+        <a data-nav="content-topic">Topic Pages</a>
+        <a data-nav="content-slider">Homepage Slider</a>
+        <a data-nav="content-blogs">Blogs</a>
+        <a data-nav="content-faqs">FAQs</a>
+      </div>
+    </div>
+    <div class="amn-group">
+      <button class="amn-group-toggle">📣 Marketing <span class="amn-arrow">▾</span></button>
+      <div class="amn-sub">
+        <a data-nav="marketing-promos">Promotions</a>
+        <a data-nav="marketing-newsletter">Newsletter</a>
+        <a data-nav="marketing-campaigns">Campaigns</a>
+      </div>
+    </div>
+    <a class="amn-item" data-nav="support">🎫 Support</a>
+    <a class="amn-item" data-nav="careers">💼 Careers</a>
+    <a class="amn-item" data-nav="user-management">👤 User Management</a>
+    <a class="amn-item" data-nav="reports">📈 Reports</a>
+    <a class="amn-item" data-nav="settings">⚙️ Settings</a>
+    <button class="amn-logout" id="adminNavLogout">🚪 Logout</button>
+  </div>
+  <div class="admin-nav-overlay" id="adminNavOverlay"></div>
 
   <!-- BREADCRUMB -->
   <div class="admin-breadcrumb" id="adminBreadcrumb">

@@ -1496,4 +1496,52 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeModal();
   });
+
+  // ===== MOBILE NAV =====
+  const adminHamburger = document.getElementById('adminHamburger');
+  const adminMobileNav = document.getElementById('adminMobileNav');
+  const adminNavOverlay = document.getElementById('adminNavOverlay');
+  const adminNavClose = document.getElementById('adminNavClose');
+
+  function openAdminNav() {
+    adminMobileNav.classList.add('open');
+    adminNavOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeAdminNav() {
+    adminMobileNav.classList.remove('open');
+    adminNavOverlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  adminHamburger.addEventListener('click', openAdminNav);
+  adminNavClose.addEventListener('click', closeAdminNav);
+  adminNavOverlay.addEventListener('click', closeAdminNav);
+
+  // Accordion groups in mobile nav
+  document.querySelectorAll('.amn-group-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sub = btn.nextElementSibling;
+      sub.classList.toggle('open');
+      btn.classList.toggle('expanded');
+    });
+  });
+
+  // Nav links in mobile drawer
+  document.querySelectorAll('.admin-mobile-nav [data-nav]').forEach(el => {
+    el.addEventListener('click', () => {
+      navigate(el.dataset.nav);
+      closeAdminNav();
+    });
+  });
+
+  // Mobile nav logout
+  document.getElementById('adminNavLogout').addEventListener('click', () => {
+    AUTH.logout();
+    closeAdminNav();
+    document.getElementById('adminShell').classList.remove('visible');
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+  });
 });

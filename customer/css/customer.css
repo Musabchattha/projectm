@@ -59,3 +59,4 @@ body.customer-body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;bac
 .c-form-group label{font-size:.78rem;font-weight:600;color:#1e2a3a;}
 .c-input{padding:.55rem .75rem;border:1.5px solid #d1d9e6;border-radius:6px;font-size:.85rem;font-family:inherit;color:#1e2a3a;background:#f8fafc;}
 @media(max-width:768px){.customer-sidebar{display:none;}.c-stats-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:480px){.c-stats-grid{grid-template-columns:1fr;}.c-vehicles-grid{grid-template-columns:1fr;}.customer-main{padding:1rem .75rem;}.c-topbar-right .c-user-badge{display:none;}}
