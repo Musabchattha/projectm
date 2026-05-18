@@ -199,7 +199,13 @@ function openModal(type, id) {
   if (!cfg) return;
   const data = id ? cfg.getData(id) : null;
   document.getElementById('modalTitle').textContent = (id ? 'Edit ' : (cfg.createLabel || 'Add ')) + cfg.label;
-  document.getElementById('modalBody').innerHTML = cfg.form(data);
+  try {
+    document.getElementById('modalBody').innerHTML = cfg.form(data);
+  } catch (err) {
+    console.error('[openModal] form render error for type=' + type + ':', err);
+    toast('Error opening form: ' + err.message);
+    return;
+  }
   document.getElementById('modalSaveBtn').textContent = cfg.saveBtnLabel || 'Save';
   document.getElementById('modalBackdrop').classList.add('open');
   if (cfg.onOpen) cfg.onOpen(data);
@@ -1520,6 +1526,14 @@ function seedAccountingData() {
       { id:1, name:'Toyota Uganda Ltd', email:'sales@toyota.ug', phone:'+256 414 001 001', address:'Industrial Area, Kampala', tin:'TIN-T001', currency:'USD', paymentTerms:30, notes:'Main vehicle supplier', createdAt: nowISO() },
       { id:2, name:'Motul Uganda', email:'info@motul.ug', phone:'+256 414 002 002', address:'Nakawa, Kampala', tin:'TIN-M002', currency:'UGX', paymentTerms:14, notes:'Lubricants & oils', createdAt: nowISO() },
       { id:3, name:'Kampala Tyres', email:'orders@kampalatyres.ug', phone:'+256 414 003 003', address:'Kisenyi, Kampala', tin:'TIN-K003', currency:'UGX', paymentTerms:7, notes:'Tyre supplier', createdAt: nowISO() }
+    ]);
+  }
+
+  // Purchase Orders
+  if (!DB.load('nau_purchase_orders').length) {
+    DB.save('nau_purchase_orders', [
+      { id:1, poNo:'PO-2026-0001', vendorName:'Tokyo Auto Exports Ltd', vehicleMake:'Toyota', vehicleModel:'Hilux D-Cab', vehicleYear:'2025', vehicleChassis:'MROYA3AV-703071210', color:'White', engineCC:'2800', bodyType:'D/Cabin', fuelType:'Diesel', transmission:'Automatic', purchasePrice:42000, sellingPrice:49000, currency:'USD', purchaseDate:'2026-05-01', expectedDelivery:'2026-06-15', notes:'Port of Mombasa arrival', status:'Draft', vehicleId:null, billId:null, createdAt:'2026-05-01T08:00:00.000Z' },
+      { id:2, poNo:'PO-2026-0002', vendorName:'Osaka Motors International', vehicleMake:'Nissan', vehicleModel:'Patrol Y62', vehicleYear:'2022', vehicleChassis:'JN8AY2ND-603141987', color:'Black', engineCC:'5600', bodyType:'SUV', fuelType:'Petrol', transmission:'Automatic', purchasePrice:30000, sellingPrice:36500, currency:'USD', purchaseDate:'2026-05-05', expectedDelivery:'2026-06-20', notes:'V8 Platinum trim', status:'Confirmed', vehicleId:null, billId:null, confirmedAt:'2026-05-06T09:00:00.000Z', createdAt:'2026-05-05T10:00:00.000Z' }
     ]);
   }
 
@@ -2859,6 +2873,146 @@ Object.assign(modalConfigs, {
     },
     update: () => {},
     refresh: renderBankStatements
+  },
+
+  // ===== PURCHASE ORDER =====
+  purchaseOrder: {
+    label: 'Purchase Order',
+    createLabel: 'Create ',
+    getData: id => DB.load('nau_purchase_orders').find(p => p.id === id),
+    form: d => {
+      const vends = DB.load('nau_vendors');
+      return `
+      <div class="form-row">
+        <div class="form-group">
+          <label>Vendor</label>
+          <select class="form-control" id="po-vend-sel" onchange="onPOVendorChange()">
+            <option value="">-- Select from directory --</option>
+            ${vends.map(v => `<option value="${v.name}" ${d && d.vendorName === v.name ? 'selected' : ''}>${v.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Vendor Name <span class="required">*</span></label>
+          <input class="form-control" id="po-vendor" value="${d ? d.vendorName || '' : ''}" placeholder="Or type manually" />
+        </div>
+      </div>
+      <div style="margin:.75rem 0 .4rem;font-weight:700;font-size:.85rem;color:#0a1628;border-bottom:1px solid #e8ecf0;padding-bottom:.3rem">Vehicle Details</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Make <span class="required">*</span></label>
+          <input class="form-control" id="po-make" value="${d ? d.vehicleMake || '' : ''}" placeholder="e.g. Toyota" />
+        </div>
+        <div class="form-group">
+          <label>Model <span class="required">*</span></label>
+          <input class="form-control" id="po-model" value="${d ? d.vehicleModel || '' : ''}" placeholder="e.g. Hilux D-Cab" />
+        </div>
+        <div class="form-group">
+          <label>Year</label>
+          <input class="form-control" type="number" id="po-year" value="${d ? d.vehicleYear || '' : ''}" placeholder="2025" min="1990" max="2030" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Chassis Number</label>
+          <input class="form-control" id="po-chassis" value="${d ? d.vehicleChassis || '' : ''}" style="font-family:monospace" placeholder="e.g. MROYA3AV-703071210" />
+        </div>
+        <div class="form-group">
+          <label>Colour</label>
+          <input class="form-control" id="po-color" value="${d ? d.color || '' : ''}" placeholder="e.g. White" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Engine (cc)</label>
+          <input class="form-control" type="number" id="po-engine" value="${d ? d.engineCC || '' : ''}" placeholder="e.g. 2800" />
+        </div>
+        <div class="form-group">
+          <label>Body Type</label>
+          <input class="form-control" id="po-body" value="${d ? d.bodyType || '' : ''}" placeholder="e.g. D/Cabin" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Fuel Type</label>
+          <select class="form-control" id="po-fuel">
+            ${['Diesel','Petrol','Hybrid','Electric','Other'].map(f => `<option ${d && d.fuelType===f?'selected':''}>${f}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Transmission</label>
+          <select class="form-control" id="po-trans">
+            ${['Automatic','Manual','CVT'].map(t => `<option ${d && d.transmission===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div style="margin:.75rem 0 .4rem;font-weight:700;font-size:.85rem;color:#0a1628;border-bottom:1px solid #e8ecf0;padding-bottom:.3rem">Pricing &amp; Dates</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Purchase Price <span class="required">*</span></label>
+          <input class="form-control" type="number" id="po-price" value="${d ? d.purchasePrice || '' : ''}" step="0.01" min="0" placeholder="Cost from vendor" />
+        </div>
+        <div class="form-group">
+          <label>Selling Price (optional)</label>
+          <input class="form-control" type="number" id="po-sell-price" value="${d ? d.sellingPrice || '' : ''}" step="0.01" min="0" placeholder="Planned sale price" />
+        </div>
+        <div class="form-group">
+          <label>Currency</label>
+          <select class="form-control" id="po-currency">
+            ${['USD','UGX','JPY','KES','EUR'].map(c => `<option ${d && d.currency===c?'selected':''}>${c}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Purchase Date</label>
+          <input class="form-control" type="date" id="po-date" value="${d ? d.purchaseDate || '' : new Date().toISOString().split('T')[0]}" />
+        </div>
+        <div class="form-group">
+          <label>Expected Delivery</label>
+          <input class="form-control" type="date" id="po-delivery" value="${d ? d.expectedDelivery || '' : ''}" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea class="form-control" id="po-notes" rows="2">${d ? d.notes || '' : ''}</textarea>
+      </div>`;
+    },
+    collect: () => {
+      const vendorName = document.getElementById('po-vendor').value.trim();
+      const vehicleMake = document.getElementById('po-make').value.trim();
+      const vehicleModel = document.getElementById('po-model').value.trim();
+      const purchasePrice = parseFloat(document.getElementById('po-price').value) || 0;
+      if (!vendorName) { toast('Vendor name is required'); return null; }
+      if (!vehicleMake || !vehicleModel) { toast('Vehicle Make and Model are required'); return null; }
+      if (!purchasePrice) { toast('Purchase price is required'); return null; }
+      return {
+        vendorName, vehicleMake, vehicleModel,
+        vehicleYear: document.getElementById('po-year').value,
+        vehicleChassis: document.getElementById('po-chassis').value.trim(),
+        color: document.getElementById('po-color').value.trim(),
+        engineCC: document.getElementById('po-engine').value,
+        bodyType: document.getElementById('po-body').value.trim(),
+        fuelType: document.getElementById('po-fuel').value,
+        transmission: document.getElementById('po-trans').value,
+        purchasePrice, sellingPrice: parseFloat(document.getElementById('po-sell-price').value) || null,
+        currency: document.getElementById('po-currency').value,
+        purchaseDate: document.getElementById('po-date').value,
+        expectedDelivery: document.getElementById('po-delivery').value,
+        notes: document.getElementById('po-notes').value.trim(),
+        status: 'Draft'
+      };
+    },
+    create: d => {
+      const all = DB.load('nau_purchase_orders');
+      all.push({ id: DB.nextId('nau_purchase_orders'), poNo: genPONo(), ...d, vehicleId: null, billId: null, createdAt: nowISO() });
+      DB.save('nau_purchase_orders', all);
+    },
+    update: (id, d) => {
+      const all = DB.load('nau_purchase_orders');
+      const i = all.findIndex(x => x.id === id);
+      if (i > -1) { all[i] = { ...all[i], ...d }; DB.save('nau_purchase_orders', all); }
+    },
+    refresh: renderPurchaseOrders
   }
 });
 
@@ -3051,148 +3205,6 @@ function receivePO(id) {
   toast(`✅ Received! Vehicle added to inventory (${sku}), bill created (${bill.billNo}).`);
   renderPurchaseOrders();
 }
-
-// Purchase Order modal config
-Object.assign(modalConfigs, {
-  purchaseOrder: {
-    label: 'Purchase Order',
-    createLabel: 'Create ',
-    getData: id => DB.load('nau_purchase_orders').find(p => p.id === id),
-    form: d => {
-      const vends = DB.load('nau_vendors');
-      return `
-      <div class="form-row">
-        <div class="form-group">
-          <label>Vendor</label>
-          <select class="form-control" id="po-vend-sel" onchange="onPOVendorChange()">
-            <option value="">-- Select from directory --</option>
-            ${vends.map(v => `<option value="${v.name}" ${d && d.vendorName === v.name ? 'selected' : ''}>${v.name}</option>`).join('')}
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Vendor Name <span class="required">*</span></label>
-          <input class="form-control" id="po-vendor" value="${d ? d.vendorName || '' : ''}" placeholder="Or type manually" />
-        </div>
-      </div>
-      <div style="margin:.75rem 0 .4rem;font-weight:700;font-size:.85rem;color:#0a1628;border-bottom:1px solid #e8ecf0;padding-bottom:.3rem">Vehicle Details</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Make <span class="required">*</span></label>
-          <input class="form-control" id="po-make" value="${d ? d.vehicleMake || '' : ''}" placeholder="e.g. Toyota" />
-        </div>
-        <div class="form-group">
-          <label>Model <span class="required">*</span></label>
-          <input class="form-control" id="po-model" value="${d ? d.vehicleModel || '' : ''}" placeholder="e.g. Hilux D-Cab" />
-        </div>
-        <div class="form-group">
-          <label>Year</label>
-          <input class="form-control" type="number" id="po-year" value="${d ? d.vehicleYear || '' : ''}" placeholder="2025" min="1990" max="2030" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Chassis Number</label>
-          <input class="form-control" id="po-chassis" value="${d ? d.vehicleChassis || '' : ''}" style="font-family:monospace" placeholder="e.g. MROYA3AV-703071210" />
-        </div>
-        <div class="form-group">
-          <label>Colour</label>
-          <input class="form-control" id="po-color" value="${d ? d.color || '' : ''}" placeholder="e.g. White" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Engine (cc)</label>
-          <input class="form-control" type="number" id="po-engine" value="${d ? d.engineCC || '' : ''}" placeholder="e.g. 2800" />
-        </div>
-        <div class="form-group">
-          <label>Body Type</label>
-          <input class="form-control" id="po-body" value="${d ? d.bodyType || '' : ''}" placeholder="e.g. D/Cabin" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Fuel Type</label>
-          <select class="form-control" id="po-fuel">
-            ${['Diesel','Petrol','Hybrid','Electric','Other'].map(f => `<option ${d && d.fuelType===f?'selected':''}>${f}</option>`).join('')}
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Transmission</label>
-          <select class="form-control" id="po-trans">
-            ${['Automatic','Manual','CVT'].map(t => `<option ${d && d.transmission===t?'selected':''}>${t}</option>`).join('')}
-          </select>
-        </div>
-      </div>
-      <div style="margin:.75rem 0 .4rem;font-weight:700;font-size:.85rem;color:#0a1628;border-bottom:1px solid #e8ecf0;padding-bottom:.3rem">Pricing &amp; Dates</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Purchase Price <span class="required">*</span></label>
-          <input class="form-control" type="number" id="po-price" value="${d ? d.purchasePrice || '' : ''}" step="0.01" min="0" placeholder="Cost from vendor" />
-        </div>
-        <div class="form-group">
-          <label>Selling Price (optional)</label>
-          <input class="form-control" type="number" id="po-sell-price" value="${d ? d.sellingPrice || '' : ''}" step="0.01" min="0" placeholder="Planned sale price" />
-        </div>
-        <div class="form-group">
-          <label>Currency</label>
-          <select class="form-control" id="po-currency">
-            ${['USD','UGX','JPY','KES','EUR'].map(c => `<option ${d && d.currency===c?'selected':''}>${c}</option>`).join('')}
-          </select>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Purchase Date</label>
-          <input class="form-control" type="date" id="po-date" value="${d ? d.purchaseDate || '' : new Date().toISOString().split('T')[0]}" />
-        </div>
-        <div class="form-group">
-          <label>Expected Delivery</label>
-          <input class="form-control" type="date" id="po-delivery" value="${d ? d.expectedDelivery || '' : ''}" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Notes</label>
-        <textarea class="form-control" id="po-notes" rows="2">${d ? d.notes || '' : ''}</textarea>
-      </div>`;
-    },
-    collect: () => {
-      const vendorName = document.getElementById('po-vendor').value.trim();
-      const vehicleMake = document.getElementById('po-make').value.trim();
-      const vehicleModel = document.getElementById('po-model').value.trim();
-      const purchasePrice = parseFloat(document.getElementById('po-price').value) || 0;
-      if (!vendorName) { toast('Vendor name is required'); return null; }
-      if (!vehicleMake || !vehicleModel) { toast('Vehicle Make and Model are required'); return null; }
-      if (!purchasePrice) { toast('Purchase price is required'); return null; }
-      return {
-        vendorName, vehicleMake, vehicleModel,
-        vehicleYear: document.getElementById('po-year').value,
-        vehicleChassis: document.getElementById('po-chassis').value.trim(),
-        color: document.getElementById('po-color').value.trim(),
-        engineCC: document.getElementById('po-engine').value,
-        bodyType: document.getElementById('po-body').value.trim(),
-        fuelType: document.getElementById('po-fuel').value,
-        transmission: document.getElementById('po-trans').value,
-        purchasePrice, sellingPrice: parseFloat(document.getElementById('po-sell-price').value) || null,
-        currency: document.getElementById('po-currency').value,
-        purchaseDate: document.getElementById('po-date').value,
-        expectedDelivery: document.getElementById('po-delivery').value,
-        notes: document.getElementById('po-notes').value.trim(),
-        status: 'Draft'
-      };
-    },
-    create: d => {
-      const all = DB.load('nau_purchase_orders');
-      all.push({ id: DB.nextId('nau_purchase_orders'), poNo: genPONo(), ...d, vehicleId: null, billId: null, createdAt: nowISO() });
-      DB.save('nau_purchase_orders', all);
-    },
-    update: (id, d) => {
-      const all = DB.load('nau_purchase_orders');
-      const i = all.findIndex(x => x.id === id);
-      if (i > -1) { all[i] = { ...all[i], ...d }; DB.save('nau_purchase_orders', all); }
-    },
-    refresh: renderPurchaseOrders
-  }
-});
 
 function onPOVendorChange() {
   const sel = document.getElementById('po-vend-sel');
