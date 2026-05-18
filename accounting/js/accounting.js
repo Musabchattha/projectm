@@ -3317,26 +3317,25 @@ function onPOModelChange() {
 function onPOModelCodeChange() {
   const codeSel = document.getElementById('po-code-sel');
   if (!codeSel || !codeSel.value) return;
-  const opt = codeSel.options[codeSel.selectedIndex];
-  if (!opt) return;
-  // Auto-fill spec fields from model code data attributes
-  const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
-  set('po-eng-code', opt.dataset.engCode);
-  set('po-engine',   opt.dataset.engCc);
-  // Fuel select
+  const mc = DB.load('nau_model_codes').find(c => c.id === Number(codeSel.value));
+  if (!mc) return;
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined && val !== null && val !== '') el.value = val; };
+  set('po-eng-code', mc.engineCode);
+  set('po-engine', mc.engineCC);
+  // Fuel select — match by value or text
   const fuelSel = document.getElementById('po-fuel');
-  if (fuelSel && opt.dataset.fuel) {
-    Array.from(fuelSel.options).forEach(o => { o.selected = o.text === opt.dataset.fuel; });
+  if (fuelSel && mc.fuelType) {
+    Array.from(fuelSel.options).forEach(o => { o.selected = o.value === mc.fuelType || o.text === mc.fuelType; });
   }
   // Drivetrain select
   const driveSel = document.getElementById('po-drive');
-  if (driveSel && opt.dataset.drive) {
-    Array.from(driveSel.options).forEach(o => { o.selected = o.text === opt.dataset.drive; });
+  if (driveSel && mc.drivetrain) {
+    Array.from(driveSel.options).forEach(o => { o.selected = o.value === mc.drivetrain || o.text === mc.drivetrain; });
   }
   // Steering select
   const steerSel = document.getElementById('po-steer');
-  if (steerSel && opt.dataset.steer) {
-    Array.from(steerSel.options).forEach(o => { o.selected = o.text === opt.dataset.steer; });
+  if (steerSel && mc.steeringPosition) {
+    Array.from(steerSel.options).forEach(o => { o.selected = o.value === mc.steeringPosition || o.text === mc.steeringPosition; });
   }
 }
 

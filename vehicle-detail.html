@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>2022 Toyota Land Cruiser Prado TX — NipponAuto Uganda</title>
-  <meta name="description" content="2022 Toyota Land Cruiser Prado TX for sale in Kampala, Uganda. UGX 145,000,000. 28,000 km, Diesel, Automatic, RHD. Full import clearing assistance available." />
+  <title>Vehicle Detail — NipponAuto Uganda</title>
+  <meta name="description" content="Vehicle for sale at NipponAuto Uganda, Kampala." />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23f0a500'/><text y='24' x='4' font-size='22'>🚗</text></svg>" />
 </head>
@@ -55,7 +55,10 @@
   <a href="finance.html">Finance</a>
   <a href="about.html">About</a>
   <a href="contact.html">Contact</a>
-  <a href="https://wa.me/256700123456" class="btn btn-primary" style="margin-top:1rem;">💬 WhatsApp</a>
+  <div style="display:flex;gap:.8rem;margin-top:1rem;">
+    <a href="login.html" class="btn-auth-login" style="flex:1;text-align:center;padding:.7rem;">Login</a>
+    <a href="https://wa.me/256700123456" class="btn-auth-signup" style="flex:1;text-align:center;padding:.7rem;" target="_blank" rel="noopener">💬 WhatsApp</a>
+  </div>
 </div>
 
 <div class="top-bar" style="background:var(--light);color:var(--dark);padding:.6rem 0;">
@@ -65,7 +68,7 @@
       <span>›</span>
       <a href="inventory.html" style="color:var(--navy);">Inventory</a>
       <span>›</span>
-      <span>2022 Toyota Land Cruiser Prado TX</span>
+      <span id="vd-breadcrumb">Vehicle Detail</span>
     </div>
   </div>
 </div>
@@ -78,63 +81,39 @@
 
       <!-- Gallery -->
       <div class="gallery-main">
-        <img src="https://picsum.photos/seed/prado-detail-main/800/500" alt="Toyota Land Cruiser Prado TX" id="mainImage" />
+        <img src="https://picsum.photos/seed/vehicle-placeholder/800/500" alt="Vehicle" id="mainImage" />
       </div>
-      <div class="gallery-thumbs">
-        <div class="thumb active"><img src="https://picsum.photos/seed/prado-detail-main/800/500" alt="Front" onclick="document.getElementById('mainImage').src=this.src" /></div>
-        <div class="thumb"><img src="https://picsum.photos/seed/prado-detail-2/800/500" alt="Side" onclick="document.getElementById('mainImage').src=this.src" /></div>
-        <div class="thumb"><img src="https://picsum.photos/seed/prado-detail-3/800/500" alt="Rear" onclick="document.getElementById('mainImage').src=this.src" /></div>
-        <div class="thumb"><img src="https://picsum.photos/seed/prado-detail-4/800/500" alt="Interior" onclick="document.getElementById('mainImage').src=this.src" /></div>
+      <div class="gallery-thumbs" id="vd-thumbs">
+        <div class="thumb active"><img src="https://picsum.photos/seed/vehicle-placeholder/800/500" alt="View 1" onclick="document.getElementById('mainImage').src=this.src" /></div>
       </div>
 
-      <!-- Vehicle Info -->
+      <!-- Specifications -->
       <div style="background:var(--white);border:1px solid #e5e7eb;border-radius:var(--radius);padding:2rem;margin-top:1.5rem;">
         <h2 style="font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:1.25rem;">📋 Vehicle Specifications</h2>
-        <div class="detail-specs-grid">
-          <div class="spec-item"><div class="spec-label">Make</div><div class="spec-val">Toyota</div></div>
-          <div class="spec-item"><div class="spec-label">Model</div><div class="spec-val">Land Cruiser Prado TX</div></div>
-          <div class="spec-item"><div class="spec-label">Year</div><div class="spec-val">2022</div></div>
-          <div class="spec-item"><div class="spec-label">Mileage</div><div class="spec-val">28,000 km</div></div>
-          <div class="spec-item"><div class="spec-label">Fuel Type</div><div class="spec-val">Diesel</div></div>
-          <div class="spec-item"><div class="spec-label">Transmission</div><div class="spec-val">Automatic</div></div>
-          <div class="spec-item"><div class="spec-label">Engine</div><div class="spec-val">2,755 cc (2.8L)</div></div>
-          <div class="spec-item"><div class="spec-label">Drive Type</div><div class="spec-val">4WD</div></div>
-          <div class="spec-item"><div class="spec-label">Steering</div><div class="spec-val">Right Hand Drive (RHD)</div></div>
-          <div class="spec-item"><div class="spec-label">Body Type</div><div class="spec-val">SUV / 4WD</div></div>
-          <div class="spec-item"><div class="spec-label">Colour</div><div class="spec-val">Pearl White</div></div>
-          <div class="spec-item"><div class="spec-label">Doors</div><div class="spec-val">5</div></div>
-          <div class="spec-item"><div class="spec-label">Seats</div><div class="spec-val">7</div></div>
-          <div class="spec-item"><div class="spec-label">Auction Grade</div><div class="spec-val">Grade 4.5</div></div>
-          <div class="spec-item"><div class="spec-label">Origin</div><div class="spec-val">Japan</div></div>
-          <div class="spec-item"><div class="spec-label">Condition</div><div class="spec-val">Used — Excellent</div></div>
+        <div class="detail-specs-grid" id="vd-specs-grid">
+          <div class="spec-item"><div class="spec-label">Loading...</div><div class="spec-val">—</div></div>
         </div>
       </div>
 
       <!-- Features -->
       <div style="background:var(--white);border:1px solid #e5e7eb;border-radius:var(--radius);padding:2rem;margin-top:1.5rem;">
         <h2 style="font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:1rem;">✅ Features &amp; Equipment</h2>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
-          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Adaptive Cruise Control</div>
-          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Lane Departure Warning</div>
-          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> 360° Camera</div>
-          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Blind Spot Monitor</div>
-          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Heated Leather Seats</div>
-          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Sunroof / Moonroof</div>
-          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Toyota Safety Sense</div>
-          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Apple CarPlay / Android Auto</div>
-          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Power Tailgate</div>
-          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Parking Sensors (F&amp;R)</div>
-          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Terrain Select Mode</div>
-          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Downhill Assist Control</div>
+        <div id="vd-features-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> ABS Brakes</div>
+          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Airbags</div>
+          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Reverse Camera</div>
+          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Air Conditioning</div>
+          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Power Windows</div>
+          <div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> Central Locking</div>
         </div>
       </div>
 
       <!-- Description -->
       <div style="background:var(--white);border:1px solid #e5e7eb;border-radius:var(--radius);padding:2rem;margin-top:1.5rem;">
         <h2 style="font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:1rem;">📝 Vehicle Description</h2>
-        <p style="font-size:.9rem;color:var(--mid);line-height:1.8;margin-bottom:.85rem;">This exceptional 2022 Toyota Land Cruiser Prado TX is one of the finest examples of Japan's most popular 4WD for Uganda's roads. Sourced directly from a top-tier Japanese auction house and achieving a Grade 4.5 rating — near perfect condition inside and out.</p>
-        <p style="font-size:.9rem;color:var(--mid);line-height:1.8;margin-bottom:.85rem;">The Prado TX is widely regarded as the go-to SUV for Uganda, delivering exceptional performance on Kampala roads and upcountry terrain alike. With full-time 4WD, Terrain Select, and a powerful 2.8L diesel engine, this vehicle handles everything Uganda's roads can throw at it.</p>
-        <p style="font-size:.9rem;color:var(--mid);line-height:1.8;">Priced at UGX 145,000,000 CIF Kampala — this price includes the vehicle cost, shipping from Japan, and standard CIF charges. Uganda import duty, URA taxes, and clearing fees are separate (see our Finance page for an estimate). We handle all clearing paperwork on your behalf.</p>
+        <div id="vd-description">
+          <p style="font-size:.9rem;color:var(--mid);line-height:1.8;">Vehicle details loading…</p>
+        </div>
       </div>
 
     </div>
@@ -143,17 +122,17 @@
     <div class="detail-sidebar" id="priceSection">
 
       <div class="detail-price-block">
-        <p style="font-size:.75rem;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem;">Toyota — Grade 4.5</p>
-        <h1 style="font-size:1.3rem;font-weight:800;color:var(--navy);margin-bottom:.3rem;">2022 Land Cruiser Prado TX</h1>
-        <div class="detail-price">UGX 145,000,000</div>
-        <div class="detail-price-usd">Approx. ~$39,000 USD — CIF Kampala</div>
+        <p id="vd-grade" style="font-size:.75rem;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem;">NipponAuto Uganda</p>
+        <h1 id="vd-title" style="font-size:1.3rem;font-weight:800;color:var(--navy);margin-bottom:.3rem;">Vehicle Detail</h1>
+        <div class="detail-price" id="vd-price-ugx">Price on Request</div>
+        <div class="detail-price-usd" id="vd-price-usd">CIF Kampala</div>
         <div style="margin-top:.75rem;padding:.65rem;background:var(--light);border-radius:6px;font-size:.8rem;color:var(--mid);">
           ⚠️ Uganda import duty &amp; URA taxes are additional. <a href="finance.html" style="color:var(--navy);font-weight:600;">Calculate total cost →</a>
         </div>
       </div>
 
       <div class="detail-actions">
-        <a href="https://wa.me/256700123456?text=Hi, I'm interested in the 2022 Toyota Land Cruiser Prado TX priced at UGX 145M. Please send more details." class="btn btn-wa" target="_blank" rel="noopener">💬 Enquire on WhatsApp</a>
+        <a href="https://wa.me/256700123456" class="btn btn-wa" id="vd-wa-btn" target="_blank" rel="noopener">💬 Enquire on WhatsApp</a>
         <a href="contact.html" class="btn btn-navy">Request Clearing Quote</a>
         <a href="finance.html" class="btn btn-outline" style="border-color:var(--navy);color:var(--navy);">Calculate Import Costs</a>
       </div>
@@ -161,12 +140,12 @@
       <div style="margin-top:1.5rem;padding:1rem;background:var(--light);border-radius:8px;">
         <h4 style="font-size:.82rem;font-weight:700;color:var(--navy);margin-bottom:.75rem;">Quick Specs</h4>
         <div style="display:flex;flex-direction:column;gap:.45rem;">
-          <div style="display:flex;justify-content:space-between;font-size:.82rem;"><span style="color:var(--mid);">Year:</span><span style="font-weight:600;color:var(--navy);">2022</span></div>
-          <div style="display:flex;justify-content:space-between;font-size:.82rem;"><span style="color:var(--mid);">Mileage:</span><span style="font-weight:600;color:var(--navy);">28,000 km</span></div>
-          <div style="display:flex;justify-content:space-between;font-size:.82rem;"><span style="color:var(--mid);">Fuel:</span><span style="font-weight:600;color:var(--navy);">Diesel</span></div>
-          <div style="display:flex;justify-content:space-between;font-size:.82rem;"><span style="color:var(--mid);">Transmission:</span><span style="font-weight:600;color:var(--navy);">Automatic</span></div>
-          <div style="display:flex;justify-content:space-between;font-size:.82rem;"><span style="color:var(--mid);">Steering:</span><span style="font-weight:600;color:var(--navy);">RHD</span></div>
-          <div style="display:flex;justify-content:space-between;font-size:.82rem;"><span style="color:var(--mid);">Drive:</span><span style="font-weight:600;color:var(--navy);">4WD</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:.82rem;"><span style="color:var(--mid);">Year:</span><span id="vd-qs-year" style="font-weight:600;color:var(--navy);">—</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:.82rem;"><span style="color:var(--mid);">Fuel:</span><span id="vd-qs-fuel" style="font-weight:600;color:var(--navy);">—</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:.82rem;"><span style="color:var(--mid);">Transmission:</span><span id="vd-qs-trans" style="font-weight:600;color:var(--navy);">—</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:.82rem;"><span style="color:var(--mid);">Steering:</span><span id="vd-qs-steer" style="font-weight:600;color:var(--navy);">—</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:.82rem;"><span style="color:var(--mid);">Drive:</span><span id="vd-qs-drive" style="font-weight:600;color:var(--navy);">—</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:.82rem;"><span style="color:var(--mid);">Engine:</span><span id="vd-qs-engine" style="font-weight:600;color:var(--navy);">—</span></div>
         </div>
       </div>
 
@@ -200,33 +179,10 @@
         <span class="section-label">You May Also Like</span>
         <h2 class="section-title">Similar Vehicles</h2>
       </div>
-      <a href="inventory.html?make=toyota&body=suv" class="btn btn-navy">View All Toyota SUVs →</a>
+      <a href="inventory.html" id="vd-similar-link" class="btn btn-navy">View All Vehicles →</a>
     </div>
-    <div class="vehicle-grid">
-      <article class="vehicle-card">
-        <div class="card-img-wrap"><img src="https://picsum.photos/seed/fortuner-sim1/600/380" alt="Toyota Fortuner" loading="lazy" /><span class="card-badge new">New</span></div>
-        <div class="card-body">
-          <p class="card-make">Toyota</p><h3 class="card-name">Fortuner 2.8 GD6</h3>
-          <div class="card-specs"><span class="card-spec">📅 2023</span><span class="card-spec">🛣️ 12,500 km</span><span class="card-spec">⛽ Diesel</span><span class="card-spec steering-badge">RHD</span></div>
-          <div class="card-footer"><div class="card-price"><span>CIF Kampala</span><strong class="ugx-price">UGX 95,000,000</strong></div><div class="card-actions"><a href="vehicle-detail.html" class="btn btn-navy btn-sm">Details</a></div></div>
-        </div>
-      </article>
-      <article class="vehicle-card">
-        <div class="card-img-wrap"><img src="https://picsum.photos/seed/rav4-sim2/600/380" alt="Toyota RAV4" loading="lazy" /><span class="card-badge">Featured</span></div>
-        <div class="card-body">
-          <p class="card-make">Toyota</p><h3 class="card-name">RAV4 Hybrid</h3>
-          <div class="card-specs"><span class="card-spec">📅 2021</span><span class="card-spec">🛣️ 22,000 km</span><span class="card-spec">⛽ Hybrid</span><span class="card-spec steering-badge">RHD</span></div>
-          <div class="card-footer"><div class="card-price"><span>CIF Kampala</span><strong class="ugx-price">UGX 85,000,000</strong></div><div class="card-actions"><a href="vehicle-detail.html" class="btn btn-navy btn-sm">Details</a></div></div>
-        </div>
-      </article>
-      <article class="vehicle-card">
-        <div class="card-img-wrap"><img src="https://picsum.photos/seed/patrol-sim3/600/380" alt="Nissan Patrol" loading="lazy" /><span class="card-badge hot">Hot</span></div>
-        <div class="card-body">
-          <p class="card-make">Nissan</p><h3 class="card-name">Patrol Y62</h3>
-          <div class="card-specs"><span class="card-spec">📅 2022</span><span class="card-spec">🛣️ 28,500 km</span><span class="card-spec">⛽ Petrol</span><span class="card-spec steering-badge">RHD</span></div>
-          <div class="card-footer"><div class="card-price"><span>CIF Kampala</span><strong class="ugx-price">UGX 135,000,000</strong></div><div class="card-actions"><a href="vehicle-detail.html" class="btn btn-navy btn-sm">Details</a></div></div>
-        </div>
-      </article>
+    <div class="vehicle-grid" id="vd-similar-grid">
+      <!-- populated by JS -->
     </div>
   </div>
 </section>
@@ -243,41 +199,208 @@
   </div>
 </footer>
 
-<a href="https://wa.me/256700123456" class="whatsapp-float" target="_blank" rel="noopener">
+<a href="https://wa.me/256700123456" class="whatsapp-float" id="vd-wa-float" target="_blank" rel="noopener">
   <span class="wa-icon">💬</span><span class="wa-label">WhatsApp Us</span>
 </a>
 
 <script>
 (function(){
-  var params=new URLSearchParams(window.location.search);
-  var id=params.get('id');
-  if(!id)return;
-  var vehicles,manufacturers,models;
-  try{vehicles=JSON.parse(localStorage.getItem('nau_vehicles')||'[]');}catch(e){return;}
-  try{manufacturers=JSON.parse(localStorage.getItem('nau_manufacturers')||'[]');}catch(e){manufacturers=[];}
-  try{models=JSON.parse(localStorage.getItem('nau_models')||'[]');}catch(e){models=[];}
-  var v=vehicles.find(function(x){return String(x.id)===String(id);});
-  if(!v)return;
-  var mfr=manufacturers.find(function(m){return m.id===v.manufacturerId;})||{};
-  var model=models.find(function(m){return m.id===v.modelId;})||{};
-  var mfrName=mfr.name||'';
-  var modelName=model.name||'';
-  var fullName=[mfrName,modelName,v.color,String(v.year||'')].filter(Boolean).join(' ');
-  document.title=fullName+' — NipponAuto Uganda';
-  var mainImg=document.getElementById('mainImage');
-  if(mainImg&&v.imageUrl){mainImg.src=v.imageUrl;mainImg.alt=fullName;}
-  var priceNum=v.priceUGX?Number(v.priceUGX):(v.priceUSD?Number(v.priceUSD)*3700:0);
-  var ugx=priceNum?priceNum.toLocaleString():'—';
-  var usd=v.priceUSD?'~$'+Number(v.priceUSD).toLocaleString()+' USD':'';
-  var h1=document.querySelector('.detail-price-block h1');
-  if(h1)h1.textContent=fullName;
-  var priceEl=document.querySelector('.detail-price');
-  if(priceEl)priceEl.textContent='UGX '+ugx;
-  var usdEl=document.querySelector('.detail-price-usd');
-  if(usdEl)usdEl.textContent='Approx. '+usd+' — CIF Kampala';
-  document.querySelectorAll('a[href*="wa.me"]').forEach(function(a){
-    a.href='https://wa.me/256700123456?text='+encodeURIComponent('Hi, I\'m interested in the '+fullName+'. Please send more details.');
-  });
+  function safeLoad(key) { try { return JSON.parse(localStorage.getItem(key)||'[]'); } catch(e) { return []; } }
+
+  var params = new URLSearchParams(window.location.search);
+  var id = params.get('id');
+  if (!id) return;
+
+  var vehicles     = safeLoad('nau_vehicles');
+  var manufacturers = safeLoad('nau_manufacturers');
+  var models       = safeLoad('nau_models');
+  var modelCodes   = safeLoad('nau_model_codes');
+
+  var v = vehicles.find(function(x){ return String(x.id) === String(id); });
+  if (!v) return;
+
+  var mfr  = manufacturers.find(function(m){ return String(m.id) === String(v.manufacturerId); }) || {};
+  var mdl  = models.find(function(m){ return String(m.id) === String(v.modelId); }) || {};
+  var mc   = modelCodes.find(function(c){ return String(c.id) === String(v.modelCodeId); }) || {};
+
+  var mfrName   = mfr.name  || '';
+  var modelName = mdl.name  || v.vehicleModel || '';
+  var yr        = String(v.year || '');
+  var fullName  = [yr, mfrName, modelName].filter(Boolean).join(' ');
+
+  // Resolved specs — vehicle fields take priority, model code fills missing
+  var engineCC   = v.engineCC   || mc.engineCC   || '';
+  var fuelType   = v.fuelType   || mc.fuelType   || '';
+  var drivetrain = v.drivetrain || mc.drivetrain || '';
+  var steer      = v.steeringPosition || mc.steeringPosition || '';
+  var engineCode = v.engineCode || mc.engineCode || '';
+
+  // Prices
+  var USD_RATE = 3700;
+  var priceUGX = v.priceUGX ? Number(v.priceUGX) : (v.priceUSD ? Math.round(Number(v.priceUSD) * USD_RATE) : 0);
+  var priceUSD = v.priceUSD ? Number(v.priceUSD) : (priceUGX ? Math.round(priceUGX / USD_RATE) : 0);
+  var ugxFmt   = priceUGX ? 'UGX ' + priceUGX.toLocaleString() : 'Price on Request';
+  var usdFmt   = priceUSD ? 'Approx. ~$' + priceUSD.toLocaleString() + ' USD — CIF Kampala' : 'CIF Kampala';
+
+  // Page title & meta
+  document.title = fullName + ' — NipponAuto Uganda';
+  var metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.content = fullName + ' for sale in Kampala. ' + ugxFmt + '. ' +
+    [fuelType, v.transmission, steer].filter(Boolean).join(', ') + '.';
+
+  // Breadcrumb
+  var bcEl = document.getElementById('vd-breadcrumb');
+  if (bcEl) bcEl.textContent = fullName || 'Vehicle Detail';
+
+  // Gallery images
+  var imgs = [];
+  if (v.imageUrl) imgs.push(v.imageUrl);
+  if (v.images && Array.isArray(v.images)) imgs = imgs.concat(v.images);
+  var padSeeds = [id+'-main', id+'-2', id+'-3', id+'-4'];
+  while (imgs.length < 4) imgs.push('https://picsum.photos/seed/' + padSeeds[imgs.length] + '/800/500');
+
+  var mainImg = document.getElementById('mainImage');
+  if (mainImg) { mainImg.src = imgs[0]; mainImg.alt = fullName; }
+
+  var thumbsEl = document.getElementById('vd-thumbs');
+  if (thumbsEl) {
+    thumbsEl.innerHTML = imgs.slice(0,4).map(function(src, i){
+      return '<div class="thumb' + (i===0?' active':'') + '">' +
+        '<img src="' + src + '" alt="' + fullName + ' view ' + (i+1) + '" ' +
+        'onclick="document.getElementById(\'mainImage\').src=this.src;' +
+        'document.querySelectorAll(\'.thumb\').forEach(function(t){t.classList.remove(\'active\')});' +
+        'this.parentElement.classList.add(\'active\')" /></div>';
+    }).join('');
+  }
+
+  // Specifications grid
+  var specsGrid = document.getElementById('vd-specs-grid');
+  if (specsGrid) {
+    var specs = [
+      ['Make',         mfrName   || '—'],
+      ['Model',        modelName || '—'],
+      ['Year',         yr        || '—'],
+      ['Fuel Type',    fuelType  || '—'],
+      ['Transmission', v.transmission || '—'],
+      ['Engine CC',    engineCC ? Number(engineCC).toLocaleString() + ' cc' : '—'],
+      ['Drive Type',   drivetrain || '—'],
+      ['Steering',     steer      || '—'],
+      ['Body Type',    [v.bodyType, v.subBodyType].filter(Boolean).join(' / ') || '—'],
+      ['Colour',       v.color    || '—'],
+    ];
+    if (engineCode)      specs.push(['Engine Code',   engineCode]);
+    if (mc.code)         specs.push(['Model Code',    mc.code]);
+    if (v.vehicleGrade)  specs.push(['Auction Grade', 'Grade ' + v.vehicleGrade]);
+    if (v.conditionGrade) specs.push(['Condition',    'Used — ' + v.conditionGrade]);
+    if (v.mileage)       specs.push(['Mileage',       Number(v.mileage).toLocaleString() + ' km']);
+    if (v.chassis)       specs.push(['Chassis No.',   v.chassis]);
+    if (v.showroomLocation) specs.push(['Location',   v.showroomLocation]);
+    if (v.sku)           specs.push(['SKU',           v.sku]);
+    specsGrid.innerHTML = specs.map(function(s){
+      return '<div class="spec-item"><div class="spec-label">' + s[0] +
+             '</div><div class="spec-val">' + s[1] + '</div></div>';
+    }).join('');
+  }
+
+  // Features
+  var featEl = document.getElementById('vd-features-grid');
+  if (featEl) {
+    var features = (v.features && Array.isArray(v.features) && v.features.length)
+      ? v.features
+      : ['ABS Brakes', 'Dual Airbags', 'Reverse Camera', 'Air Conditioning',
+         'Power Windows', 'Central Locking', 'Immobiliser'];
+    if (fuelType === 'Hybrid')  features = features.concat(['Eco Drive Mode', 'Regenerative Braking']);
+    if (drivetrain && drivetrain.indexOf('4') !== -1) features = features.concat(['4WD System', 'Terrain Select']);
+    featEl.innerHTML = features.map(function(f){
+      return '<div style="font-size:.85rem;color:var(--mid);"><span style="color:var(--gold);">&#10003;</span> ' + f + '</div>';
+    }).join('');
+  }
+
+  // Description
+  var descEl = document.getElementById('vd-description');
+  if (descEl) {
+    var descText = v.description ||
+      ('This ' + fullName + ' is available at NipponAuto Uganda. ' +
+       'Sourced directly from Japan, all our vehicles are comprehensively inspected before sale. ' +
+       'Contact us for more details or to arrange a viewing at our Nakawa showroom.');
+    var paras = descText.split(/\n+/).filter(Boolean);
+    descEl.innerHTML = paras.map(function(p){
+      return '<p style="font-size:.9rem;color:var(--mid);line-height:1.8;margin-bottom:.85rem;">' + p + '</p>';
+    }).join('');
+  }
+
+  // Price block
+  var gradeEl = document.getElementById('vd-grade');
+  if (gradeEl) gradeEl.textContent = mfrName + (v.vehicleGrade ? ' — Grade ' + v.vehicleGrade : '');
+  var titleEl = document.getElementById('vd-title');
+  if (titleEl) titleEl.textContent = [yr, modelName].filter(Boolean).join(' ') || fullName;
+  var priceUGXEl = document.getElementById('vd-price-ugx');
+  if (priceUGXEl) priceUGXEl.textContent = ugxFmt;
+  var priceUSDEl = document.getElementById('vd-price-usd');
+  if (priceUSDEl) priceUSDEl.textContent = usdFmt;
+
+  // Quick specs sidebar
+  function qs(elId, val){ var el = document.getElementById(elId); if(el) el.textContent = val || '—'; }
+  qs('vd-qs-year',   yr);
+  qs('vd-qs-fuel',   fuelType);
+  qs('vd-qs-trans',  v.transmission);
+  qs('vd-qs-steer',  steer);
+  qs('vd-qs-drive',  drivetrain);
+  qs('vd-qs-engine', engineCC ? Number(engineCC).toLocaleString() + ' cc' : '');
+
+  // WhatsApp links
+  var waMsg = 'Hi, I\'m interested in the ' + fullName + (v.sku ? ' (SKU: ' + v.sku + ')' : '') + '. Please send more details.';
+  var waHref = 'https://wa.me/256700123456?text=' + encodeURIComponent(waMsg);
+  document.querySelectorAll('a[href*="wa.me"]').forEach(function(a){ a.href = waHref; });
+
+  // Similar vehicles section
+  var simLink = document.getElementById('vd-similar-link');
+  if (simLink && mfrName) {
+    simLink.href = 'inventory.html?make=' + encodeURIComponent(mfrName.toLowerCase());
+    simLink.textContent = 'View All ' + mfrName + ' Vehicles →';
+  }
+
+  var simGrid = document.getElementById('vd-similar-grid');
+  if (simGrid) {
+    var similar = vehicles.filter(function(x){
+      return x.status === 'Published' && String(x.id) !== String(id) && x.manufacturerId === v.manufacturerId;
+    }).slice(0, 3);
+
+    if (!similar.length) {
+      similar = vehicles.filter(function(x){
+        return x.status === 'Published' && String(x.id) !== String(id);
+      }).slice(0, 3);
+    }
+
+    if (similar.length) {
+      simGrid.innerHTML = similar.map(function(sv){
+        var svMfr  = manufacturers.find(function(m){ return String(m.id) === String(sv.manufacturerId); }) || {};
+        var svMdl  = models.find(function(m){ return String(m.id) === String(sv.modelId); }) || {};
+        var svName = [svMfr.name, svMdl.name].filter(Boolean).join(' ');
+        var svImg  = sv.imageUrl || ('https://picsum.photos/seed/' + sv.id + '-main/600/380');
+        var svUGX  = sv.priceUGX ? Number(sv.priceUGX) : (sv.priceUSD ? Math.round(Number(sv.priceUSD) * USD_RATE) : 0);
+        var badgeTag = sv.fuelType === 'Hybrid' ? '<span class="card-badge">Hybrid</span>' : '';
+        return '<article class="vehicle-card">' +
+          '<div class="card-img-wrap"><img src="' + svImg + '" alt="' + svName + '" loading="lazy" />' + badgeTag + '</div>' +
+          '<div class="card-body">' +
+          '<p class="card-make">' + (svMfr.name || '') + '</p>' +
+          '<h3 class="card-name">' + (svMdl.name || sv.sku || 'Vehicle') + '</h3>' +
+          '<div class="card-specs">' +
+          (sv.year ? '<span class="card-spec">📅 ' + sv.year + '</span>' : '') +
+          (sv.fuelType ? '<span class="card-spec">⛽ ' + sv.fuelType + '</span>' : '') +
+          (sv.transmission ? '<span class="card-spec">⚙️ ' + sv.transmission + '</span>' : '') +
+          (sv.steeringPosition ? '<span class="card-spec steering-badge">' + sv.steeringPosition + '</span>' : '') +
+          '</div>' +
+          '<div class="card-footer">' +
+          '<div class="card-price"><span>CIF Kampala</span>' +
+          '<strong class="ugx-price">' + (svUGX ? 'UGX ' + svUGX.toLocaleString() : 'POA') + '</strong></div>' +
+          '<div class="card-actions"><a href="vehicle-detail.html?id=' + sv.id + '" class="btn btn-navy btn-sm">Details</a></div>' +
+          '</div></div></article>';
+      }).join('');
+    } else {
+      simGrid.innerHTML = '<p style="color:var(--mid);text-align:center;width:100%;padding:2rem;">No similar vehicles available right now.</p>';
+    }
+  }
 })();
 </script>
 <script src="js/main.js"></script>
