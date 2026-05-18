@@ -3071,7 +3071,11 @@ Object.assign(modalConfigs, {
       const i = all.findIndex(x => x.id === id);
       if (i > -1) { all[i] = { ...all[i], ...d }; DB.save('nau_purchase_orders', all); }
     },
-    refresh: renderPurchaseOrders
+    refresh: renderPurchaseOrders,
+    onOpen: () => {
+      // Apply field locking and chassis prefix if a model code is already selected
+      onPOModelCodeChange();
+    }
   }
 });
 
@@ -3362,19 +3366,25 @@ function onPOModelCodeChange() {
     Array.from(steerSel.options).forEach(o => { o.selected = o.value === mc.steeringPosition || o.text === mc.steeringPosition; });
   }
   setPOSpecFieldsLocked(true);
-  // Pre-fill chassis prefix with model code; operator types the serial after the dash
+  // Pre-fill chassis number: set model code prefix if field is empty,
+  // or swap prefix if only the bare prefix was there (no serial yet)
   const chassisEl = document.getElementById('po-chassis');
   if (chassisEl && mc.code) {
     const prefix = mc.code.toUpperCase() + '-';
-    // Only set prefix if field is empty or currently holds a different code prefix
-    if (!chassisEl.value || chassisEl.value.indexOf('-') === -1) {
+    const cur = chassisEl.value.trim();
+    const hasSerial = cur.includes('-') && cur.split('-').slice(1).join('-').trim() !== '';
+    if (!cur) {
+      // Empty — set prefix so operator just types the serial
       chassisEl.value = prefix;
-    } else {
-      // Replace whatever was before the first dash with the new code
-      chassisEl.value = prefix + chassisEl.value.split('-').slice(1).join('-');
+      chassisEl.focus();
+      chassisEl.setSelectionRange(chassisEl.value.length, chassisEl.value.length);
+    } else if (!hasSerial) {
+      // Only prefix present — update it to match selected code
+      chassisEl.value = prefix;
+      chassisEl.focus();
+      chassisEl.setSelectionRange(chassisEl.value.length, chassisEl.value.length);
     }
-    chassisEl.focus();
-    chassisEl.setSelectionRange(chassisEl.value.length, chassisEl.value.length);
+    // If a full chassis already exists (editing), leave it untouched
   }
 }
 
