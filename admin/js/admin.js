@@ -185,6 +185,7 @@ function openModal(type, id) {
 
 function closeModal() {
   document.getElementById('modalBackdrop').classList.remove('open');
+  document.getElementById('modalSaveBtn').onclick = submitModal;
   _modalType = null;
   _editId = null;
 }

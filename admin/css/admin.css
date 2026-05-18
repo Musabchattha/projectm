@@ -153,10 +153,9 @@ body.admin-body {
   align-items: center;
   padding: 0 1.5rem;
   gap: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
+  /* overflow must be visible so dropdown menus are not clipped */
+  overflow: visible;
 }
-.navbar-links::-webkit-scrollbar { display: none; }
 
 .nav-item {
   position: relative;
@@ -189,19 +188,26 @@ body.admin-body {
 /* ===== DROPDOWN MENUS ===== */
 .nav-dropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 2px);
   left: 0;
   background: #fff;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.12);
-  min-width: 200px;
-  z-index: 999;
-  display: none;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+  min-width: 210px;
+  z-index: 1050;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity .18s ease, transform .18s ease;
   padding: .4rem 0;
 }
 .nav-item:hover .nav-dropdown,
-.nav-item.open .nav-dropdown { display: block; }
+.nav-item.open .nav-dropdown {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
 
 .nav-dropdown a {
   display: block;
@@ -412,7 +418,8 @@ body.admin-body {
   background: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  overflow: auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .admin-table {
@@ -432,8 +439,6 @@ body.admin-body {
   border-bottom: 2px solid #e2e8f0;
   white-space: nowrap;
   background: #f8fafc;
-  position: sticky;
-  top: 0;
 }
 
 .admin-table tbody tr {
@@ -589,8 +594,15 @@ body.admin-body {
   width: 100%;
   max-width: 580px;
   max-height: 90vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   box-shadow: 0 16px 48px rgba(0,0,0,.2);
+  animation: modalIn .18s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(10px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .modal-header {
@@ -599,10 +611,8 @@ body.admin-body {
   justify-content: space-between;
   padding: 1.1rem 1.5rem;
   border-bottom: 1px solid #e2e8f0;
-  position: sticky;
-  top: 0;
   background: #fff;
-  z-index: 1;
+  flex-shrink: 0;
 }
 .modal-header h3 { font-size: 1.05rem; font-weight: 700; color: #0a1628; }
 .modal-close {
@@ -620,7 +630,7 @@ body.admin-body {
 }
 .modal-close:hover { background: #f4f6fa; color: #0a1628; }
 
-.modal-body { padding: 1.25rem 1.5rem; }
+.modal-body { padding: 1.25rem 1.5rem; overflow-y: auto; flex: 1; }
 
 .modal-footer {
   padding: 1rem 1.5rem;
@@ -628,9 +638,9 @@ body.admin-body {
   display: flex;
   justify-content: flex-end;
   gap: .6rem;
-  position: sticky;
-  bottom: 0;
   background: #fff;
+  flex-shrink: 0;
+  border-top: 1px solid #e2e8f0;
 }
 
 /* ===== FORM ELEMENTS ===== */
@@ -983,9 +993,6 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 }
 .amn-logout:hover { background: #a93226; }
 
-/* ===== TABLE RESPONSIVE WRAP ===== */
-.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; }
-
 /* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
   .admin-content { padding: 1rem; }
@@ -1002,18 +1009,23 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   .page-header { flex-direction: column; align-items: flex-start; gap: .75rem; }
   .filter-bar { flex-direction: column; gap: .5rem; }
   .filter-group { min-width: 0; flex: 1 1 100%; }
-  .filter-actions { margin-left: 0; width: 100%; }
-  .navbar-top { padding: .4rem 1rem; }
+  .filter-actions { margin-left: 0; width: 100%; display: flex; gap: .5rem; }
+  .filter-actions .btn-filter { flex: 1; }
+  .navbar-top { padding: .4rem .75rem; }
+  .navbar-user span { display: none; }
   .admin-content { padding: .75rem .5rem; }
   .btn-create { padding: .55rem 1rem; font-size: .83rem; }
-  .btn-row { width: 36px; height: 36px; font-size: 1rem; }
+  .btn-row { width: 34px; height: 34px; font-size: .95rem; min-width: 34px; }
   .sub-tab { padding: .45rem .65rem; font-size: .78rem; }
   .admin-table { font-size: .78rem; }
   .admin-table th,
   .admin-table td { padding: .5rem .6rem; white-space: nowrap; }
   .table-img { width: 48px; height: 34px; }
   .bar-label { width: 70px; font-size: .72rem; }
-  .modal-content { padding: 1.25rem 1rem; margin: .5rem; }
+  .modal-card { margin: .5rem; max-height: calc(100vh - 1rem); }
+  .modal-body { padding: 1rem; }
+  .modal-footer { padding: .75rem 1rem; }
+  .form-row { grid-template-columns: 1fr; }
 }
 
 /* ===== ACCOUNTING MODULE ===== */

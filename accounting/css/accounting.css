@@ -482,6 +482,8 @@ html, body {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table-meta {
@@ -650,6 +652,7 @@ html, body {
   display: flex;
   justify-content: flex-end;
   gap: .75rem;
+  flex-shrink: 0;
 }
 
 /* ===== FORMS ===== */
@@ -1054,7 +1057,7 @@ textarea.form-control { resize: vertical; min-height: 70px; }
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.5);
-  z-index: 99;
+  z-index: 98;
 }
 .mobile-overlay.show { display: block; }
 
