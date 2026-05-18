@@ -454,7 +454,7 @@ function renderOrders() {
       <td>$${Number(o.amount||0).toLocaleString()}</td>
       <td>${fmtDateShort(o.date)}</td>
       <td><span class="badge badge-${(o.status||'pending').toLowerCase()}">${o.status||'Pending'}</span></td>
-      <td><div class="row-actions"><button class="btn-row">✏️</button></div></td>
+      <td><div class="row-actions"><button class="btn-row" onclick="openModal('order',${o.id})">✏️</button><button class="btn-row btn-row-delete" onclick="deletePage('nau_orders',${o.id},renderOrders)">🗑️</button></div></td>
     </tr>`).join('') : '<tr><td colspan="7" class="table-empty"><span class="empty-icon">📦</span>No orders yet.</td></tr>';
 }
 
@@ -564,44 +564,56 @@ function deletePage(key, id, refreshFn) {
 function renderPromos() {
   const data = DB.load('nau_promos');
   document.getElementById('promo-tbody').innerHTML = data.length ? data.map(p=>`
-    <tr><td><strong>${p.title}</strong></td><td>${p.discount||'-'}</td><td>${p.startDate||'-'}</td><td>${p.endDate||'-'}</td>
+    <tr><td><strong>${p.title}</strong></td><td>${p.discount?p.discount+'%':'-'}</td><td>${p.startDate||'-'}</td><td>${p.endDate||'-'}</td>
     <td><span class="badge ${p.status?'badge-active':'badge-inactive'}">${p.status?'Active':'Inactive'}</span></td>
-    <td><div class="row-actions"><button class="btn-row">✏️</button><button class="btn-row btn-row-delete">🗑️</button></div></td></tr>`).join('')
+    <td><div class="row-actions"><button class="btn-row" onclick="openModal('promo',${p.id})">✏️</button><button class="btn-row btn-row-delete" onclick="deletePage('nau_promos',${p.id},renderPromos)">🗑️</button></div></td></tr>`).join('')
     : '<tr><td colspan="6" class="table-empty"><span class="empty-icon">🎁</span>No promotions yet.</td></tr>';
 }
 function renderNewsletter() {
   const data = DB.load('nau_newsletter');
   document.getElementById('nl-tbody').innerHTML = data.length ? data.map(n=>`
-    <tr><td>${n.email}</td><td>${fmtDateShort(n.subscribedAt)}</td>
-    <td><span class="badge badge-active">Active</span></td>
-    <td><div class="row-actions"><button class="btn-row btn-row-delete">🗑️</button></div></td></tr>`).join('')
-    : '<tr><td colspan="4" class="table-empty"><span class="empty-icon">📧</span>No subscribers yet.</td></tr>';
+    <tr><td>${n.name||'-'}</td><td>${n.email}</td><td>${fmtDateShort(n.subscribedAt)}</td>
+    <td><span class="badge ${n.status?'badge-active':'badge-inactive'}">${n.status?'Subscribed':'Unsubscribed'}</span></td>
+    <td><div class="row-actions"><button class="btn-row" onclick="openModal('subscriber',${n.id})">✏️</button><button class="btn-row btn-row-delete" onclick="deletePage('nau_newsletter',${n.id},renderNewsletter)">🗑️</button></div></td></tr>`).join('')
+    : '<tr><td colspan="5" class="table-empty"><span class="empty-icon">📧</span>No subscribers yet.</td></tr>';
 }
 function renderCampaigns() {
-  document.getElementById('camp-tbody').innerHTML = '<tr><td colspan="6" class="table-empty"><span class="empty-icon">📣</span>No campaigns yet.</td></tr>';
+  const data = DB.load('nau_campaigns');
+  document.getElementById('camp-tbody').innerHTML = data.length ? data.map(c=>`
+    <tr><td><strong>${c.name}</strong></td><td>${c.channel||'-'}</td><td>${c.target||'-'}</td><td>${c.scheduledDate||'-'}</td>
+    <td><span class="badge ${c.status==='Sent'?'badge-accepted':c.status==='Active'?'badge-active':'badge-draft'}">${c.status||'Draft'}</span></td>
+    <td><div class="row-actions"><button class="btn-row" onclick="openModal('campaign',${c.id})">✏️</button><button class="btn-row btn-row-delete" onclick="deletePage('nau_campaigns',${c.id},renderCampaigns)">🗑️</button></div></td></tr>`).join('')
+    : '<tr><td colspan="6" class="table-empty"><span class="empty-icon">📣</span>No campaigns yet.</td></tr>';
 }
 
 // ===== SUPPORT / CAREERS / USERS =====
 function renderSupport() {
   const data = DB.load('nau_support');
   document.getElementById('sup-tbody').innerHTML = data.length ? data.map(s=>`
-    <tr><td><strong>#${s.id}</strong></td><td>${s.customer}</td><td>${s.subject}</td>
-    <td><span class="badge badge-${s.priority||'pending'}">${s.priority||'Normal'}</span></td>
-    <td>${fmtDateShort(s.date)}</td>
-    <td><span class="badge badge-${s.status||'pending'}">${s.status||'Open'}</span></td>
-    <td><div class="row-actions"><button class="btn-row">✏️</button></div></td></tr>`).join('')
+    <tr><td><strong>#${s.id}</strong></td><td>${s.customer||s.customerName||'-'}</td><td>${s.subject}</td>
+    <td><span class="badge badge-${(s.priority||'').toLowerCase()==='high'?'sold':(s.priority||'').toLowerCase()==='medium'?'quoted':'draft'}">${s.priority||'Low'}</span></td>
+    <td>${fmtDateShort(s.date||s.createdAt)}</td>
+    <td><span class="badge badge-${s.status==='Resolved'?'accepted':s.status==='In Progress'?'quoted':'pending'}">${s.status||'Open'}</span></td>
+    <td><div class="row-actions"><button class="btn-row" onclick="openModal('ticket',${s.id})">✏️</button><button class="btn-row btn-row-delete" onclick="deletePage('nau_support',${s.id},renderSupport)">🗑️</button></div></td></tr>`).join('')
     : '<tr><td colspan="7" class="table-empty"><span class="empty-icon">🎫</span>No support tickets.</td></tr>';
 }
 function renderCareers() {
-  document.getElementById('job-tbody').innerHTML = '<tr><td colspan="7" class="table-empty"><span class="empty-icon">💼</span>No job listings yet.</td></tr>';
+  const data = DB.load('nau_careers');
+  document.getElementById('job-tbody').innerHTML = data.length ? data.map(j=>`
+    <tr><td><strong>${j.title}</strong></td><td>${j.department||'-'}</td><td>${j.location||'-'}</td><td>${j.type||'-'}</td>
+    <td>${j.applications||0}</td>
+    <td><span class="badge ${j.status==='Open'?'badge-active':'badge-inactive'}">${j.status||'Open'}</span></td>
+    <td><div class="row-actions"><button class="btn-row" onclick="openModal('job',${j.id})">✏️</button><button class="btn-row btn-row-delete" onclick="deletePage('nau_careers',${j.id},renderCareers)">🗑️</button></div></td></tr>`).join('')
+    : '<tr><td colspan="7" class="table-empty"><span class="empty-icon">💼</span>No job listings yet.</td></tr>';
 }
 function renderUsers() {
-  const data = [{id:1,name:'Super Admin',email:'info@nipponauto.ug',role:'Super Admin',lastLogin:nowISO(),status:true}];
-  document.getElementById('usr-tbody').innerHTML = data.map(u=>`
-    <tr><td><strong>${u.name}</strong></td><td>${u.email}</td><td>${u.role}</td>
-    <td>${fmtDate(u.lastLogin)}</td>
-    <td><span class="badge badge-active">Active</span></td>
-    <td><div class="row-actions"><button class="btn-row">✏️</button></div></td></tr>`).join('');
+  const data = DB.load('nau_users');
+  const users = data.length ? data : [{id:1,name:'Super Admin',email:'info@nipponauto.ug',role:'Super Admin',lastLogin:nowISO(),status:true}];
+  document.getElementById('usr-tbody').innerHTML = users.map(u=>`
+    <tr><td><strong>${u.name}</strong></td><td>${u.email}</td><td>${u.role||'Staff'}</td>
+    <td>${fmtDate(u.lastLogin||nowISO())}</td>
+    <td><span class="badge ${u.status?'badge-active':'badge-inactive'}">${u.status?'Active':'Inactive'}</span></td>
+    <td><div class="row-actions"><button class="btn-row" onclick="openModal('user',${u.id})">✏️</button><button class="btn-row btn-row-delete" onclick="deletePage('nau_users',${u.id},renderUsers)">🗑️</button></div></td></tr>`).join('');
 }
 
 // ===== MISC RENDERS =====
@@ -615,23 +627,29 @@ function renderModelCodes() {
 function renderReviews() {
   const data = DB.load('nau_reviews');
   document.getElementById('rev-tbody').innerHTML = data.length ? data.map(r=>`
-    <tr><td><strong>${r.customer}</strong></td><td>${r.vehicle||'-'}</td><td>${'★'.repeat(r.rating||5)}</td>
-    <td><span class="td-muted">${(r.text||'').substring(0,80)}</span></td><td>${fmtDateShort(r.date)}</td>
+    <tr><td><strong>${r.customer}</strong></td><td>${r.vehicle||'-'}</td><td>${'★'.repeat(Number(r.rating)||5)}</td>
+    <td><span class="td-muted">${(r.text||'').substring(0,80)}</span></td><td>${fmtDateShort(r.date||r.createdAt)}</td>
     <td><span class="badge ${r.approved?'badge-accepted':'badge-pending'}">${r.approved?'Approved':'Pending'}</span></td>
-    <td><div class="row-actions"><button class="btn-row">✏️</button><button class="btn-row btn-row-delete">🗑️</button></div></td></tr>`).join('')
+    <td><div class="row-actions"><button class="btn-row" onclick="openModal('review',${r.id})">✏️</button><button class="btn-row btn-row-delete" onclick="deletePage('nau_reviews',${r.id},renderReviews)">🗑️</button></div></td></tr>`).join('')
     : '<tr><td colspan="7" class="table-empty"><span class="empty-icon">⭐</span>No reviews yet.</td></tr>';
 }
 function renderServicePlans() {
   const data = DB.load('nau_service_plans');
   document.getElementById('sp-tbody').innerHTML = data.length ? data.map(p=>`
-    <tr><td><strong>${p.name}</strong></td><td>$${p.price}</td><td>${p.duration}</td>
-    <td><span class="td-muted">${(p.features||[]).join(', ')}</span></td>
+    <tr><td><strong>${p.name}</strong></td><td>$${p.price}/mo</td><td>${p.duration} months</td>
+    <td><span class="td-muted">${Array.isArray(p.features)?p.features.join(', '):(p.features||'-')}</span></td>
     <td><span class="badge badge-active">Active</span></td>
-    <td><div class="row-actions"><button class="btn-row">✏️</button><button class="btn-row btn-row-delete">🗑️</button></div></td></tr>`).join('')
+    <td><div class="row-actions"><button class="btn-row" onclick="openModal('servicePlan',${p.id})">✏️</button><button class="btn-row btn-row-delete" onclick="deletePage('nau_service_plans',${p.id},renderServicePlans)">🗑️</button></div></td></tr>`).join('')
     : '<tr><td colspan="6" class="table-empty"><span class="empty-icon">🛠️</span>No service plans yet.</td></tr>';
 }
 function renderAuctions() {
-  document.getElementById('auc-tbody').innerHTML = '<tr><td colspan="8" class="table-empty"><span class="empty-icon">🔨</span>No auctions yet.</td></tr>';
+  const data = DB.load('nau_auctions');
+  document.getElementById('auc-tbody').innerHTML = data.length ? data.map(a=>`
+    <tr><td><strong>AUC-${String(a.id).padStart(4,'0')}</strong></td><td>${a.vehicle}</td><td>${a.startDate||'-'}</td><td>${a.endDate||'-'}</td>
+    <td>$${Number(a.startingBid||0).toLocaleString()}</td><td>$${Number(a.currentBid||a.startingBid||0).toLocaleString()}</td>
+    <td><span class="badge ${a.status==='Active'?'badge-active':a.status==='Ended'?'badge-sold':'badge-draft'}">${a.status||'Upcoming'}</span></td>
+    <td><div class="row-actions"><button class="btn-row" onclick="openModal('auction',${a.id})">✏️</button><button class="btn-row btn-row-delete" onclick="deletePage('nau_auctions',${a.id},renderAuctions)">🗑️</button></div></td></tr>`).join('')
+    : '<tr><td colspan="8" class="table-empty"><span class="empty-icon">🔨</span>No auctions yet.</td></tr>';
 }
 
 // ===== REPORTS =====
@@ -982,6 +1000,125 @@ const modalConfigs = {
     create:d=>{const all=DB.load('nau_freights');all.push({id:DB.nextId('nau_freights'),...d});DB.save('nau_freights',all);},
     update:(id,d)=>{const all=DB.load('nau_freights');const i=all.findIndex(f=>f.id===id);if(i>-1){all[i]={...all[i],...d};DB.save('nau_freights',all);}},
     refresh:()=>renderFreights()
+  },
+  promo: {
+    label:'Promotion', getData:id=>DB.load('nau_promos').find(p=>p.id===id),
+    form:d=>`<div class="form-row full"><div class="form-group"><label>Title<span class="required">*</span></label><input class="form-control" id="pr-title" value="${d?d.title:''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Discount (%)</label><input class="form-control" type="number" id="pr-disc" value="${d?d.discount:''}" /></div>
+      <div class="form-group"><label>Status</label><select class="form-control" id="pr-status"><option value="1" ${d&&d.status?'selected':''}>Active</option><option value="0" ${d&&!d.status?'selected':''}>Inactive</option></select></div></div>
+      <div class="form-row"><div class="form-group"><label>Start Date</label><input class="form-control" type="date" id="pr-start" value="${d?d.startDate:''}" /></div>
+      <div class="form-group"><label>End Date</label><input class="form-control" type="date" id="pr-end" value="${d?d.endDate:''}" /></div></div>`,
+    collect:()=>{const t=document.getElementById('pr-title').value.trim();if(!t){toast('⚠️ Title required');return null;}return{title:t,discount:document.getElementById('pr-disc').value,startDate:document.getElementById('pr-start').value,endDate:document.getElementById('pr-end').value,status:document.getElementById('pr-status').value==='1'};},
+    create:d=>{const all=DB.load('nau_promos');all.push({id:DB.nextId('nau_promos'),...d,createdAt:nowISO()});DB.save('nau_promos',all);},
+    update:(id,d)=>{const all=DB.load('nau_promos');const i=all.findIndex(p=>p.id===id);if(i>-1){all[i]={...all[i],...d};DB.save('nau_promos',all);}},
+    refresh:renderPromos
+  },
+  order: {
+    label:'Order', getData:id=>DB.load('nau_orders').find(o=>o.id===id),
+    form:d=>`<div class="form-row"><div class="form-group"><label>Customer Name<span class="required">*</span></label><input class="form-control" id="od-cust" value="${d?d.customerName:''}" /></div>
+      <div class="form-group"><label>Vehicle</label><input class="form-control" id="od-veh" value="${d?d.vehicleName:''}" placeholder="e.g. Toyota Hilux 2025" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Amount (USD)<span class="required">*</span></label><input class="form-control" type="number" id="od-amt" value="${d?d.amount:''}" /></div>
+      <div class="form-group"><label>Date</label><input class="form-control" type="date" id="od-date" value="${d?d.date:new Date().toISOString().split('T')[0]}" /></div></div>
+      <div class="form-group"><label>Status</label><select class="form-control" id="od-status"><option>Pending</option><option>Confirmed</option><option>Shipped</option><option>Completed</option></select></div>`,
+    collect:()=>{const c=document.getElementById('od-cust').value.trim();const a=document.getElementById('od-amt').value;if(!c||!a){toast('⚠️ Customer and Amount required');return null;}const all=DB.load('nau_orders');const num=all.length+1;return{orderNo:'ORD-2026-'+String(num).padStart(2,'0'),customerName:c,vehicleName:document.getElementById('od-veh').value,amount:Number(a),date:document.getElementById('od-date').value,status:document.getElementById('od-status').value};},
+    create:d=>{const all=DB.load('nau_orders');all.push({id:DB.nextId('nau_orders'),...d,createdAt:nowISO()});DB.save('nau_orders',all);},
+    update:(id,d)=>{const all=DB.load('nau_orders');const i=all.findIndex(o=>o.id===id);if(i>-1){all[i]={...all[i],...d};DB.save('nau_orders',all);}},
+    refresh:renderOrders
+  },
+  review: {
+    label:'Review', getData:id=>DB.load('nau_reviews').find(r=>r.id===id),
+    form:d=>`<div class="form-row"><div class="form-group"><label>Customer Name<span class="required">*</span></label><input class="form-control" id="rv-cust" value="${d?d.customer:''}" /></div>
+      <div class="form-group"><label>Vehicle</label><input class="form-control" id="rv-veh" value="${d?d.vehicle:''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Rating</label><select class="form-control" id="rv-rate"><option value="5" ${!d||d.rating==5?'selected':''}>★★★★★ (5)</option><option value="4" ${d&&d.rating==4?'selected':''}>★★★★☆ (4)</option><option value="3" ${d&&d.rating==3?'selected':''}>★★★☆☆ (3)</option><option value="2" ${d&&d.rating==2?'selected':''}>★★☆☆☆ (2)</option><option value="1" ${d&&d.rating==1?'selected':''}>★☆☆☆☆ (1)</option></select></div>
+      <div class="form-group"><label>Status</label><select class="form-control" id="rv-status"><option value="1" ${d&&d.approved?'selected':''}>Approved</option><option value="0" ${d&&!d.approved?'selected':''}>Pending</option></select></div></div>
+      <div class="form-row full"><div class="form-group"><label>Review Text</label><textarea class="form-control" id="rv-text">${d?d.text:''}</textarea></div></div>`,
+    collect:()=>{const c=document.getElementById('rv-cust').value.trim();if(!c){toast('⚠️ Customer name required');return null;}return{customer:c,vehicle:document.getElementById('rv-veh').value,rating:Number(document.getElementById('rv-rate').value),text:document.getElementById('rv-text').value,approved:document.getElementById('rv-status').value==='1',date:new Date().toISOString()};},
+    create:d=>{const all=DB.load('nau_reviews');all.push({id:DB.nextId('nau_reviews'),...d,createdAt:nowISO()});DB.save('nau_reviews',all);},
+    update:(id,d)=>{const all=DB.load('nau_reviews');const i=all.findIndex(r=>r.id===id);if(i>-1){all[i]={...all[i],...d};DB.save('nau_reviews',all);}},
+    refresh:renderReviews
+  },
+  servicePlan: {
+    label:'Service Plan', getData:id=>DB.load('nau_service_plans').find(p=>p.id===id),
+    form:d=>`<div class="form-row"><div class="form-group"><label>Plan Name<span class="required">*</span></label><input class="form-control" id="sp-name" value="${d?d.name:''}" /></div>
+      <div class="form-group"><label>Price (USD/mo)<span class="required">*</span></label><input class="form-control" type="number" id="sp-price" value="${d?d.price:''}" /></div></div>
+      <div class="form-group"><label>Duration (months)</label><input class="form-control" type="number" id="sp-dur" value="${d?d.duration:12}" /></div>
+      <div class="form-row full"><div class="form-group"><label>Features (one per line)</label><textarea class="form-control" style="min-height:100px" id="sp-feat">${d?Array.isArray(d.features)?d.features.join('\n'):(d.features||''):''}</textarea></div></div>`,
+    collect:()=>{const n=document.getElementById('sp-name').value.trim();const p=document.getElementById('sp-price').value;if(!n||!p){toast('⚠️ Name and price required');return null;}return{name:n,price:Number(p),duration:Number(document.getElementById('sp-dur').value)||12,features:document.getElementById('sp-feat').value.split('\n').map(s=>s.trim()).filter(Boolean)};},
+    create:d=>{const all=DB.load('nau_service_plans');all.push({id:DB.nextId('nau_service_plans'),...d,createdAt:nowISO()});DB.save('nau_service_plans',all);},
+    update:(id,d)=>{const all=DB.load('nau_service_plans');const i=all.findIndex(p=>p.id===id);if(i>-1){all[i]={...all[i],...d};DB.save('nau_service_plans',all);}},
+    refresh:renderServicePlans
+  },
+  auction: {
+    label:'Auction', getData:id=>DB.load('nau_auctions').find(a=>a.id===id),
+    form:d=>`<div class="form-row full"><div class="form-group"><label>Vehicle<span class="required">*</span></label><input class="form-control" id="au-veh" value="${d?d.vehicle:''}" placeholder="e.g. Toyota Land Cruiser Prado 2022" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Start Date</label><input class="form-control" type="date" id="au-start" value="${d?d.startDate:''}" /></div>
+      <div class="form-group"><label>End Date</label><input class="form-control" type="date" id="au-end" value="${d?d.endDate:''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Starting Bid (USD)<span class="required">*</span></label><input class="form-control" type="number" id="au-bid" value="${d?d.startingBid:''}" /></div>
+      <div class="form-group"><label>Status</label><select class="form-control" id="au-status"><option>Upcoming</option><option>Active</option><option>Ended</option></select></div></div>`,
+    collect:()=>{const v=document.getElementById('au-veh').value.trim();const b=document.getElementById('au-bid').value;if(!v||!b){toast('⚠️ Vehicle and Starting Bid required');return null;}return{vehicle:v,startDate:document.getElementById('au-start').value,endDate:document.getElementById('au-end').value,startingBid:Number(b),currentBid:Number(b),status:document.getElementById('au-status').value};},
+    create:d=>{const all=DB.load('nau_auctions');all.push({id:DB.nextId('nau_auctions'),...d,createdAt:nowISO()});DB.save('nau_auctions',all);},
+    update:(id,d)=>{const all=DB.load('nau_auctions');const i=all.findIndex(a=>a.id===id);if(i>-1){all[i]={...all[i],...d};DB.save('nau_auctions',all);}},
+    refresh:renderAuctions
+  },
+  job: {
+    label:'Job Listing', getData:id=>DB.load('nau_careers').find(j=>j.id===id),
+    form:d=>`<div class="form-row"><div class="form-group"><label>Job Title<span class="required">*</span></label><input class="form-control" id="jb-title" value="${d?d.title:''}" /></div>
+      <div class="form-group"><label>Department</label><input class="form-control" id="jb-dept" value="${d?d.department:''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Location</label><input class="form-control" id="jb-loc" value="${d?d.location:'Kampala, Uganda'}" /></div>
+      <div class="form-group"><label>Type</label><select class="form-control" id="jb-type"><option>Full-time</option><option>Part-time</option><option>Contract</option></select></div></div>
+      <div class="form-row full"><div class="form-group"><label>Description</label><textarea class="form-control" id="jb-desc">${d?d.description:''}</textarea></div></div>
+      <div class="form-group"><label>Status</label><select class="form-control" id="jb-status"><option value="Open" ${!d||d.status==='Open'?'selected':''}>Open</option><option value="Closed" ${d&&d.status==='Closed'?'selected':''}>Closed</option></select></div>`,
+    collect:()=>{const t=document.getElementById('jb-title').value.trim();if(!t){toast('⚠️ Job title required');return null;}return{title:t,department:document.getElementById('jb-dept').value,location:document.getElementById('jb-loc').value,type:document.getElementById('jb-type').value,description:document.getElementById('jb-desc').value,status:document.getElementById('jb-status').value,applications:0,postedAt:nowISO()};},
+    create:d=>{const all=DB.load('nau_careers');all.push({id:DB.nextId('nau_careers'),...d});DB.save('nau_careers',all);},
+    update:(id,d)=>{const all=DB.load('nau_careers');const i=all.findIndex(j=>j.id===id);if(i>-1){all[i]={...all[i],...d};DB.save('nau_careers',all);}},
+    refresh:renderCareers
+  },
+  subscriber: {
+    label:'Subscriber', getData:id=>DB.load('nau_newsletter').find(n=>n.id===id),
+    form:d=>`<div class="form-row"><div class="form-group"><label>Name</label><input class="form-control" id="nl-name" value="${d?d.name:''}" /></div>
+      <div class="form-group"><label>Email<span class="required">*</span></label><input class="form-control" id="nl-email" value="${d?d.email:''}" /></div></div>
+      <div class="form-group"><label>Status</label><select class="form-control" id="nl-status"><option value="1" ${!d||d.status?'selected':''}>Subscribed</option><option value="0" ${d&&!d.status?'selected':''}>Unsubscribed</option></select></div>`,
+    collect:()=>{const e=document.getElementById('nl-email').value.trim();if(!e){toast('⚠️ Email required');return null;}return{name:document.getElementById('nl-name').value,email:e,status:document.getElementById('nl-status').value==='1',subscribedAt:nowISO()};},
+    create:d=>{const all=DB.load('nau_newsletter');all.push({id:DB.nextId('nau_newsletter'),...d});DB.save('nau_newsletter',all);},
+    update:(id,d)=>{const all=DB.load('nau_newsletter');const i=all.findIndex(n=>n.id===id);if(i>-1){all[i]={...all[i],...d};DB.save('nau_newsletter',all);}},
+    refresh:renderNewsletter
+  },
+  campaign: {
+    label:'Campaign', getData:id=>DB.load('nau_campaigns').find(c=>c.id===id),
+    form:d=>`<div class="form-row full"><div class="form-group"><label>Campaign Name<span class="required">*</span></label><input class="form-control" id="ca-name" value="${d?d.name:''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Channel</label><select class="form-control" id="ca-chan"><option>Email</option><option>SMS</option><option>Social Media</option></select></div>
+      <div class="form-group"><label>Scheduled Date</label><input class="form-control" type="date" id="ca-date" value="${d?d.scheduledDate:''}" /></div></div>
+      <div class="form-group"><label>Target Audience</label><input class="form-control" id="ca-target" value="${d?d.target:''}" placeholder="e.g. All subscribers, Kampala region" /></div>
+      <div class="form-group"><label>Status</label><select class="form-control" id="ca-status"><option>Draft</option><option>Active</option><option>Sent</option></select></div>`,
+    collect:()=>{const n=document.getElementById('ca-name').value.trim();if(!n){toast('⚠️ Campaign name required');return null;}return{name:n,channel:document.getElementById('ca-chan').value,scheduledDate:document.getElementById('ca-date').value,target:document.getElementById('ca-target').value,status:document.getElementById('ca-status').value};},
+    create:d=>{const all=DB.load('nau_campaigns');all.push({id:DB.nextId('nau_campaigns'),...d,createdAt:nowISO()});DB.save('nau_campaigns',all);},
+    update:(id,d)=>{const all=DB.load('nau_campaigns');const i=all.findIndex(c=>c.id===id);if(i>-1){all[i]={...all[i],...d};DB.save('nau_campaigns',all);}},
+    refresh:renderCampaigns
+  },
+  ticket: {
+    label:'Support Ticket', getData:id=>DB.load('nau_support').find(s=>s.id===id),
+    form:d=>`<div class="form-row"><div class="form-group"><label>Customer Name<span class="required">*</span></label><input class="form-control" id="tk-cust" value="${d?d.customer||d.customerName:''}" /></div>
+      <div class="form-group"><label>Email</label><input class="form-control" id="tk-email" value="${d?d.email:''}" /></div></div>
+      <div class="form-row full"><div class="form-group"><label>Subject<span class="required">*</span></label><input class="form-control" id="tk-subj" value="${d?d.subject:''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Priority</label><select class="form-control" id="tk-pri"><option>Low</option><option>Medium</option><option>High</option></select></div>
+      <div class="form-group"><label>Status</label><select class="form-control" id="tk-status"><option>Open</option><option>In Progress</option><option>Resolved</option></select></div></div>
+      <div class="form-row full"><div class="form-group"><label>Message</label><textarea class="form-control" id="tk-msg">${d?d.message:''}</textarea></div></div>`,
+    collect:()=>{const c=document.getElementById('tk-cust').value.trim();const s=document.getElementById('tk-subj').value.trim();if(!c||!s){toast('⚠️ Customer and Subject required');return null;}return{customer:c,email:document.getElementById('tk-email').value,subject:s,priority:document.getElementById('tk-pri').value,status:document.getElementById('tk-status').value,message:document.getElementById('tk-msg').value,date:nowISO()};},
+    create:d=>{const all=DB.load('nau_support');all.push({id:DB.nextId('nau_support'),...d,createdAt:nowISO()});DB.save('nau_support',all);},
+    update:(id,d)=>{const all=DB.load('nau_support');const i=all.findIndex(s=>s.id===id);if(i>-1){all[i]={...all[i],...d};DB.save('nau_support',all);}},
+    refresh:renderSupport
+  },
+  user: {
+    label:'Admin User', getData:id=>DB.load('nau_users').find(u=>u.id===id),
+    form:d=>`<div class="form-row"><div class="form-group"><label>Full Name<span class="required">*</span></label><input class="form-control" id="us-name" value="${d?d.name:''}" /></div>
+      <div class="form-group"><label>Email<span class="required">*</span></label><input class="form-control" id="us-email" value="${d?d.email:''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Role</label><select class="form-control" id="us-role"><option value="Super Admin" ${d&&d.role==='Super Admin'?'selected':''}>Super Admin</option><option value="Manager" ${d&&d.role==='Manager'?'selected':''}>Manager</option><option value="Staff" ${!d||d.role==='Staff'?'selected':''}>Staff</option></select></div>
+      <div class="form-group"><label>Status</label><select class="form-control" id="us-status"><option value="1" ${!d||d.status?'selected':''}>Active</option><option value="0" ${d&&!d.status?'selected':''}>Inactive</option></select></div></div>
+      <div class="form-row full"><div class="form-group"><label>Password${d?' (leave blank to keep)':''}</label><input class="form-control" type="password" id="us-pass" placeholder="${d?'Leave blank to keep current':'Set password'}" /></div></div>`,
+    collect:()=>{const n=document.getElementById('us-name').value.trim();const e=document.getElementById('us-email').value.trim();if(!n||!e){toast('⚠️ Name and Email required');return null;}const p=document.getElementById('us-pass').value;const obj={name:n,email:e,role:document.getElementById('us-role').value,status:document.getElementById('us-status').value==='1',lastLogin:nowISO()};if(p)obj.password=p;return obj;},
+    create:d=>{const all=DB.load('nau_users');all.push({id:DB.nextId('nau_users'),...d,createdAt:nowISO()});DB.save('nau_users',all);},
+    update:(id,d)=>{const all=DB.load('nau_users');const i=all.findIndex(u=>u.id===id);if(i>-1){all[i]={...all[i],...d};DB.save('nau_users',all);}},
+    refresh:renderUsers
   }
 };
 
@@ -1123,6 +1260,150 @@ function seedData() {
     {id:3,name:'Grade 4',route:'grade-4',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
     {id:4,name:'Grade 3.5',route:'grade-3-5',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'}
   ]);
+  DB.save('nau_var_sub_body_types', [
+    {id:1,name:'Standard Cab',route:'standard-cab',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:2,name:'Extra Cab',route:'extra-cab',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:3,name:'Double Cab',route:'double-cab',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:4,name:'Minivan',route:'minivan',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:5,name:'Crossover',route:'crossover',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'}
+  ]);
+  DB.save('nau_var_colours', [
+    {id:1,name:'White',route:'white',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:2,name:'Black',route:'black',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:3,name:'Silver',route:'silver',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:4,name:'Red',route:'red',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:5,name:'Blue',route:'blue',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:6,name:'Grey',route:'grey',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:7,name:'Pearl White',route:'pearl-white',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:8,name:'Champagne Gold',route:'champagne-gold',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'}
+  ]);
+  DB.save('nau_var_drivetrains', [
+    {id:1,name:'2WD',route:'2wd',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:2,name:'4WD',route:'4wd',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:3,name:'AWD',route:'awd',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'}
+  ]);
+  DB.save('nau_var_steering_types', [
+    {id:1,name:'Power Steering',route:'power-steering',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:2,name:'Electric Power Steering',route:'eps',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:3,name:'Manual Steering',route:'manual-steering',status:false,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'}
+  ]);
+  DB.save('nau_var_steering_assist', [
+    {id:1,name:'Hydraulic',route:'hydraulic',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:2,name:'Electric',route:'electric',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:3,name:'None',route:'none',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'}
+  ]);
+  DB.save('nau_var_steering_control', [
+    {id:1,name:'Standard',route:'standard',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:2,name:'Sport',route:'sport',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:3,name:'Off-Road',route:'off-road',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'}
+  ]);
+  DB.save('nau_var_condition_grades', [
+    {id:1,name:'Excellent',route:'excellent',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:2,name:'Good',route:'good',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:3,name:'Fair',route:'fair',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:4,name:'Poor',route:'poor',status:false,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'}
+  ]);
+  DB.save('nau_var_feature_groups', [
+    {id:1,name:'Safety',route:'safety',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:2,name:'Comfort',route:'comfort',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:3,name:'Technology',route:'technology',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:4,name:'Performance',route:'performance',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:5,name:'Exterior',route:'exterior',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'}
+  ]);
+  DB.save('nau_var_features', [
+    {id:1,name:'ABS',route:'abs',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:2,name:'Airbags',route:'airbags',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:3,name:'Sunroof',route:'sunroof',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:4,name:'Leather Seats',route:'leather-seats',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:5,name:'Reverse Camera',route:'reverse-camera',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:6,name:'Cruise Control',route:'cruise-control',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:7,name:'Navigation System',route:'navigation',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'}
+  ]);
+  DB.save('nau_var_tags', [
+    {id:1,name:'New Arrival',route:'new-arrival',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:2,name:'Hot Deal',route:'hot-deal',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:3,name:'Low Mileage',route:'low-mileage',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:4,name:'One Owner',route:'one-owner',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'},
+    {id:5,name:'Japanese Import',route:'japanese-import',status:true,createdAt:'2026-03-16T03:14:00Z',updatedAt:'2026-03-16T03:14:00Z'}
+  ]);
+
+  // Reviews
+  DB.save('nau_reviews', [
+    {id:1,customer:'Robert Ssekandi',vehicle:'Toyota Land Cruiser Prado 2022',rating:5,text:'Excellent service from start to finish. The Prado arrived in perfect condition. NipponAuto handled all the paperwork seamlessly.',approved:true,date:'2026-04-15T00:00:00Z',createdAt:'2026-04-15T00:00:00Z'},
+    {id:2,customer:'Grace Nakato',vehicle:'Toyota Fortuner GD6 2023',rating:5,text:'My Fortuner is exactly as described. Only 12,500km and in showroom condition. Will definitely buy from NipponAuto again!',approved:true,date:'2026-04-10T00:00:00Z',createdAt:'2026-04-10T00:00:00Z'},
+    {id:3,customer:'John Mugisha',vehicle:'Nissan Patrol Y62 2022',rating:4,text:'Good experience overall. The car is fantastic. The import process took a bit longer than expected but the team kept me updated throughout.',approved:true,date:'2026-03-28T00:00:00Z',createdAt:'2026-03-28T00:00:00Z'},
+    {id:4,customer:'Sarah Apio',vehicle:'Toyota RAV4 Hybrid 2021',rating:5,text:'Best hybrid SUV for Kampala traffic. Fuel savings are real! NipponAuto gave me the best price.',approved:false,date:'2026-05-02T00:00:00Z',createdAt:'2026-05-02T00:00:00Z'}
+  ]);
+
+  // Service Plans
+  DB.save('nau_service_plans', [
+    {id:1,name:'Basic',price:199,duration:6,features:['Engine oil change (every 5,000km)','Tyre rotation','Basic inspection report'],createdAt:'2026-03-16T00:00:00Z'},
+    {id:2,name:'Standard',price:349,duration:12,features:['Everything in Basic','Air filter replacement','Brake inspection','Battery check','Full inspection report'],createdAt:'2026-03-16T00:00:00Z'},
+    {id:3,name:'Premium',price:599,duration:12,features:['Everything in Standard','Transmission fluid change','Coolant flush','Wiper blades','Priority scheduling','Free roadside assistance'],createdAt:'2026-03-16T00:00:00Z'}
+  ]);
+
+  // Auctions
+  DB.save('nau_auctions', [
+    {id:1,vehicle:'Toyota Land Cruiser 200 Series 2019',startDate:'2026-06-01',endDate:'2026-06-07',startingBid:35000,currentBid:35000,status:'Upcoming',createdAt:'2026-05-15T00:00:00Z'},
+    {id:2,vehicle:'Lexus LX570 2018',startDate:'2026-05-20',endDate:'2026-05-27',startingBid:55000,currentBid:58500,status:'Active',createdAt:'2026-05-10T00:00:00Z'}
+  ]);
+
+  // Careers
+  DB.save('nau_careers', [
+    {id:1,title:'Sales Executive',department:'Sales',location:'Kampala, Uganda',type:'Full-time',description:'We are looking for an experienced Sales Executive to join our growing team. You will manage client relationships and drive vehicle sales.',status:'Open',applications:8,postedAt:'2026-05-01T00:00:00Z'},
+    {id:2,title:'Vehicle Inspector',department:'Operations',location:'Nakawa, Kampala',type:'Full-time',description:'Responsible for inspecting imported vehicles upon arrival and preparing condition reports for clients.',status:'Open',applications:3,postedAt:'2026-05-05T00:00:00Z'},
+    {id:3,title:'Finance Officer',department:'Finance',location:'Kampala, Uganda',type:'Full-time',description:'Manage vehicle financing applications, liaise with banks, and support customers with import cost calculations.',status:'Closed',applications:12,postedAt:'2026-04-10T00:00:00Z'}
+  ]);
+
+  // Newsletter Subscribers
+  DB.save('nau_newsletter', [
+    {id:1,name:'Robert Ssekandi',email:'r.ssekandi@gmail.com',status:true,subscribedAt:'2026-03-10T00:00:00Z'},
+    {id:2,name:'Grace Nakato',email:'grace.nakato@yahoo.com',status:true,subscribedAt:'2026-03-15T00:00:00Z'},
+    {id:3,name:'John Mugisha',email:'j.mugisha@hotmail.com',status:true,subscribedAt:'2026-04-01T00:00:00Z'},
+    {id:4,name:'Sarah Apio',email:'sarah.apio@gmail.com',status:false,subscribedAt:'2026-04-10T00:00:00Z'},
+    {id:5,name:'Moses Kato',email:'moses.kato@gmail.com',status:true,subscribedAt:'2026-05-01T00:00:00Z'}
+  ]);
+
+  // Campaigns
+  DB.save('nau_campaigns', [
+    {id:1,name:'May Eid Promotion',channel:'Email',target:'All subscribers',scheduledDate:'2026-05-01',status:'Sent',createdAt:'2026-04-28T00:00:00Z'},
+    {id:2,name:'Hilux D-Cabin Launch',channel:'Social Media',target:'Kampala region',scheduledDate:'2026-06-01',status:'Draft',createdAt:'2026-05-10T00:00:00Z'}
+  ]);
+
+  // Support Tickets
+  DB.save('nau_support', [
+    {id:1,customer:'Robert Ssekandi',email:'r.ssekandi@gmail.com',subject:'Delivery timeline for Prado',priority:'High',message:'I paid the deposit 3 weeks ago. When should I expect the Prado to arrive in Kampala?',status:'In Progress',date:'2026-05-10T00:00:00Z',createdAt:'2026-05-10T00:00:00Z'},
+    {id:2,customer:'Grace Nakato',email:'grace.nakato@yahoo.com',subject:'Need invoice for URA',priority:'Medium',message:'Please send me a formal invoice so I can process customs at URA.',status:'Resolved',date:'2026-05-08T00:00:00Z',createdAt:'2026-05-08T00:00:00Z'},
+    {id:3,customer:'Moses Kato',email:'moses.kato@gmail.com',subject:'Query about hybrid fuel consumption',priority:'Low',message:'I am considering the RAV4 Hybrid. Can you tell me the average fuel consumption in Kampala traffic?',status:'Open',date:'2026-05-12T00:00:00Z',createdAt:'2026-05-12T00:00:00Z'}
+  ]);
+
+  // Promotions
+  DB.save('nau_promos', [
+    {id:1,title:'Eid Special — 10% Off Hilux',discount:10,startDate:'2026-05-01',endDate:'2026-05-31',status:true,createdAt:'2026-04-28T00:00:00Z'},
+    {id:2,title:'New Arrival Flash Sale — 5% Off',discount:5,startDate:'2026-06-01',endDate:'2026-06-15',status:false,createdAt:'2026-05-10T00:00:00Z'}
+  ]);
+
+  // Orders
+  DB.save('nau_orders', [
+    {id:1,orderNo:'ORD-2026-01',customerName:'Grace Nakato',vehicleName:'Toyota Land Cruiser Prado 2022',amount:42000,date:'2026-05-09',status:'Confirmed',createdAt:'2026-05-09T00:00:00Z'},
+    {id:2,orderNo:'ORD-2026-02',customerName:'Robert Ssekandi',vehicleName:'Land Rover Range Rover Vogue 2022',amount:84000,date:'2026-05-08',status:'Shipped',createdAt:'2026-05-08T00:00:00Z'},
+    {id:3,orderNo:'ORD-2026-03',customerName:'John Mugisha',vehicleName:'Toyota Hilux D-Cabin 2025',amount:49000,date:'2026-05-12',status:'Pending',createdAt:'2026-05-12T00:00:00Z'}
+  ]);
+
+  // Admin Users
+  DB.save('nau_users', [
+    {id:1,name:'Super Admin',email:'info@nipponauto.ug',role:'Super Admin',status:true,lastLogin:nowISO(),createdAt:'2026-01-01T00:00:00Z'},
+    {id:2,name:'David Otieno',email:'d.otieno@nipponauto.ug',role:'Manager',status:true,lastLogin:'2026-05-15T08:30:00Z',createdAt:'2026-02-01T00:00:00Z'},
+    {id:3,name:'Brenda Akello',email:'b.akello@nipponauto.ug',role:'Staff',status:true,lastLogin:'2026-05-16T09:00:00Z',createdAt:'2026-03-01T00:00:00Z'}
+  ]);
+
+  // Customers
+  if (!localStorage.getItem('nau_customers')) {
+    localStorage.setItem('nau_customers', JSON.stringify([
+      {id:1,name:'John Mugisha',email:'customer@nipponauto.ug',phone:'+256 700 100 200',password:'customer123',joinedAt:'2026-01-15T00:00:00Z'},
+      {id:2,name:'Grace Nakato',email:'grace@nipponauto.ug',phone:'+256 700 300 400',password:'grace456',joinedAt:'2026-02-10T00:00:00Z'}
+    ]));
+  }
 
   // Slides
   DB.save('nau_slides', [

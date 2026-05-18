@@ -59,6 +59,9 @@
     </div>
     <button class="btn-login-submit" id="loginBtn">Sign In</button>
     <div class="login-hint" id="loginHint"></div>
+    <div id="signupLinkWrap" style="text-align:center;margin-top:.9rem;font-size:.84rem;color:#8a9ab5;">
+      Don't have an account? <a href="signup.html" style="color:#c0392b;font-weight:600;text-decoration:none;">Sign up →</a>
+    </div>
     <a href="index.html" class="login-back">← Back to NipponAuto Uganda</a>
   </div>
 </div>
@@ -71,6 +74,7 @@ function switchTab(tab){
   document.getElementById('loginUser').placeholder=tab==='admin'?'admin':'your@email.com';
   document.getElementById('userLabel').textContent=tab==='admin'?'Username':'Email Address';
   document.getElementById('loginError').style.display='none';
+  document.getElementById('signupLinkWrap').style.display=tab==='customer'?'block':'none';
   var hint=document.getElementById('loginHint');
   if(tab==='customer'){hint.className='login-hint show';hint.textContent='Demo: email = customer@nipponauto.ug | password = customer123';}
   else{hint.className='login-hint show';hint.textContent='Staff access: use your admin credentials';}

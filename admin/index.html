@@ -406,6 +406,7 @@
     <div class="page-section" id="page-orders">
       <div class="page-header">
         <div class="page-header-left"><h1>Orders</h1><p>Manage customer orders</p></div>
+        <button class="btn-create" onclick="openModal('order')">+ Create Order</button>
       </div>
       <div class="table-wrap">
         <table class="admin-table">
@@ -508,8 +509,8 @@
       <div class="table-wrap"><table class="admin-table"><thead><tr><th>Title</th><th>Discount</th><th>Start</th><th>End</th><th>Status</th><th>Actions</th></tr></thead><tbody id="promo-tbody"></tbody></table></div>
     </div>
     <div class="page-section" id="page-marketing-newsletter">
-      <div class="page-header"><div class="page-header-left"><h1>Newsletter Subscribers</h1></div></div>
-      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Email</th><th>Subscribed At</th><th>Status</th><th>Actions</th></tr></thead><tbody id="nl-tbody"></tbody></table></div>
+      <div class="page-header"><div class="page-header-left"><h1>Newsletter Subscribers</h1></div><button class="btn-create" onclick="openModal('subscriber')">+ Add Subscriber</button></div>
+      <div class="table-wrap"><table class="admin-table"><thead><tr><th>Name</th><th>Email</th><th>Subscribed At</th><th>Status</th><th>Actions</th></tr></thead><tbody id="nl-tbody"></tbody></table></div>
     </div>
     <div class="page-section" id="page-marketing-campaigns">
       <div class="page-header"><div class="page-header-left"><h1>Campaigns</h1></div><button class="btn-create" onclick="openModal('campaign')">+ Create Campaign</button></div>
@@ -518,7 +519,7 @@
 
     <!-- ===== SUPPORT ===== -->
     <div class="page-section" id="page-support">
-      <div class="page-header"><div class="page-header-left"><h1>Support Tickets</h1><p>Manage customer support requests</p></div></div>
+      <div class="page-header"><div class="page-header-left"><h1>Support Tickets</h1><p>Manage customer support requests</p></div><button class="btn-create" onclick="openModal('ticket')">+ New Ticket</button></div>
       <div class="table-wrap"><table class="admin-table"><thead><tr><th>Ticket#</th><th>Customer</th><th>Subject</th><th>Priority</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody id="sup-tbody"></tbody></table></div>
     </div>
 

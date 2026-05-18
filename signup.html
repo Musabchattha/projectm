@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account — NipponAuto Uganda</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23f0a500'/><text y='24' x='4' font-size='22'>🚗</text></svg>" />
+  <style>
+    .login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a1628 0%,#1a3259 60%,#0a1628 100%);padding:1rem;}
+    .login-box{background:#fff;border-radius:14px;padding:2.5rem 2rem;width:100%;max-width:460px;box-shadow:0 12px 48px rgba(0,0,0,.3);}
+    .login-brand{display:flex;align-items:center;gap:.75rem;margin-bottom:1.75rem;justify-content:center;}
+    .login-brand-icon{font-size:2.2rem;}
+    .login-brand-text span{display:block;line-height:1.15;}
+    .login-brand-text .t1{font-size:1.25rem;font-weight:800;color:#0a1628;}
+    .login-brand-text .t2{font-size:.82rem;color:#8a9ab5;}
+    .login-box h2{font-size:1.3rem;color:#0a1628;margin-bottom:.25rem;text-align:center;}
+    .login-box .sub{color:#8a9ab5;font-size:.87rem;text-align:center;margin-bottom:1.5rem;}
+    .lf-group{margin-bottom:1rem;}
+    .lf-group label{display:block;font-size:.8rem;font-weight:600;color:#1e2a3a;margin-bottom:.35rem;}
+    .lf-group input{width:100%;padding:.65rem .9rem;border:1.5px solid #d1d9e6;border-radius:7px;font-size:.9rem;outline:none;transition:border-color .2s;font-family:inherit;box-sizing:border-box;}
+    .lf-group input:focus{border-color:#0a1628;}
+    .login-error{background:#fef2f2;color:#c0392b;border:1px solid #fecaca;border-radius:6px;padding:.6rem .9rem;font-size:.83rem;margin-bottom:1rem;display:none;}
+    .login-success{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:6px;padding:.6rem .9rem;font-size:.83rem;margin-bottom:1rem;display:none;}
+    .btn-login-submit{width:100%;padding:.75rem;background:#c0392b;color:#fff;border:none;border-radius:7px;font-size:.95rem;font-weight:700;cursor:pointer;transition:background .2s;font-family:inherit;margin-top:.25rem;}
+    .btn-login-submit:hover{background:#a93226;}
+    .btn-login-submit:disabled{background:#aaa;cursor:not-allowed;}
+    .login-back{display:block;text-align:center;margin-top:1.25rem;color:#8a9ab5;font-size:.83rem;text-decoration:none;}
+    .login-back:hover{color:#0a1628;}
+    .lf-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+    @media(max-width:480px){.lf-row{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<div class="login-page">
+  <div class="login-box">
+    <div class="login-brand">
+      <div class="login-brand-icon">🚗</div>
+      <div class="login-brand-text">
+        <span class="t1">NipponAuto Uganda</span>
+        <span class="t2">Customer Portal</span>
+      </div>
+    </div>
+    <h2>Create Your Account</h2>
+    <p class="sub">Join thousands of Ugandans buying quality Japanese cars</p>
+
+    <div class="login-error" id="signupError"></div>
+    <div class="login-success" id="signupSuccess"></div>
+
+    <div class="lf-row">
+      <div class="lf-group">
+        <label>First Name <span style="color:#c0392b">*</span></label>
+        <input type="text" id="su-fname" placeholder="John" autocomplete="given-name" />
+      </div>
+      <div class="lf-group">
+        <label>Last Name <span style="color:#c0392b">*</span></label>
+        <input type="text" id="su-lname" placeholder="Mugisha" autocomplete="family-name" />
+      </div>
+    </div>
+    <div class="lf-group">
+      <label>Email Address <span style="color:#c0392b">*</span></label>
+      <input type="email" id="su-email" placeholder="you@example.com" autocomplete="email" />
+    </div>
+    <div class="lf-group">
+      <label>Phone Number <span style="color:#c0392b">*</span></label>
+      <input type="tel" id="su-phone" placeholder="+256 700 123 456" autocomplete="tel" />
+    </div>
+    <div class="lf-row">
+      <div class="lf-group">
+        <label>Password <span style="color:#c0392b">*</span></label>
+        <input type="password" id="su-pass" placeholder="Min 6 characters" autocomplete="new-password" />
+      </div>
+      <div class="lf-group">
+        <label>Confirm Password <span style="color:#c0392b">*</span></label>
+        <input type="password" id="su-pass2" placeholder="Repeat password" autocomplete="new-password" />
+      </div>
+    </div>
+
+    <button class="btn-login-submit" id="signupBtn">Create Account</button>
+
+    <div style="text-align:center;margin-top:.9rem;font-size:.84rem;color:#8a9ab5;">
+      Already have an account? <a href="login.html" style="color:#c0392b;font-weight:600;text-decoration:none;">Sign in →</a>
+    </div>
+    <a href="index.html" class="login-back">← Back to NipponAuto Uganda</a>
+  </div>
+</div>
+<script>
+(function(){
+  function showErr(msg){
+    var e=document.getElementById('signupError');
+    e.textContent=msg;e.style.display='block';
+    document.getElementById('signupSuccess').style.display='none';
+  }
+  function showOk(msg){
+    var s=document.getElementById('signupSuccess');
+    s.textContent=msg;s.style.display='block';
+    document.getElementById('signupError').style.display='none';
+  }
+  function validateEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);}
+
+  document.getElementById('signupBtn').addEventListener('click', function(){
+    var fname=document.getElementById('su-fname').value.trim();
+    var lname=document.getElementById('su-lname').value.trim();
+    var email=document.getElementById('su-email').value.trim().toLowerCase();
+    var phone=document.getElementById('su-phone').value.trim();
+    var pass=document.getElementById('su-pass').value;
+    var pass2=document.getElementById('su-pass2').value;
+
+    if(!fname||!lname){showErr('Please enter your full name.');return;}
+    if(!email||!validateEmail(email)){showErr('Please enter a valid email address.');return;}
+    if(!phone){showErr('Please enter your phone number.');return;}
+    if(!pass||pass.length<6){showErr('Password must be at least 6 characters.');return;}
+    if(pass!==pass2){showErr('Passwords do not match.');return;}
+
+    var customers;
+    try{customers=JSON.parse(localStorage.getItem('nau_customers')||'[]');}catch(e){customers=[];}
+
+    if(!customers.length){
+      customers=[
+        {id:1,name:'John Mugisha',email:'customer@nipponauto.ug',phone:'+256 700 100 200',password:'customer123',joinedAt:'2026-01-15T00:00:00Z'},
+        {id:2,name:'Grace Nakato',email:'grace@nipponauto.ug',phone:'+256 700 300 400',password:'grace456',joinedAt:'2026-02-10T00:00:00Z'}
+      ];
+    }
+
+    if(customers.find(function(c){return c.email===email;})){
+      showErr('An account with this email already exists. Please sign in.');
+      return;
+    }
+
+    var nextId=customers.reduce(function(mx,c){return c.id>mx?c.id:mx;},0)+1;
+    var newCustomer={
+      id:nextId,
+      name:fname+' '+lname,
+      email:email,
+      phone:phone,
+      password:pass,
+      joinedAt:new Date().toISOString()
+    };
+    customers.push(newCustomer);
+    localStorage.setItem('nau_customers',JSON.stringify(customers));
+
+    sessionStorage.setItem('nau_customer_session',JSON.stringify({
+      id:newCustomer.id,
+      name:newCustomer.name,
+      email:newCustomer.email,
+      phone:newCustomer.phone
+    }));
+
+    var btn=document.getElementById('signupBtn');
+    btn.disabled=true;
+    showOk('Account created! Redirecting to your dashboard…');
+    setTimeout(function(){window.location.href='customer/';},1200);
+  });
+
+  document.getElementById('su-pass2').addEventListener('keydown',function(e){
+    if(e.key==='Enter')document.getElementById('signupBtn').click();
+  });
+})();
+</script>
+</body>
+</html>
