@@ -96,6 +96,7 @@
           <a href="#" data-nav="acc-payments">Payments</a>
           <a href="#" data-nav="acc-receipts">Receipts</a>
           <a href="#" data-nav="acc-summary">Financial Summary</a>
+          <a href="#" data-nav="acc-accounts">Payment Accounts</a>
         </div>
       </div>
 
@@ -179,6 +180,7 @@
         <a data-nav="acc-payments">Payments</a>
         <a data-nav="acc-receipts">Receipts</a>
         <a data-nav="acc-summary">Financial Summary</a>
+        <a data-nav="acc-accounts">Payment Accounts</a>
       </div>
     </div>
     <div class="amn-group">
@@ -986,6 +988,54 @@ Disallow: /admin/</textarea></div></div>
       <div class="dash-section" style="margin-top:1.5rem">
         <h3>Monthly Revenue vs Expenses (Last 6 Months)</h3>
         <div class="bar-chart" id="acc-monthly-chart"></div>
+      </div>
+    </div>
+
+    <!-- ===== PAYMENT ACCOUNTS ===== -->
+    <div class="page-section" id="page-acc-accounts">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Payment Accounts</h1>
+          <p>Configure bank accounts, cash accounts and mobile money used for transactions</p>
+        </div>
+        <button class="btn-create" onclick="openModal('payAccount')">+ Add Account</button>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Search</label>
+          <input type="text" class="filter-input" id="acct-search" placeholder="Search by name or bank" />
+        </div>
+        <div class="filter-group">
+          <label>Type</label>
+          <select class="filter-input" id="acct-type-filter">
+            <option value="">All Types</option>
+            <option value="Bank">Bank</option>
+            <option value="Cash">Cash</option>
+            <option value="Mobile Money">Mobile Money</option>
+            <option value="Cheque">Cheque</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Currency</label>
+          <select class="filter-input" id="acct-currency-filter">
+            <option value="">All Currencies</option>
+            <option value="USD">USD</option>
+            <option value="UGX">UGX</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn-filter btn-clear" onclick="clearFilters('accounts')">Clear All</button>
+          <button class="btn-filter btn-apply" onclick="renderPaymentAccounts()">🔍 Apply</button>
+        </div>
+      </div>
+      <div class="table-meta"><span id="acct-count"></span></div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr>
+            <th>Account Name</th><th>Type</th><th>Currency</th><th>Bank / Provider</th><th>Account Number</th><th>Account Holder</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="acct-tbody"></tbody>
+        </table>
       </div>
     </div>
 

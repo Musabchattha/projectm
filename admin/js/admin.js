@@ -103,7 +103,8 @@ function navigate(page) {
     'acc-bills': renderBills,
     'acc-payments': renderPayments,
     'acc-receipts': renderReceipts,
-    'acc-summary': renderAccSummary
+    'acc-summary': renderAccSummary,
+    'acc-accounts': renderPaymentAccounts
   };
   if (renders[page]) renders[page]();
 }
@@ -139,7 +140,8 @@ function updateBreadcrumb(page) {
     'acc-bills': ['Accounting', 'Bills & Expenses'],
     'acc-payments': ['Accounting', 'Payments'],
     'acc-receipts': ['Accounting', 'Receipts'],
-    'acc-summary': ['Accounting', 'Financial Summary']
+    'acc-summary': ['Accounting', 'Financial Summary'],
+    'acc-accounts': ['Accounting', 'Payment Accounts']
   };
   const parts = map[page] || [page];
   const bc = document.getElementById('adminBreadcrumb');
@@ -1150,12 +1152,8 @@ const modalConfigs = {
       <div class="form-row"><div class="form-group"><label>Sale Price (USD)<span class="required">*</span></label><input class="form-control" type="number" id="inv-sale-price" value="${d?d.salePrice:''}" step="0.01" min="0" /></div>
         <div class="form-group"><label>Discount (USD)</label><input class="form-control" type="number" id="inv-discount" value="${d?d.discount:0}" step="0.01" min="0" /></div></div>
       <div class="form-row"><div class="form-group"><label>Include Tax (18% VAT)</label><br/><label class="toggle-switch" style="margin-top:.4rem"><input type="checkbox" id="inv-tax" ${d&&d.taxRate?'checked':''}><span class="toggle-slider"></span></label></div>
-        <div class="form-group"><label>Payment Method</label><select class="form-control" id="inv-pay-method">
-          <option ${d&&d.paymentMethod==='Cash'?'selected':''}>Cash</option>
-          <option ${d&&d.paymentMethod==='Bank Transfer'?'selected':''}>Bank Transfer</option>
-          <option ${d&&d.paymentMethod==='MTN Mobile Money'?'selected':''}>MTN Mobile Money</option>
-          <option ${d&&d.paymentMethod==='Airtel Money'?'selected':''}>Airtel Money</option>
-          <option ${d&&d.paymentMethod==='Cheque'?'selected':''}>Cheque</option>
+        <div class="form-group"><label>Payment Account</label><select class="form-control" id="inv-pay-method">
+          ${accountOptions(d&&d.paymentMethod)}
         </select></div></div>
       <div class="form-group"><label>Status</label><select class="form-control" id="inv-status">
         <option value="Draft" ${!d||d.status==='Draft'?'selected':''}>Draft</option>
@@ -1228,12 +1226,8 @@ const modalConfigs = {
           <option value="Pending" ${!d||d.status==='Pending'?'selected':''}>Pending</option>
           <option value="Paid" ${d&&d.status==='Paid'?'selected':''}>Paid</option>
         </select></div>
-        <div class="form-group"><label>Payment Method</label><select class="form-control" id="bill-pay-method">
-          <option ${d&&d.paymentMethod==='Cash'?'selected':''}>Cash</option>
-          <option ${d&&d.paymentMethod==='Bank Transfer'?'selected':''}>Bank Transfer</option>
-          <option ${d&&d.paymentMethod==='MTN Mobile Money'?'selected':''}>MTN Mobile Money</option>
-          <option ${d&&d.paymentMethod==='Airtel Money'?'selected':''}>Airtel Money</option>
-          <option ${d&&d.paymentMethod==='Cheque'?'selected':''}>Cheque</option>
+        <div class="form-group"><label>Payment Account</label><select class="form-control" id="bill-pay-method">
+          ${accountOptions(d&&d.paymentMethod)}
         </select></div></div>
       <div class="form-row full"><div class="form-group"><label>Notes</label><textarea class="form-control" id="bill-notes" rows="2">${d?d.notes:''}</textarea></div></div>`;
     },
@@ -1266,6 +1260,59 @@ const modalConfigs = {
       if (i > -1) { all[i] = { ...all[i], ...d }; DB.save('nau_bills', all); }
     },
     refresh: renderBills
+  },
+
+  payAccount: {
+    label: 'Payment Account',
+    getData: id => DB.load('nau_payment_accounts').find(a => a.id === id),
+    form: d => `
+      <div class="form-row">
+        <div class="form-group"><label>Account Name *</label><input class="form-control" id="pa-name" value="${d?d.name:''}" placeholder="e.g. Stanbic USD" /></div>
+        <div class="form-group"><label>Type *</label><select class="form-control" id="pa-type">
+          ${['Bank','Cash','Mobile Money','Cheque'].map(t=>`<option ${d&&d.type===t?'selected':''}>${t}</option>`).join('')}
+        </select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Currency *</label><select class="form-control" id="pa-currency">
+          <option value="USD" ${d&&d.currency==='USD'?'selected':''}>USD — US Dollar</option>
+          <option value="UGX" ${d&&d.currency==='UGX'?'selected':''}>UGX — Uganda Shilling</option>
+          <option value="KES" ${d&&d.currency==='KES'?'selected':''}>KES — Kenya Shilling</option>
+          <option value="EUR" ${d&&d.currency==='EUR'?'selected':''}>EUR — Euro</option>
+        </select></div>
+        <div class="form-group"><label>Status</label><select class="form-control" id="pa-status">
+          <option value="Active" ${!d||d.status==='Active'?'selected':''}>Active</option>
+          <option value="Inactive" ${d&&d.status==='Inactive'?'selected':''}>Inactive</option>
+        </select></div>
+      </div>
+      <div class="form-group"><label>Bank / Provider Name</label><input class="form-control" id="pa-bank" value="${d?d.bankName||'':''}" placeholder="e.g. Stanbic Bank Uganda" /></div>
+      <div class="form-row">
+        <div class="form-group"><label>Account Number</label><input class="form-control" id="pa-acctno" value="${d?d.accountNumber||'':''}" placeholder="e.g. 9030005754211" /></div>
+        <div class="form-group"><label>Account Holder</label><input class="form-control" id="pa-holder" value="${d?d.accountHolder||'':''}" placeholder="e.g. NipponAuto Uganda Ltd" /></div>
+      </div>`,
+    collect: () => {
+      const name = document.getElementById('pa-name').value.trim();
+      if (!name) { toast('❌ Account name is required'); return null; }
+      return {
+        name,
+        type: document.getElementById('pa-type').value,
+        currency: document.getElementById('pa-currency').value,
+        status: document.getElementById('pa-status').value,
+        bankName: document.getElementById('pa-bank').value.trim(),
+        accountNumber: document.getElementById('pa-acctno').value.trim(),
+        accountHolder: document.getElementById('pa-holder').value.trim()
+      };
+    },
+    create: d => {
+      const all = DB.load('nau_payment_accounts');
+      all.push({ id: DB.nextId('nau_payment_accounts'), ...d, createdAt: nowISO() });
+      DB.save('nau_payment_accounts', all);
+    },
+    update: (id, d) => {
+      const all = DB.load('nau_payment_accounts');
+      const i = all.findIndex(a => a.id === id);
+      if (i > -1) { all[i] = { ...all[i], ...d }; DB.save('nau_payment_accounts', all); }
+    },
+    refresh: renderPaymentAccounts
   }
 };
 
@@ -1281,11 +1328,12 @@ function clearFilters(section) {
     invoices:[['inv-search',''],['inv-status-filter',''],['inv-date-from',''],['inv-date-to','']],
     bills:[['bill-search',''],['bill-cat-filter',''],['bill-status-filter','']],
     payments:[['pay-search',''],['pay-type-filter',''],['pay-method-filter','']],
-    receipts:[['rec-search','']]
+    receipts:[['rec-search','']],
+    accounts:[['acct-search',''],['acct-type-filter',''],['acct-currency-filter','']]
   };
   (map[section]||[]).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
   const renderMap = {manufacturers:renderManufacturers,models:renderModels,vehicles:renderVehicles,variables:renderVariables,quotes:renderQuotes,inquiries:renderInquiries,
-    invoices:renderInvoices,bills:renderBills,payments:renderPayments,receipts:renderReceipts};
+    invoices:renderInvoices,bills:renderBills,payments:renderPayments,receipts:renderReceipts,accounts:renderPaymentAccounts};
   if(renderMap[section]) renderMap[section]();
 }
 
@@ -1637,6 +1685,70 @@ function printReceipt(id) {
   document.getElementById('invoicePrintModal').style.display = 'block';
 }
 
+// ===== PAYMENT ACCOUNTS =====
+function getActiveAccounts() {
+  return DB.load('nau_payment_accounts').filter(a => a.status === 'Active');
+}
+
+function accountOptions(selectedName) {
+  const accts = getActiveAccounts();
+  if (!accts.length) {
+    return '<option value="Cash USD">Cash USD</option><option value="Cash UGX">Cash UGX</option>';
+  }
+  return accts.map(a =>
+    `<option value="${a.name}" ${a.name === selectedName ? 'selected' : ''}>${a.name} (${a.currency})</option>`
+  ).join('');
+}
+
+function renderPaymentAccounts() {
+  const search = (document.getElementById('acct-search')||{}).value||'';
+  const typeF = (document.getElementById('acct-type-filter')||{}).value||'';
+  const currF = (document.getElementById('acct-currency-filter')||{}).value||'';
+
+  let rows = DB.load('nau_payment_accounts');
+  if (search) rows = rows.filter(a => (a.name+a.bankName+a.accountHolder).toLowerCase().includes(search.toLowerCase()));
+  if (typeF) rows = rows.filter(a => a.type === typeF);
+  if (currF) rows = rows.filter(a => a.currency === currF);
+
+  const el = document.getElementById('acct-count');
+  if (el) el.textContent = `${rows.length} account${rows.length !== 1 ? 's' : ''}`;
+
+  const typeIcon = { Bank:'🏦', Cash:'💵', 'Mobile Money':'📱', Cheque:'📝' };
+
+  document.getElementById('acct-tbody').innerHTML = rows.length ? rows.map(a => `
+    <tr>
+      <td><strong>${a.name}</strong></td>
+      <td>${typeIcon[a.type]||''} ${a.type}</td>
+      <td><span class="badge ${a.currency==='USD'?'badge-published':'badge-active'}">${a.currency}</span></td>
+      <td>${a.bankName||'—'}</td>
+      <td style="font-family:monospace;font-size:.83rem">${a.accountNumber||'—'}</td>
+      <td>${a.accountHolder||'—'}</td>
+      <td>
+        <label class="toggle-switch" title="${a.status}">
+          <input type="checkbox" ${a.status==='Active'?'checked':''} onchange="toggleAccountStatus(${a.id},this.checked)" />
+          <span class="toggle-slider"></span>
+        </label>
+      </td>
+      <td>
+        <button class="btn-row" title="Edit" onclick="openModal('payAccount',${a.id})">✏️</button>
+        <button class="btn-row btn-danger" title="Delete" onclick="deletePayAccount(${a.id})">🗑️</button>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:#8a9ab5;padding:2rem">No accounts found. Add your first account above.</td></tr>';
+}
+
+function toggleAccountStatus(id, active) {
+  const accts = DB.load('nau_payment_accounts');
+  const a = accts.find(x => x.id === id);
+  if (a) { a.status = active ? 'Active' : 'Inactive'; DB.save('nau_payment_accounts', accts); toast('✅ Status updated'); }
+}
+
+function deletePayAccount(id) {
+  if (!confirm('Delete this payment account?')) return;
+  DB.save('nau_payment_accounts', DB.load('nau_payment_accounts').filter(a => a.id !== id));
+  toast('🗑️ Account deleted');
+  renderPaymentAccounts();
+}
+
 // ===== ACCOUNTING: OPEN PAYMENT MODAL =====
 function openPaymentModal(type, refId) {
   let refNo, amount, issuedTo;
@@ -1662,8 +1774,8 @@ function openPaymentModal(type, refId) {
       <div class="form-group"><label>Amount (USD)</label><input class="form-control" type="number" id="pmt-amount" value="${amount}" step="0.01" min="0" /></div>
       <div class="form-group"><label>Currency</label><select class="form-control" id="pmt-currency"><option value="USD">USD</option><option value="UGX">UGX</option></select></div>
     </div>
-    <div class="form-group"><label>Payment Method</label><select class="form-control" id="pmt-method">
-      <option>Cash</option><option>Bank Transfer</option><option>MTN Mobile Money</option><option>Airtel Money</option><option>Cheque</option>
+    <div class="form-group"><label>Payment Account</label><select class="form-control" id="pmt-method">
+      ${accountOptions()}
     </select></div>
     <div class="form-group"><label>Payment Date</label><input class="form-control" type="date" id="pmt-date" value="${new Date().toISOString().split('T')[0]}" /></div>
     <div class="form-group"><label>Notes</label><textarea class="form-control" id="pmt-notes" rows="2"></textarea></div>`;
@@ -2088,6 +2200,17 @@ function seedData() {
         issuedTo:'Grace Nakato', amount:25000, currency:'USD', method:'MTN Mobile Money', issuedAt:'2026-04-05T11:00:00Z', notes:'First installment' }
     ];
     DB.save('nau_receipts', recSeed);
+  }
+
+  if (!DB.load('nau_payment_accounts').length) {
+    DB.save('nau_payment_accounts', [
+      { id:1, name:'Stanbic USD', type:'Bank', currency:'USD', bankName:'Stanbic Bank Uganda', accountNumber:'9030005754211', accountHolder:'NipponAuto Uganda Ltd', status:'Active', createdAt:nowISO() },
+      { id:2, name:'Stanbic UGX', type:'Bank', currency:'UGX', bankName:'Stanbic Bank Uganda', accountNumber:'9030005754228', accountHolder:'NipponAuto Uganda Ltd', status:'Active', createdAt:nowISO() },
+      { id:3, name:'Cash USD', type:'Cash', currency:'USD', bankName:'', accountNumber:'', accountHolder:'NipponAuto Uganda Ltd', status:'Active', createdAt:nowISO() },
+      { id:4, name:'Cash UGX', type:'Cash', currency:'UGX', bankName:'', accountNumber:'', accountHolder:'NipponAuto Uganda Ltd', status:'Active', createdAt:nowISO() },
+      { id:5, name:'MTN Mobile Money', type:'Mobile Money', currency:'UGX', bankName:'MTN Uganda', accountNumber:'+256700123456', accountHolder:'NipponAuto Uganda', status:'Active', createdAt:nowISO() },
+      { id:6, name:'Airtel Money', type:'Mobile Money', currency:'UGX', bankName:'Airtel Uganda', accountNumber:'+256701123456', accountHolder:'NipponAuto Uganda', status:'Active', createdAt:nowISO() }
+    ]);
   }
 
   localStorage.setItem('nau_seeded', '1');
