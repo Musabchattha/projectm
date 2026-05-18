@@ -7,81 +7,320 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23f0a500'/><text y='24' x='4' font-size='22'>🚗</text></svg>" />
   <style>
-    .login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a1628 0%,#1a3259 60%,#0a1628 100%);padding:1rem;}
-    .login-box{background:#fff;border-radius:14px;padding:2.5rem 2rem;width:100%;max-width:460px;box-shadow:0 12px 48px rgba(0,0,0,.3);}
-    .login-brand{display:flex;align-items:center;gap:.75rem;margin-bottom:1.75rem;justify-content:center;}
+    /* ---- Base ---- */
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;}
+
+    /* ---- Background ---- */
+    .login-page{
+      min-height:100vh;
+      display:flex;
+      align-items:stretch;
+      justify-content:center;
+      background-color:#0a1628;
+      background-image:
+        radial-gradient(circle at 80% 10%, rgba(240,165,0,.10) 0%, transparent 50%),
+        radial-gradient(circle at 10% 90%, rgba(26,50,89,.7) 0%, transparent 50%),
+        radial-gradient(#ffffff0c 1px, transparent 1px);
+      background-size:auto,auto,28px 28px;
+      padding:2rem 1rem;
+    }
+
+    /* ---- Two-column layout on desktop ---- */
+    .signup-layout{
+      display:grid;
+      grid-template-columns:1fr 420px;
+      max-width:900px;
+      width:100%;
+      border-radius:20px;
+      overflow:hidden;
+      box-shadow:0 24px 80px rgba(0,0,0,.45);
+      align-self:center;
+    }
+
+    /* ---- Brand panel (left) ---- */
+    .signup-brand-panel{
+      background:linear-gradient(160deg,#0a1628 0%,#122040 50%,#0d1e38 100%);
+      padding:3rem 2.5rem;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      position:relative;
+      overflow:hidden;
+    }
+    .signup-brand-panel::before{
+      content:'';
+      position:absolute;
+      top:-30%;
+      left:-20%;
+      width:350px;
+      height:350px;
+      border-radius:50%;
+      background:rgba(240,165,0,.07);
+      pointer-events:none;
+    }
+    .signup-brand-panel::after{
+      content:'';
+      position:absolute;
+      bottom:-20%;
+      right:-15%;
+      width:280px;
+      height:280px;
+      border-radius:50%;
+      background:rgba(240,165,0,.05);
+      pointer-events:none;
+    }
+    .sbp-logo{display:flex;align-items:center;gap:.75rem;position:relative;z-index:1;}
+    .sbp-logo-icon{font-size:2.5rem;}
+    .sbp-logo-t1{display:block;font-size:1.25rem;font-weight:800;color:#fff;letter-spacing:-.02em;}
+    .sbp-logo-t2{display:block;font-size:.72rem;font-weight:600;color:#f0a500;text-transform:uppercase;letter-spacing:.07em;}
+    .sbp-body{position:relative;z-index:1;}
+    .sbp-tagline{font-size:1.65rem;font-weight:900;color:#fff;line-height:1.2;letter-spacing:-.03em;margin-bottom:1rem;}
+    .sbp-tagline span{color:#f0a500;}
+    .sbp-desc{font-size:.87rem;color:rgba(200,215,235,.75);line-height:1.7;margin-bottom:1.75rem;}
+    .sbp-perks{display:flex;flex-direction:column;gap:.75rem;}
+    .sbp-perk{display:flex;align-items:center;gap:.7rem;font-size:.85rem;color:rgba(200,215,235,.85);}
+    .sbp-perk-icon{font-size:1.1rem;flex-shrink:0;}
+    .sbp-footer{font-size:.76rem;color:rgba(255,255,255,.3);position:relative;z-index:1;}
+
+    /* ---- Form card (right) ---- */
+    .login-box{
+      background:#fff;
+      padding:2.5rem 2.25rem;
+      width:100%;
+      max-width:420px;
+    }
+
+    /* ---- Brand (shown when panel hidden on mobile) ---- */
+    .login-brand{display:none;align-items:center;gap:.8rem;margin-bottom:1.75rem;justify-content:center;}
     .login-brand-icon{font-size:2.2rem;}
     .login-brand-text span{display:block;line-height:1.15;}
-    .login-brand-text .t1{font-size:1.25rem;font-weight:800;color:#0a1628;}
-    .login-brand-text .t2{font-size:.82rem;color:#8a9ab5;}
-    .login-box h2{font-size:1.3rem;color:#0a1628;margin-bottom:.25rem;text-align:center;}
-    .login-box .sub{color:#8a9ab5;font-size:.87rem;text-align:center;margin-bottom:1.5rem;}
+    .login-brand-text .t1{font-size:1.25rem;font-weight:800;color:#0a1628;letter-spacing:-.02em;}
+    .login-brand-text .t2{font-size:.72rem;font-weight:600;color:#f0a500;text-transform:uppercase;letter-spacing:.06em;}
+
+    /* ---- Headings ---- */
+    .login-box h2{font-size:1.4rem;font-weight:800;color:#0a1628;margin-bottom:.3rem;letter-spacing:-.02em;}
+    .login-box .sub{color:#8a9ab5;font-size:.87rem;margin-bottom:1.5rem;line-height:1.5;}
+
+    /* ---- Progress indicator ---- */
+    .signup-steps-hint{
+      display:flex;
+      align-items:center;
+      gap:.35rem;
+      margin-bottom:1.5rem;
+    }
+    .ssh-dot{
+      width:8px;height:8px;border-radius:50%;
+      background:#e2e8f0;
+      transition:background .2s;
+    }
+    .ssh-dot.active{background:#f0a500;width:22px;border-radius:4px;}
+    .ssh-label{font-size:.72rem;color:#8a9ab5;margin-left:.25rem;}
+
+    /* ---- Form fields ---- */
     .lf-group{margin-bottom:1rem;}
-    .lf-group label{display:block;font-size:.8rem;font-weight:600;color:#1e2a3a;margin-bottom:.35rem;}
-    .lf-group input{width:100%;padding:.65rem .9rem;border:1.5px solid #d1d9e6;border-radius:7px;font-size:.9rem;outline:none;transition:border-color .2s;font-family:inherit;box-sizing:border-box;}
-    .lf-group input:focus{border-color:#0a1628;}
-    .login-error{background:#fef2f2;color:#c0392b;border:1px solid #fecaca;border-radius:6px;padding:.6rem .9rem;font-size:.83rem;margin-bottom:1rem;display:none;}
-    .login-success{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:6px;padding:.6rem .9rem;font-size:.83rem;margin-bottom:1rem;display:none;}
-    .btn-login-submit{width:100%;padding:.75rem;background:#c0392b;color:#fff;border:none;border-radius:7px;font-size:.95rem;font-weight:700;cursor:pointer;transition:background .2s;font-family:inherit;margin-top:.25rem;}
-    .btn-login-submit:hover{background:#a93226;}
-    .btn-login-submit:disabled{background:#aaa;cursor:not-allowed;}
-    .login-back{display:block;text-align:center;margin-top:1.25rem;color:#8a9ab5;font-size:.83rem;text-decoration:none;}
-    .login-back:hover{color:#0a1628;}
+    .lf-group label{
+      display:block;
+      font-size:.78rem;
+      font-weight:700;
+      color:#1e2a3a;
+      margin-bottom:.4rem;
+      letter-spacing:.01em;
+    }
+    .lf-group input{
+      width:100%;
+      padding:.78rem 1rem;
+      border:1.5px solid #d1d9e6;
+      border-radius:10px;
+      font-size:.9rem;
+      outline:none;
+      transition:border-color .2s,box-shadow .2s;
+      font-family:inherit;
+      box-sizing:border-box;
+      background:#fafbfd;
+      color:#1e2a3a;
+    }
+    .lf-group input:focus{
+      border-color:#0a1628;
+      background:#fff;
+      box-shadow:0 0 0 3px rgba(10,22,40,.08);
+    }
+
+    /* ---- Name row ---- */
     .lf-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
-    @media(max-width:480px){.lf-row{grid-template-columns:1fr;}}
+
+    /* ---- Alerts ---- */
+    .login-error{
+      background:#fef2f2;
+      color:#b91c1c;
+      border:1px solid #fecaca;
+      border-left:4px solid #dc2626;
+      border-radius:8px;
+      padding:.7rem 1rem;
+      font-size:.83rem;
+      margin-bottom:1.1rem;
+      display:none;
+    }
+    .login-success{
+      background:#f0fdf4;
+      color:#15803d;
+      border:1px solid #bbf7d0;
+      border-left:4px solid #16a34a;
+      border-radius:8px;
+      padding:.7rem 1rem;
+      font-size:.83rem;
+      margin-bottom:1.1rem;
+      display:none;
+    }
+
+    /* ---- Submit button ---- */
+    .btn-login-submit{
+      width:100%;
+      padding:.85rem;
+      background:linear-gradient(135deg,#c0392b 0%,#e74c3c 100%);
+      color:#fff;
+      border:none;
+      border-radius:10px;
+      font-size:.95rem;
+      font-weight:700;
+      cursor:pointer;
+      transition:all .25s ease;
+      font-family:inherit;
+      margin-top:.35rem;
+      box-shadow:0 4px 14px rgba(192,57,43,.35);
+      letter-spacing:.01em;
+    }
+    .btn-login-submit:hover{
+      background:linear-gradient(135deg,#a93226 0%,#c0392b 100%);
+      box-shadow:0 6px 22px rgba(192,57,43,.55);
+      transform:translateY(-1px);
+    }
+    .btn-login-submit:disabled{
+      background:linear-gradient(135deg,#aaa 0%,#bbb 100%);
+      box-shadow:none;
+      cursor:not-allowed;
+      transform:none;
+    }
+
+    /* ---- Sign in link ---- */
+    .signup-signin-row{text-align:center;margin-top:1rem;font-size:.84rem;color:#8a9ab5;}
+    .signup-signin-row a{color:#c0392b;font-weight:700;text-decoration:none;}
+    .signup-signin-row a:hover{text-decoration:underline;}
+
+    /* ---- Back link ---- */
+    .login-back{
+      display:block;
+      text-align:center;
+      margin-top:1.25rem;
+      color:#8a9ab5;
+      font-size:.82rem;
+      text-decoration:none;
+      transition:color .2s;
+    }
+    .login-back:hover{color:#0a1628;}
+
+    /* ---- Mobile: hide brand panel, show logo in card ---- */
+    @media(max-width:768px){
+      .login-page{padding:1.25rem .75rem;}
+      .signup-layout{grid-template-columns:1fr;max-width:460px;border-radius:16px;}
+      .signup-brand-panel{display:none;}
+      .login-box{padding:2rem 1.5rem;max-width:100%;border-radius:0;}
+      .login-brand{display:flex;}
+    }
+    @media(max-width:480px){
+      .lf-row{grid-template-columns:1fr;}
+      .login-box{padding:1.75rem 1.25rem;}
+    }
   </style>
 </head>
 <body>
 <div class="login-page">
-  <div class="login-box">
-    <div class="login-brand">
-      <div class="login-brand-icon">🚗</div>
-      <div class="login-brand-text">
-        <span class="t1">NipponAuto Uganda</span>
-        <span class="t2">Customer Portal</span>
-      </div>
-    </div>
-    <h2>Create Your Account</h2>
-    <p class="sub">Join thousands of Ugandans buying quality Japanese cars</p>
+  <div class="signup-layout">
 
-    <div class="login-error" id="signupError"></div>
-    <div class="login-success" id="signupSuccess"></div>
-
-    <div class="lf-row">
-      <div class="lf-group">
-        <label>First Name <span style="color:#c0392b">*</span></label>
-        <input type="text" id="su-fname" placeholder="John" autocomplete="given-name" />
+    <!-- Brand panel (desktop left column) -->
+    <div class="signup-brand-panel">
+      <div class="sbp-logo">
+        <div class="sbp-logo-icon">🚗</div>
+        <div>
+          <span class="sbp-logo-t1">NipponAuto Uganda</span>
+          <span class="sbp-logo-t2">Customer Portal</span>
+        </div>
       </div>
-      <div class="lf-group">
-        <label>Last Name <span style="color:#c0392b">*</span></label>
-        <input type="text" id="su-lname" placeholder="Mugisha" autocomplete="family-name" />
+      <div class="sbp-body">
+        <div class="sbp-tagline">Drive Your Dream <span>Japanese Car</span></div>
+        <p class="sbp-desc">Join thousands of Ugandans who trust NipponAuto for quality, inspected Japanese imports delivered to your door.</p>
+        <div class="sbp-perks">
+          <div class="sbp-perk"><span class="sbp-perk-icon">✅</span> Browse 500+ verified vehicles</div>
+          <div class="sbp-perk"><span class="sbp-perk-icon">💬</span> Instant WhatsApp quotes</div>
+          <div class="sbp-perk"><span class="sbp-perk-icon">🚢</span> End-to-end import support</div>
+          <div class="sbp-perk"><span class="sbp-perk-icon">⭐</span> Rated 4.9 by 1,200+ buyers</div>
+        </div>
       </div>
-    </div>
-    <div class="lf-group">
-      <label>Email Address <span style="color:#c0392b">*</span></label>
-      <input type="email" id="su-email" placeholder="you@example.com" autocomplete="email" />
-    </div>
-    <div class="lf-group">
-      <label>Phone Number <span style="color:#c0392b">*</span></label>
-      <input type="tel" id="su-phone" placeholder="+256 700 123 456" autocomplete="tel" />
-    </div>
-    <div class="lf-row">
-      <div class="lf-group">
-        <label>Password <span style="color:#c0392b">*</span></label>
-        <input type="password" id="su-pass" placeholder="Min 6 characters" autocomplete="new-password" />
-      </div>
-      <div class="lf-group">
-        <label>Confirm Password <span style="color:#c0392b">*</span></label>
-        <input type="password" id="su-pass2" placeholder="Repeat password" autocomplete="new-password" />
-      </div>
+      <div class="sbp-footer">© 2026 NipponAuto Uganda. All rights reserved.</div>
     </div>
 
-    <button class="btn-login-submit" id="signupBtn">Create Account</button>
+    <!-- Form card -->
+    <div class="login-box">
+      <!-- Mobile brand logo (hidden on desktop) -->
+      <div class="login-brand">
+        <div class="login-brand-icon">🚗</div>
+        <div class="login-brand-text">
+          <span class="t1">NipponAuto Uganda</span>
+          <span class="t2">Customer Portal</span>
+        </div>
+      </div>
 
-    <div style="text-align:center;margin-top:.9rem;font-size:.84rem;color:#8a9ab5;">
-      Already have an account? <a href="login.html" style="color:#c0392b;font-weight:600;text-decoration:none;">Sign in →</a>
+      <h2>Create Your Account</h2>
+      <p class="sub">Join thousands of Ugandans buying quality Japanese cars</p>
+
+      <!-- Progress dots -->
+      <div class="signup-steps-hint">
+        <div class="ssh-dot active"></div>
+        <div class="ssh-dot"></div>
+        <div class="ssh-dot"></div>
+        <span class="ssh-label">Account details</span>
+      </div>
+
+      <div class="login-error" id="signupError"></div>
+      <div class="login-success" id="signupSuccess"></div>
+
+      <div class="lf-row">
+        <div class="lf-group">
+          <label>First Name <span style="color:#c0392b">*</span></label>
+          <input type="text" id="su-fname" placeholder="John" autocomplete="given-name" />
+        </div>
+        <div class="lf-group">
+          <label>Last Name <span style="color:#c0392b">*</span></label>
+          <input type="text" id="su-lname" placeholder="Mugisha" autocomplete="family-name" />
+        </div>
+      </div>
+      <div class="lf-group">
+        <label>Email Address <span style="color:#c0392b">*</span></label>
+        <input type="email" id="su-email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="lf-group">
+        <label>Phone Number <span style="color:#c0392b">*</span></label>
+        <input type="tel" id="su-phone" placeholder="+256 700 123 456" autocomplete="tel" />
+      </div>
+      <div class="lf-row">
+        <div class="lf-group">
+          <label>Password <span style="color:#c0392b">*</span></label>
+          <input type="password" id="su-pass" placeholder="Min 6 characters" autocomplete="new-password" />
+        </div>
+        <div class="lf-group">
+          <label>Confirm Password <span style="color:#c0392b">*</span></label>
+          <input type="password" id="su-pass2" placeholder="Repeat password" autocomplete="new-password" />
+        </div>
+      </div>
+
+      <button class="btn-login-submit" id="signupBtn">Create Account</button>
+
+      <div class="signup-signin-row" style="margin-top:.9rem;">
+        Already have an account? <a href="login.html">Sign in →</a>
+      </div>
+      <a href="index.html" class="login-back">← Back to NipponAuto Uganda</a>
     </div>
-    <a href="index.html" class="login-back">← Back to NipponAuto Uganda</a>
+
   </div>
 </div>
 <script>
