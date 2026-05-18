@@ -498,7 +498,7 @@ ul { list-style: none; }
    RESPONSIVE
    ============================ */
 @media (max-width: 1024px) {
-  .make-grid { grid-template-columns: repeat(4, 1fr); }
+  .make-grid { grid-template-columns: repeat(3, 1fr); }
   .arrivals-grid { grid-template-columns: repeat(2, 1fr); }
   .vehicle-grid { grid-template-columns: repeat(2, 1fr); }
   .services-grid { grid-template-columns: repeat(2, 1fr); }
@@ -522,6 +522,10 @@ ul { list-style: none; }
 @media (max-width: 768px) {
   .nav-links, .nav-auth { display: none; }
   .hamburger { display: flex; }
+  .top-bar { display: none; }
+  .hero-carousel { height: 65vh; min-height: 380px; }
+  .section-title { font-size: 1.6rem; }
+  .section-label { font-size: .72rem; }
   .make-grid { grid-template-columns: repeat(2, 1fr); }
   .arrivals-grid { grid-template-columns: 1fr; }
   .vehicle-grid { grid-template-columns: 1fr; }
@@ -540,7 +544,7 @@ ul { list-style: none; }
   .mobile-filter-toggle { display: flex; align-items: center; gap: .5rem; background: var(--navy); color: var(--white); border: none; border-radius: 6px; padding: .55rem 1rem; font-weight: 600; font-size: .85rem; cursor: pointer; }
   .sidebar-overlay { display: none; }
   .inv-grid { grid-template-columns: 1fr; }
-  .hero-search-card { margin: -1rem 1rem 0; }
+  .hero-search-card { margin: -1.5rem 1rem 0; border-radius: 10px; }
   .hsc-row { grid-template-columns: 1fr; }
   .values-grid { grid-template-columns: 1fr; }
   .team-grid { grid-template-columns: 1fr; }
