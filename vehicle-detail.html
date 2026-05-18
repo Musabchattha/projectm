@@ -39,7 +39,10 @@
         <li><a href="about.html">About</a></li>
         <li><a href="contact.html">Contact</a></li>
       </ul>
-      <a href="https://wa.me/256700123456" class="btn btn-primary nav-cta" target="_blank" rel="noopener">💬 WhatsApp</a>
+      <div class="nav-auth">
+        <a href="login.html" class="btn-auth-login">Login</a>
+        <a href="https://wa.me/256700123456" class="btn-auth-signup" target="_blank" rel="noopener">💬 WhatsApp</a>
+      </div>
       <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
     </nav>
   </div>
@@ -236,7 +239,7 @@
       <div class="footer-col"><h4>Popular Makes</h4><ul><li><a href="inventory.html?make=toyota">Toyota</a></li><li><a href="inventory.html?make=nissan">Nissan</a></li><li><a href="inventory.html?make=honda">Honda</a></li><li><a href="inventory.html?make=subaru">Subaru</a></li></ul></div>
       <div class="footer-col"><h4>Contact</h4><ul class="footer-contact"><li><span class="icon">📍</span><span>Plot 45, Nakawa Industrial Road, Kampala</span></li><li><span class="icon">📞</span><span>+256 700 123 456</span></li><li><span class="icon">✉️</span><span>info@nipponauto.ug</span></li></ul></div>
     </div>
-    <div class="footer-bottom"><span>© 2025 NipponAuto Uganda. All rights reserved.</span><span><a href="#">Privacy Policy</a> · <a href="#">Terms</a></span></div>
+    <div class="footer-bottom"><span>© 2025 NipponAuto Uganda. All rights reserved.</span><span><a href="#">Privacy Policy</a> · <a href="#">Terms</a> · <a href="login.html" style="opacity:.5">Staff Login</a></span></div>
   </div>
 </footer>
 
@@ -244,6 +247,39 @@
   <span class="wa-icon">💬</span><span class="wa-label">WhatsApp Us</span>
 </a>
 
+<script>
+(function(){
+  var params=new URLSearchParams(window.location.search);
+  var id=params.get('id');
+  if(!id)return;
+  var vehicles,manufacturers,models;
+  try{vehicles=JSON.parse(localStorage.getItem('nau_vehicles')||'[]');}catch(e){return;}
+  try{manufacturers=JSON.parse(localStorage.getItem('nau_manufacturers')||'[]');}catch(e){manufacturers=[];}
+  try{models=JSON.parse(localStorage.getItem('nau_models')||'[]');}catch(e){models=[];}
+  var v=vehicles.find(function(x){return String(x.id)===String(id);});
+  if(!v)return;
+  var mfr=manufacturers.find(function(m){return m.id===v.manufacturerId;})||{};
+  var model=models.find(function(m){return m.id===v.modelId;})||{};
+  var mfrName=mfr.name||'';
+  var modelName=model.name||'';
+  var fullName=[mfrName,modelName,v.color,String(v.year||'')].filter(Boolean).join(' ');
+  document.title=fullName+' — NipponAuto Uganda';
+  var mainImg=document.getElementById('mainImage');
+  if(mainImg&&v.imageUrl){mainImg.src=v.imageUrl;mainImg.alt=fullName;}
+  var priceNum=v.priceUGX?Number(v.priceUGX):(v.priceUSD?Number(v.priceUSD)*3700:0);
+  var ugx=priceNum?priceNum.toLocaleString():'—';
+  var usd=v.priceUSD?'~$'+Number(v.priceUSD).toLocaleString()+' USD':'';
+  var h1=document.querySelector('.detail-price-block h1');
+  if(h1)h1.textContent=fullName;
+  var priceEl=document.querySelector('.detail-price');
+  if(priceEl)priceEl.textContent='UGX '+ugx;
+  var usdEl=document.querySelector('.detail-price-usd');
+  if(usdEl)usdEl.textContent='Approx. '+usd+' — CIF Kampala';
+  document.querySelectorAll('a[href*="wa.me"]').forEach(function(a){
+    a.href='https://wa.me/256700123456?text='+encodeURIComponent('Hi, I\'m interested in the '+fullName+'. Please send more details.');
+  });
+})();
+</script>
 <script src="js/main.js"></script>
 </body>
 </html>

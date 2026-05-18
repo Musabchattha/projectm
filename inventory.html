@@ -41,7 +41,10 @@
         <li><a href="about.html">About</a></li>
         <li><a href="contact.html">Contact</a></li>
       </ul>
-      <a href="https://wa.me/256700123456" class="btn btn-primary nav-cta" target="_blank" rel="noopener">💬 WhatsApp</a>
+      <div class="nav-auth">
+        <a href="login.html" class="btn-auth-login">Login</a>
+        <a href="https://wa.me/256700123456" class="btn-auth-signup" target="_blank" rel="noopener">💬 WhatsApp</a>
+      </div>
       <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
     </nav>
   </div>
@@ -501,7 +504,7 @@
       <div class="footer-col"><h4>Vehicle Types</h4><ul><li><a href="inventory.html?body=suv">SUVs &amp; 4WD</a></li><li><a href="inventory.html?body=pickup">Pickup Trucks</a></li><li><a href="inventory.html?body=van">Vans &amp; Minivans</a></li><li><a href="inventory.html?fuel=hybrid">Hybrid Vehicles</a></li></ul></div>
       <div class="footer-col"><h4>Contact</h4><ul class="footer-contact"><li><span class="icon">📍</span><span>Plot 45, Nakawa Industrial Road, Kampala</span></li><li><span class="icon">📞</span><span>+256 700 123 456</span></li><li><span class="icon">✉️</span><span>info@nipponauto.ug</span></li></ul></div>
     </div>
-    <div class="footer-bottom"><span>© 2025 NipponAuto Uganda. All rights reserved.</span><span><a href="#">Privacy Policy</a> · <a href="#">Terms</a></span></div>
+    <div class="footer-bottom"><span>© 2025 NipponAuto Uganda. All rights reserved.</span><span><a href="#">Privacy Policy</a> · <a href="#">Terms</a> · <a href="login.html" style="opacity:.5">Staff Login</a></span></div>
   </div>
 </footer>
 
@@ -509,6 +512,68 @@
   <span class="wa-icon">💬</span><span class="wa-label">WhatsApp Us</span>
 </a>
 
+<script>
+(function(){
+  var vehicles,manufacturers;
+  try{vehicles=JSON.parse(localStorage.getItem('nau_vehicles')||'[]');}catch(e){return;}
+  try{manufacturers=JSON.parse(localStorage.getItem('nau_manufacturers')||'[]');}catch(e){manufacturers=[];}
+  var published=vehicles.filter(function(v){return(v.status||'').toUpperCase()==='PUBLISHED';});
+  if(!published.length)return;
+  var grid=document.getElementById('inventoryGrid');
+  if(!grid)return;
+  grid.innerHTML=published.map(function(v){
+    var mfr=manufacturers.find(function(m){return m.id===v.manufacturerId;})||{};
+    var mfrName=mfr.name||'';
+    var img=v.imageUrl||('https://picsum.photos/seed/'+v.id+'/600/380');
+    var priceNum=v.priceUGX?Number(v.priceUGX):(v.priceUSD?Number(v.priceUSD)*3700:0);
+    var ugx=priceNum?priceNum.toLocaleString():'—';
+    var usd=v.priceUSD?'~$'+Number(v.priceUSD).toLocaleString():'';
+    var bodyL=(v.bodyType||'').toLowerCase().replace(/[\/\s]/g,'-');
+    var fuelL=(v.fuelType||'').toLowerCase();
+    var transL=(v.transmission||'').toLowerCase();
+    var title=[mfrName,v.color,String(v.year||'')].filter(Boolean).join(' ');
+    return '<article class="vehicle-card"'
+      +' data-make="'+mfrName.toLowerCase()+'"'
+      +' data-name="'+title.toLowerCase()+'"'
+      +' data-year="'+v.year+'"'
+      +' data-price="'+priceNum+'"'
+      +' data-body="'+bodyL+'"'
+      +' data-fuel="'+fuelL+'"'
+      +' data-trans="'+transL+'">'
+      +'<div class="card-img-wrap">'
+      +'<img src="'+img+'" alt="'+title+'" loading="lazy">'
+      +'<button class="card-fav" title="Save" onclick="window.__toggleSave(\''+v.id+'\',this)">🤍</button>'
+      +'</div>'
+      +'<div class="card-body">'
+      +'<p class="card-make">'+mfrName+'</p>'
+      +'<h3 class="card-name">'+title+'</h3>'
+      +'<div class="card-specs">'
+      +(v.engineCC?'<span class="card-spec">⚙️ '+v.engineCC+'cc</span>':'')
+      +(v.fuelType?'<span class="card-spec">⛽ '+v.fuelType+'</span>':'')
+      +'<span class="card-spec">RHD</span>'
+      +'</div>'
+      +'<div class="card-footer">'
+      +'<div class="card-price"><span>CIF Kampala</span>'
+      +'<strong class="ugx-price">UGX '+ugx+'</strong>'
+      +'<span class="ugx-sub">'+usd+'</span>'
+      +'</div>'
+      +'<div class="card-actions">'
+      +'<a href="vehicle-detail.html?id='+v.id+'" class="btn btn-navy btn-sm">View Details</a>'
+      +'<a href="https://wa.me/256700123456" class="btn btn-wa btn-sm" target="_blank">💬</a>'
+      +'</div></div></div></article>';
+  }).join('');
+  window.__toggleSave=function(id,btn){
+    var sess;try{sess=JSON.parse(sessionStorage.getItem('nau_customer_session'));}catch(e){}
+    if(!sess){window.location.href='login.html';return;}
+    var key='nau_saved_'+sess.id;
+    var saved;try{saved=JSON.parse(localStorage.getItem(key)||'[]');}catch(e){saved=[];}
+    var idx=saved.indexOf(id);
+    if(idx>=0){saved.splice(idx,1);btn.textContent='🤍';}
+    else{saved.push(id);btn.textContent='❤️';}
+    localStorage.setItem(key,JSON.stringify(saved));
+  };
+})();
+</script>
 <script src="js/main.js"></script>
 </body>
 </html>

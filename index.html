@@ -101,7 +101,8 @@
       </ul>
 
       <div class="nav-auth">
-        <a href="contact.html" class="btn-auth-login">Enquire</a>
+        <a href="login.html" class="btn-auth-login">Login</a>
+        <a href="contact.html" class="btn-auth-enquire" style="padding:.5rem 1rem;background:transparent;border:1.5px solid rgba(255,255,255,.3);color:#fff;border-radius:6px;text-decoration:none;font-size:.88rem;font-weight:600;">Enquire</a>
         <a href="https://wa.me/256700123456" class="btn-auth-signup" target="_blank" rel="noopener">💬 WhatsApp</a>
       </div>
 
@@ -856,7 +857,7 @@
     </div>
     <div class="footer-bottom">
       <span>© 2025 NipponAuto Uganda. All rights reserved.</span>
-      <span><a href="#">Privacy Policy</a> · <a href="#">Terms of Service</a> · <a href="#">Cookie Policy</a></span>
+      <span><a href="#">Privacy Policy</a> · <a href="#">Terms of Service</a> · <a href="#">Cookie Policy</a> · <a href="login.html" style="opacity:.5">Staff Login</a></span>
     </div>
   </div>
 </footer>
@@ -867,6 +868,27 @@
   <span class="wa-label">WhatsApp Us</span>
 </a>
 
+<script>
+(function(){
+  var slides;try{slides=JSON.parse(localStorage.getItem('nau_slides')||'[]');}catch(e){return;}
+  var active=slides.filter(function(s){return s.status;});
+  if(!active.length)return;
+  var carousel=document.getElementById('heroCarousel');
+  if(!carousel)return;
+  carousel.querySelectorAll('.carousel-slide').forEach(function(s){s.remove();});
+  var dotsContainer=carousel.querySelector('.carousel-dots');
+  if(dotsContainer)dotsContainer.innerHTML='';
+  var prevBtn=carousel.querySelector('#carouselPrev');
+  active.forEach(function(slide,i){
+    var div=document.createElement('div');
+    div.className='carousel-slide'+(i===0?' active':'');
+    div.style.backgroundImage="url('"+(slide.imageUrl||'https://picsum.photos/seed/hero'+i+'/1600/900')+"')";
+    div.innerHTML='<div class="carousel-overlay"></div><div class="carousel-content container"><span class="hero-eyebrow">'+(slide.subtitle||'Premium Japanese Imports')+'</span><h1>'+(slide.title||'')+'</h1><div class="carousel-btns"><a href="inventory.html" class="btn btn-primary">Browse Cars</a><a href="contact.html" class="btn btn-carousel-outline">'+(slide.ctaText||'Enquire Now')+'</a></div></div>';
+    if(prevBtn)carousel.insertBefore(div,prevBtn);else carousel.appendChild(div);
+    if(dotsContainer){var dot=document.createElement('button');dot.className='carousel-dot'+(i===0?' active':'');dot.dataset.slide=String(i);dotsContainer.appendChild(dot);}
+  });
+})();
+</script>
 <script src="js/main.js"></script>
 </body>
 </html>
