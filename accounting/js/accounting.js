@@ -3312,31 +3312,51 @@ function onPOModelChange() {
         data-steer="${c.steeringPosition||''}"
         >${c.code}${c.engineCode ? ' — ' + c.engineCode : ''}${c.engineCC ? ' ' + c.engineCC + 'cc' : ''}</option>`).join('');
   }
+  // Unlock spec fields when model changes (code selection is reset)
+  setPOSpecFieldsLocked(false);
+}
+
+function setPOSpecFieldsLocked(locked) {
+  ['po-eng-code','po-engine'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.readOnly = locked;
+    el.style.background = locked ? '#f1f5f9' : '';
+    el.style.color = locked ? '#64748b' : '';
+    el.style.cursor = locked ? 'not-allowed' : '';
+  });
+  ['po-fuel','po-drive','po-steer'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.disabled = locked;
+    el.style.background = locked ? '#f1f5f9' : '';
+    el.style.color = locked ? '#64748b' : '';
+    el.style.cursor = locked ? 'not-allowed' : '';
+  });
 }
 
 function onPOModelCodeChange() {
   const codeSel = document.getElementById('po-code-sel');
-  if (!codeSel || !codeSel.value) return;
+  if (!codeSel) return;
+  if (!codeSel.value) { setPOSpecFieldsLocked(false); return; }
   const mc = DB.load('nau_model_codes').find(c => c.id === Number(codeSel.value));
-  if (!mc) return;
+  if (!mc) { setPOSpecFieldsLocked(false); return; }
   const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined && val !== null && val !== '') el.value = val; };
   set('po-eng-code', mc.engineCode);
   set('po-engine', mc.engineCC);
-  // Fuel select — match by value or text
   const fuelSel = document.getElementById('po-fuel');
   if (fuelSel && mc.fuelType) {
     Array.from(fuelSel.options).forEach(o => { o.selected = o.value === mc.fuelType || o.text === mc.fuelType; });
   }
-  // Drivetrain select
   const driveSel = document.getElementById('po-drive');
   if (driveSel && mc.drivetrain) {
     Array.from(driveSel.options).forEach(o => { o.selected = o.value === mc.drivetrain || o.text === mc.drivetrain; });
   }
-  // Steering select
   const steerSel = document.getElementById('po-steer');
   if (steerSel && mc.steeringPosition) {
     Array.from(steerSel.options).forEach(o => { o.selected = o.value === mc.steeringPosition || o.text === mc.steeringPosition; });
   }
+  setPOSpecFieldsLocked(true);
 }
 
 // ===== PURCHASE ORDER STATS BAR =====
