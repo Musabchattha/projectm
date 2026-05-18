@@ -89,6 +89,17 @@
       </div>
 
       <div class="nav-item">
+        <button class="nav-link" data-nav="acc-invoices">Accounting ▾</button>
+        <div class="nav-dropdown">
+          <a href="#" data-nav="acc-invoices">Invoices</a>
+          <a href="#" data-nav="acc-bills">Bills & Expenses</a>
+          <a href="#" data-nav="acc-payments">Payments</a>
+          <a href="#" data-nav="acc-receipts">Receipts</a>
+          <a href="#" data-nav="acc-summary">Financial Summary</a>
+        </div>
+      </div>
+
+      <div class="nav-item">
         <button class="nav-link" data-nav="inquiries">Inquiries ▾</button>
         <div class="nav-dropdown">
           <a href="#" data-nav="inquiries">All Inquiries</a>
@@ -160,6 +171,16 @@
     <a class="amn-item" data-nav="auctions">🔨 Auctions</a>
     <a class="amn-item" data-nav="quotes">💬 Quotes</a>
     <a class="amn-item" data-nav="orders">📦 Orders</a>
+    <div class="amn-group">
+      <button class="amn-group-toggle">💰 Accounting <span class="amn-arrow">▾</span></button>
+      <div class="amn-sub">
+        <a data-nav="acc-invoices">Invoices</a>
+        <a data-nav="acc-bills">Bills & Expenses</a>
+        <a data-nav="acc-payments">Payments</a>
+        <a data-nav="acc-receipts">Receipts</a>
+        <a data-nav="acc-summary">Financial Summary</a>
+      </div>
+    </div>
     <div class="amn-group">
       <button class="amn-group-toggle">📩 Inquiries <span class="amn-arrow">▾</span></button>
       <div class="amn-sub">
@@ -775,8 +796,212 @@ Disallow: /admin/</textarea></div></div>
       </div>
     </div>
 
+    <!-- ===== ACCOUNTING: INVOICES ===== -->
+    <div class="page-section" id="page-acc-invoices">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Invoices</h1>
+          <p>Manage vehicle sale invoices</p>
+        </div>
+        <button class="btn-create" onclick="openModal('invoice')">+ Create Invoice</button>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Search</label>
+          <input type="text" class="filter-input" id="inv-search" placeholder="Search by invoice no, customer, vehicle..." />
+        </div>
+        <div class="filter-group">
+          <label>Status</label>
+          <select class="filter-select" id="inv-status-filter">
+            <option value="">All</option>
+            <option value="Draft">Draft</option>
+            <option value="Sent">Sent</option>
+            <option value="Partially Paid">Partially Paid</option>
+            <option value="Paid">Paid</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>From</label>
+          <input type="date" class="filter-input" id="inv-date-from" />
+        </div>
+        <div class="filter-group">
+          <label>To</label>
+          <input type="date" class="filter-input" id="inv-date-to" />
+        </div>
+        <div class="filter-actions">
+          <button class="btn-filter btn-clear" onclick="clearFilters('invoices')">Clear All</button>
+          <button class="btn-filter btn-apply" onclick="renderInvoices()">🔍 Apply Filters</button>
+        </div>
+      </div>
+      <div class="table-meta"><span id="inv-acc-count"></span></div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr>
+            <th>Invoice No</th><th>Vehicle</th><th>Customer</th><th>Amount</th><th>Tax</th><th>Total</th><th>Status</th><th>Due Date</th><th>Created</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="inv-acc-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== ACCOUNTING: BILLS ===== -->
+    <div class="page-section" id="page-acc-bills">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Bills & Expenses</h1>
+          <p>Manage vendor bills and business expenses</p>
+        </div>
+        <button class="btn-create" onclick="openModal('bill')">+ Add Bill</button>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Search</label>
+          <input type="text" class="filter-input" id="bill-search" placeholder="Search by bill no, vendor, category..." />
+        </div>
+        <div class="filter-group">
+          <label>Category</label>
+          <select class="filter-select" id="bill-cat-filter">
+            <option value="">All Categories</option>
+            <option>Vehicle Purchase</option>
+            <option>Freight</option>
+            <option>Insurance</option>
+            <option>Maintenance</option>
+            <option>Salaries</option>
+            <option>Utilities</option>
+            <option>Office Supplies</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Status</label>
+          <select class="filter-select" id="bill-status-filter">
+            <option value="">All</option>
+            <option value="Pending">Pending</option>
+            <option value="Paid">Paid</option>
+            <option value="Overdue">Overdue</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn-filter btn-clear" onclick="clearFilters('bills')">Clear All</button>
+          <button class="btn-filter btn-apply" onclick="renderBills()">🔍 Apply Filters</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr>
+            <th>Bill No</th><th>Vendor</th><th>Category</th><th>Vehicle</th><th>Amount</th><th>Due Date</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="bill-acc-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== ACCOUNTING: PAYMENTS ===== -->
+    <div class="page-section" id="page-acc-payments">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Payments</h1>
+          <p>All recorded payments (record from Invoice or Bill pages)</p>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Search</label>
+          <input type="text" class="filter-input" id="pay-search" placeholder="Search by payment no, reference..." />
+        </div>
+        <div class="filter-group">
+          <label>Type</label>
+          <select class="filter-select" id="pay-type-filter">
+            <option value="">All</option>
+            <option value="invoice">Invoice</option>
+            <option value="bill">Bill</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Method</label>
+          <select class="filter-select" id="pay-method-filter">
+            <option value="">All Methods</option>
+            <option>Cash</option>
+            <option>Bank Transfer</option>
+            <option>MTN Mobile Money</option>
+            <option>Airtel Money</option>
+            <option>Cheque</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn-filter btn-clear" onclick="clearFilters('payments')">Clear All</button>
+          <button class="btn-filter btn-apply" onclick="renderPayments()">🔍 Apply Filters</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr>
+            <th>Payment No</th><th>Type</th><th>Reference</th><th>Amount</th><th>Method</th><th>Date</th><th>Receipt</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="pay-acc-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== ACCOUNTING: RECEIPTS ===== -->
+    <div class="page-section" id="page-acc-receipts">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Receipts</h1>
+          <p>Payment receipts issued to customers and vendors</p>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Search</label>
+          <input type="text" class="filter-input" id="rec-search" placeholder="Search by receipt no, issued to..." />
+        </div>
+        <div class="filter-actions">
+          <button class="btn-filter btn-clear" onclick="clearFilters('receipts')">Clear All</button>
+          <button class="btn-filter btn-apply" onclick="renderReceipts()">🔍 Apply Filters</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr>
+            <th>Receipt No</th><th>Payment</th><th>Issued To</th><th>Amount</th><th>Method</th><th>Date</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="rec-acc-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== ACCOUNTING: FINANCIAL SUMMARY ===== -->
+    <div class="page-section" id="page-acc-summary">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Financial Summary</h1>
+          <p>Overview of revenue, expenses and profit</p>
+        </div>
+      </div>
+      <div class="stats-grid-admin" id="acc-summary-stats"></div>
+      <div class="dash-grid" id="acc-summary-tables"></div>
+      <div class="dash-section" style="margin-top:1.5rem">
+        <h3>Monthly Revenue vs Expenses (Last 6 Months)</h3>
+        <div class="bar-chart" id="acc-monthly-chart"></div>
+      </div>
+    </div>
+
   </div><!-- /admin-content -->
 </div><!-- /admin-shell -->
+
+<!-- ===== INVOICE PRINT MODAL ===== -->
+<div id="invoicePrintModal" style="display:none;position:fixed;inset:0;background:#fff;z-index:9999;overflow-y:auto;padding:2rem;">
+  <div style="max-width:700px;margin:0 auto;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:1rem;">
+      <button onclick="document.getElementById('invoicePrintModal').style.display='none'" style="background:#6b7280;color:#fff;border:none;border-radius:6px;padding:.5rem 1rem;cursor:pointer;">✕ Close</button>
+      <button onclick="window.print()" style="background:#c0392b;color:#fff;border:none;border-radius:6px;padding:.5rem 1rem;cursor:pointer;">🖨️ Print</button>
+    </div>
+    <div id="invoicePrintContent"></div>
+  </div>
+</div>
 
 <!-- ===== MODAL ===== -->
 <div class="modal-backdrop" id="modalBackdrop">

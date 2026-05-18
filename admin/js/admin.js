@@ -98,7 +98,12 @@ function navigate(page) {
     'careers': renderCareers,
     'user-management': renderUsers,
     'reports': renderReports,
-    'settings': () => showSettingsTab('company', document.querySelector('#page-settings .sub-tab'))
+    'settings': () => showSettingsTab('company', document.querySelector('#page-settings .sub-tab')),
+    'acc-invoices': renderInvoices,
+    'acc-bills': renderBills,
+    'acc-payments': renderPayments,
+    'acc-receipts': renderReceipts,
+    'acc-summary': renderAccSummary
   };
   if (renders[page]) renders[page]();
 }
@@ -129,7 +134,12 @@ function updateBreadcrumb(page) {
     'careers': ['Careers'],
     'user-management': ['User Management'],
     'reports': ['Reports'],
-    'settings': ['Settings', 'Company Info']
+    'settings': ['Settings', 'Company Info'],
+    'acc-invoices': ['Accounting', 'Invoices'],
+    'acc-bills': ['Accounting', 'Bills & Expenses'],
+    'acc-payments': ['Accounting', 'Payments'],
+    'acc-receipts': ['Accounting', 'Receipts'],
+    'acc-summary': ['Accounting', 'Financial Summary']
   };
   const parts = map[page] || [page];
   const bc = document.getElementById('adminBreadcrumb');
@@ -150,7 +160,8 @@ function updateNavActive(page) {
     const nav = b.dataset.nav || '';
     if (nav === page || nav === base || (page.startsWith('inv') && nav === 'inv-vehicles') ||
         (page.startsWith('content') && nav === 'content-slider') ||
-        (page.startsWith('marketing') && nav === 'marketing')) {
+        (page.startsWith('marketing') && nav === 'marketing') ||
+        (page.startsWith('acc') && nav === 'acc-invoices')) {
       b.classList.add('active');
     }
   });
@@ -1119,6 +1130,142 @@ const modalConfigs = {
     create:d=>{const all=DB.load('nau_users');all.push({id:DB.nextId('nau_users'),...d,createdAt:nowISO()});DB.save('nau_users',all);},
     update:(id,d)=>{const all=DB.load('nau_users');const i=all.findIndex(u=>u.id===id);if(i>-1){all[i]={...all[i],...d};DB.save('nau_users',all);}},
     refresh:renderUsers
+  },
+  invoice: {
+    label: 'Invoice',
+    getData: id => DB.load('nau_invoices').find(i => i.id === id),
+    form: d => {
+      const vehs = DB.load('nau_vehicles').filter(v => v.status === 'Published' || (d && d.vehicleId === v.id));
+      return `
+      <div class="form-row full"><div class="form-group"><label>Vehicle<span class="required">*</span></label>
+        <select class="form-control" id="inv-veh" onchange="(function(){const v=document.querySelector('#inv-veh option:checked');const p=v?v.dataset.price:'';if(p)document.getElementById('inv-sale-price').value=p;})()">
+          <option value="">-- Select Vehicle --</option>
+          ${vehs.map(v=>`<option value="${v.id}" data-price="${v.priceUSD}" ${d&&d.vehicleId===v.id?'selected':''}>${v.make} ${v.model} ${v.year} — $${Number(v.priceUSD||0).toLocaleString()}</option>`).join('')}
+        </select></div></div>
+      <div class="form-row"><div class="form-group"><label>Customer Name<span class="required">*</span></label><input class="form-control" id="inv-cust-name" value="${d?d.customerName:''}" /></div>
+        <div class="form-group"><label>Customer Email</label><input class="form-control" id="inv-cust-email" value="${d?d.customerEmail:''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Customer Phone</label><input class="form-control" id="inv-cust-phone" value="${d?d.customerPhone:''}" /></div>
+        <div class="form-group"><label>Due Date</label><input class="form-control" type="date" id="inv-due" value="${d?d.dueDate:''}" /></div></div>
+      <div class="form-row full"><div class="form-group"><label>Customer Address</label><textarea class="form-control" id="inv-cust-addr" rows="2">${d?d.customerAddress:''}</textarea></div></div>
+      <div class="form-row"><div class="form-group"><label>Sale Price (USD)<span class="required">*</span></label><input class="form-control" type="number" id="inv-sale-price" value="${d?d.salePrice:''}" step="0.01" min="0" /></div>
+        <div class="form-group"><label>Discount (USD)</label><input class="form-control" type="number" id="inv-discount" value="${d?d.discount:0}" step="0.01" min="0" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Include Tax (18% VAT)</label><br/><label class="toggle-switch" style="margin-top:.4rem"><input type="checkbox" id="inv-tax" ${d&&d.taxRate?'checked':''}><span class="toggle-slider"></span></label></div>
+        <div class="form-group"><label>Payment Method</label><select class="form-control" id="inv-pay-method">
+          <option ${d&&d.paymentMethod==='Cash'?'selected':''}>Cash</option>
+          <option ${d&&d.paymentMethod==='Bank Transfer'?'selected':''}>Bank Transfer</option>
+          <option ${d&&d.paymentMethod==='MTN Mobile Money'?'selected':''}>MTN Mobile Money</option>
+          <option ${d&&d.paymentMethod==='Airtel Money'?'selected':''}>Airtel Money</option>
+          <option ${d&&d.paymentMethod==='Cheque'?'selected':''}>Cheque</option>
+        </select></div></div>
+      <div class="form-group"><label>Status</label><select class="form-control" id="inv-status">
+        <option value="Draft" ${!d||d.status==='Draft'?'selected':''}>Draft</option>
+        <option value="Sent" ${d&&d.status==='Sent'?'selected':''}>Sent</option>
+      </select></div>
+      <div class="form-row full"><div class="form-group"><label>Notes</label><textarea class="form-control" id="inv-notes" rows="2">${d?d.notes:''}</textarea></div></div>`;
+    },
+    collect: () => {
+      const vehicleId = Number(document.getElementById('inv-veh').value);
+      const customerName = document.getElementById('inv-cust-name').value.trim();
+      const salePrice = parseFloat(document.getElementById('inv-sale-price').value) || 0;
+      if (!vehicleId) { toast('⚠️ Vehicle is required'); return null; }
+      if (!customerName) { toast('⚠️ Customer Name is required'); return null; }
+      if (!salePrice) { toast('⚠️ Sale Price is required'); return null; }
+      const discount = parseFloat(document.getElementById('inv-discount').value) || 0;
+      const includeTax = document.getElementById('inv-tax').checked;
+      const taxRate = includeTax ? 18 : 0;
+      const taxable = salePrice - discount;
+      const taxAmount = includeTax ? Math.round(taxable * 0.18 * 100) / 100 : 0;
+      const totalAmount = Math.round((taxable + taxAmount) * 100) / 100;
+      const vehs = DB.load('nau_vehicles');
+      const veh = vehs.find(v => v.id === vehicleId);
+      const status = document.getElementById('inv-status').value;
+      return {
+        vehicleId, vehicleName: veh ? `${veh.make} ${veh.model} ${veh.year}` : '',
+        vehicleSKU: veh ? veh.sku : '',
+        customerName, customerEmail: document.getElementById('inv-cust-email').value,
+        customerPhone: document.getElementById('inv-cust-phone').value,
+        customerAddress: document.getElementById('inv-cust-addr').value,
+        salePrice, discount, taxRate, taxAmount, totalAmount, paidAmount: 0,
+        currency: 'USD', paymentMethod: document.getElementById('inv-pay-method').value,
+        status, dueDate: document.getElementById('inv-due').value,
+        notes: document.getElementById('inv-notes').value
+      };
+    },
+    create: d => {
+      const all = DB.load('nau_invoices');
+      const inv = { id: DB.nextId('nau_invoices'), invoiceNo: genInvoiceNo(), ...d, createdAt: nowISO() };
+      all.push(inv);
+      DB.save('nau_invoices', all);
+      if (d.status === 'Sent') markVehicleSold(d.vehicleId);
+    },
+    update: (id, d) => {
+      const all = DB.load('nau_invoices');
+      const i = all.findIndex(x => x.id === id);
+      if (i > -1) { all[i] = { ...all[i], ...d }; DB.save('nau_invoices', all); }
+      if (d.status === 'Sent') markVehicleSold(d.vehicleId);
+    },
+    refresh: renderInvoices
+  },
+  bill: {
+    label: 'Bill',
+    getData: id => DB.load('nau_bills').find(b => b.id === id),
+    form: d => {
+      const vehs = DB.load('nau_vehicles');
+      return `
+      <div class="form-row"><div class="form-group"><label>Vendor / Supplier<span class="required">*</span></label><input class="form-control" id="bill-vendor" value="${d?d.vendor:''}" /></div>
+        <div class="form-group"><label>Category<span class="required">*</span></label><select class="form-control" id="bill-category">
+          ${['Vehicle Purchase','Freight','Insurance','Maintenance','Salaries','Utilities','Office Supplies','Other'].map(c=>`<option ${d&&d.category===c?'selected':''}>${c}</option>`).join('')}
+        </select></div></div>
+      <div class="form-row full"><div class="form-group"><label>Related Vehicle (optional)</label>
+        <select class="form-control" id="bill-veh-id">
+          <option value="">-- None --</option>
+          ${vehs.map(v=>`<option value="${v.id}" ${d&&d.vehicleId===v.id?'selected':''}>${v.make} ${v.model} ${v.year}</option>`).join('')}
+        </select></div></div>
+      <div class="form-row full"><div class="form-group"><label>Description</label><textarea class="form-control" id="bill-desc" rows="2">${d?d.description:''}</textarea></div></div>
+      <div class="form-row"><div class="form-group"><label>Amount (USD)<span class="required">*</span></label><input class="form-control" type="number" id="bill-amount" value="${d?d.amount:''}" step="0.01" min="0" /></div>
+        <div class="form-group"><label>Due Date</label><input class="form-control" type="date" id="bill-due" value="${d?d.dueDate:''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Status</label><select class="form-control" id="bill-status-sel">
+          <option value="Pending" ${!d||d.status==='Pending'?'selected':''}>Pending</option>
+          <option value="Paid" ${d&&d.status==='Paid'?'selected':''}>Paid</option>
+        </select></div>
+        <div class="form-group"><label>Payment Method</label><select class="form-control" id="bill-pay-method">
+          <option ${d&&d.paymentMethod==='Cash'?'selected':''}>Cash</option>
+          <option ${d&&d.paymentMethod==='Bank Transfer'?'selected':''}>Bank Transfer</option>
+          <option ${d&&d.paymentMethod==='MTN Mobile Money'?'selected':''}>MTN Mobile Money</option>
+          <option ${d&&d.paymentMethod==='Airtel Money'?'selected':''}>Airtel Money</option>
+          <option ${d&&d.paymentMethod==='Cheque'?'selected':''}>Cheque</option>
+        </select></div></div>
+      <div class="form-row full"><div class="form-group"><label>Notes</label><textarea class="form-control" id="bill-notes" rows="2">${d?d.notes:''}</textarea></div></div>`;
+    },
+    collect: () => {
+      const vendor = document.getElementById('bill-vendor').value.trim();
+      const amount = parseFloat(document.getElementById('bill-amount').value) || 0;
+      if (!vendor) { toast('⚠️ Vendor is required'); return null; }
+      if (!amount) { toast('⚠️ Amount is required'); return null; }
+      const vehId = Number(document.getElementById('bill-veh-id').value) || null;
+      const vehs = DB.load('nau_vehicles');
+      const veh = vehId ? vehs.find(v => v.id === vehId) : null;
+      return {
+        vendor, category: document.getElementById('bill-category').value,
+        vehicleId: vehId, vehicleName: veh ? `${veh.make} ${veh.model} ${veh.year}` : null,
+        description: document.getElementById('bill-desc').value,
+        amount, currency: 'USD', dueDate: document.getElementById('bill-due').value,
+        status: document.getElementById('bill-status-sel').value,
+        paymentMethod: document.getElementById('bill-pay-method').value,
+        notes: document.getElementById('bill-notes').value
+      };
+    },
+    create: d => {
+      const all = DB.load('nau_bills');
+      all.push({ id: DB.nextId('nau_bills'), billNo: genBillNo(), ...d, createdAt: nowISO() });
+      DB.save('nau_bills', all);
+    },
+    update: (id, d) => {
+      const all = DB.load('nau_bills');
+      const i = all.findIndex(b => b.id === id);
+      if (i > -1) { all[i] = { ...all[i], ...d }; DB.save('nau_bills', all); }
+    },
+    refresh: renderBills
   }
 };
 
@@ -1130,11 +1277,457 @@ function clearFilters(section) {
     vehicles:[['veh-search',''],['veh-mfr-filter',''],['veh-location','']],
     variables:[['var-search',''],['var-status-filter','']],
     quotes:[['qt-search',''],['qt-mfr',''],['qt-mdl','']],
-    inquiries:[['inq-search',''],['inq-status','']]
+    inquiries:[['inq-search',''],['inq-status','']],
+    invoices:[['inv-search',''],['inv-status-filter',''],['inv-date-from',''],['inv-date-to','']],
+    bills:[['bill-search',''],['bill-cat-filter',''],['bill-status-filter','']],
+    payments:[['pay-search',''],['pay-type-filter',''],['pay-method-filter','']],
+    receipts:[['rec-search','']]
   };
   (map[section]||[]).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
-  const renderMap = {manufacturers:renderManufacturers,models:renderModels,vehicles:renderVehicles,variables:renderVariables,quotes:renderQuotes,inquiries:renderInquiries};
+  const renderMap = {manufacturers:renderManufacturers,models:renderModels,vehicles:renderVehicles,variables:renderVariables,quotes:renderQuotes,inquiries:renderInquiries,
+    invoices:renderInvoices,bills:renderBills,payments:renderPayments,receipts:renderReceipts};
   if(renderMap[section]) renderMap[section]();
+}
+
+// ===== ACCOUNTING: NUMBER GENERATORS =====
+function genInvoiceNo() {
+  const inv = DB.load('nau_invoices');
+  const yr = new Date().getFullYear();
+  const seq = String(inv.length + 1).padStart(3, '0');
+  return `INV-${yr}-${seq}`;
+}
+function genBillNo() {
+  const bills = DB.load('nau_bills');
+  const yr = new Date().getFullYear();
+  const seq = String(bills.length + 1).padStart(3, '0');
+  return `BILL-${yr}-${seq}`;
+}
+function genPaymentNo() {
+  const pmts = DB.load('nau_payments');
+  const yr = new Date().getFullYear();
+  const seq = String(pmts.length + 1).padStart(3, '0');
+  return `PMT-${yr}-${seq}`;
+}
+function genReceiptNo() {
+  const recs = DB.load('nau_receipts');
+  const yr = new Date().getFullYear();
+  const seq = String(recs.length + 1).padStart(3, '0');
+  return `REC-${yr}-${seq}`;
+}
+
+// ===== ACCOUNTING: BADGE HELPERS =====
+function invStatusBadge(status) {
+  const map = {
+    'Draft': 'badge-draft',
+    'Sent': 'badge-quoted',
+    'Partially Paid': 'badge-sold',
+    'Paid': 'badge-published',
+    'Cancelled': 'badge-draft'
+  };
+  return `<span class="badge ${map[status]||'badge-draft'}">${status}</span>`;
+}
+function billStatusBadge(status) {
+  const map = { 'Pending': 'badge-quoted', 'Paid': 'badge-published', 'Overdue': 'badge-overdue', 'Cancelled': 'badge-draft' };
+  return `<span class="badge ${map[status]||'badge-draft'}">${status}</span>`;
+}
+
+// ===== ACCOUNTING: MARK VEHICLE SOLD =====
+function markVehicleSold(vehicleId) {
+  const vehs = DB.load('nau_vehicles');
+  const v = vehs.find(v => v.id === vehicleId);
+  if (v) {
+    v.status = 'SOLD';
+    v.soldAt = nowISO();
+    DB.save('nau_vehicles', vehs);
+  }
+}
+
+// ===== ACCOUNTING: ARCHIVE OLD SOLD VEHICLES =====
+function archiveOldSoldVehicles() {
+  const vehs = DB.load('nau_vehicles');
+  const now = Date.now();
+  const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+  let count = 0;
+  vehs.forEach(v => {
+    if ((v.status === 'SOLD' || v.status === 'Sold') && v.soldAt) {
+      if (now - new Date(v.soldAt).getTime() > thirtyDays) {
+        v.status = 'ARCHIVED';
+        count++;
+      }
+    }
+  });
+  if (count) {
+    DB.save('nau_vehicles', vehs);
+    toast(`📦 ${count} sold vehicle${count !== 1 ? 's' : ''} archived.`);
+  }
+}
+
+// ===== ACCOUNTING: RENDER INVOICES =====
+function renderInvoices() {
+  const q = (document.getElementById('inv-search')||{}).value||'';
+  const st = (document.getElementById('inv-status-filter')||{}).value||'';
+  const from = (document.getElementById('inv-date-from')||{}).value||'';
+  const to = (document.getElementById('inv-date-to')||{}).value||'';
+  let data = DB.load('nau_invoices').filter(inv => {
+    const matchQ = !q || (inv.invoiceNo+inv.customerName+inv.vehicleName).toLowerCase().includes(q.toLowerCase());
+    const matchSt = !st || inv.status === st;
+    const matchFrom = !from || inv.createdAt >= from;
+    const matchTo = !to || inv.createdAt <= to + 'T23:59:59Z';
+    return matchQ && matchSt && matchFrom && matchTo;
+  });
+  const countEl = document.getElementById('inv-acc-count');
+  if (countEl) countEl.textContent = `${data.length} invoice${data.length !== 1 ? 's' : ''}`;
+  document.getElementById('inv-acc-tbody').innerHTML = data.length ? data.map(inv => `
+    <tr>
+      <td><strong>${inv.invoiceNo}</strong></td>
+      <td><span style="font-size:.78rem">${inv.vehicleName||'-'}</span></td>
+      <td><div class="td-two-line"><span class="line1">${inv.customerName}</span><span class="line2 td-muted">${inv.customerEmail||''}</span></div></td>
+      <td>$${Number(inv.salePrice||0).toLocaleString()}</td>
+      <td>$${Number(inv.taxAmount||0).toLocaleString()}</td>
+      <td><strong>$${Number(inv.totalAmount||0).toLocaleString()}</strong></td>
+      <td>${invStatusBadge(inv.status)}</td>
+      <td>${inv.dueDate||'-'}</td>
+      <td>${fmtDateShort(inv.createdAt)}</td>
+      <td><div class="row-actions">
+        <button class="btn-row" title="View/Print" onclick="printInvoice(${inv.id})">👁️</button>
+        <button class="btn-row" title="Edit" onclick="openModal('invoice',${inv.id})">✏️</button>
+        ${inv.status !== 'Paid' && inv.status !== 'Cancelled' ? `<button class="btn-row" title="Record Payment" onclick="openPaymentModal('invoice',${inv.id})">💳</button>` : ''}
+        <button class="btn-row btn-row-delete" title="Delete" onclick="deletePage('nau_invoices',${inv.id},renderInvoices)">🗑️</button>
+      </div></td>
+    </tr>`).join('') : '<tr><td colspan="10" class="table-empty"><span class="empty-icon">🧾</span>No invoices found.</td></tr>';
+}
+
+// ===== ACCOUNTING: RENDER BILLS =====
+function renderBills() {
+  const q = (document.getElementById('bill-search')||{}).value||'';
+  const cat = (document.getElementById('bill-cat-filter')||{}).value||'';
+  const st = (document.getElementById('bill-status-filter')||{}).value||'';
+  let data = DB.load('nau_bills').filter(b => {
+    const matchQ = !q || (b.billNo+b.vendor+(b.category||'')).toLowerCase().includes(q.toLowerCase());
+    const matchCat = !cat || b.category === cat;
+    const matchSt = !st || b.status === st;
+    return matchQ && matchCat && matchSt;
+  });
+  document.getElementById('bill-acc-tbody').innerHTML = data.length ? data.map(b => `
+    <tr>
+      <td><strong>${b.billNo}</strong></td>
+      <td>${b.vendor}</td>
+      <td><span class="badge badge-draft" style="font-size:.72rem">${b.category||'-'}</span></td>
+      <td><span class="td-muted" style="font-size:.78rem">${b.vehicleName||'-'}</span></td>
+      <td><strong>$${Number(b.amount||0).toLocaleString()}</strong></td>
+      <td>${b.dueDate||'-'}</td>
+      <td>${billStatusBadge(b.status)}</td>
+      <td><div class="row-actions">
+        <button class="btn-row" title="Edit" onclick="openModal('bill',${b.id})">✏️</button>
+        ${b.status !== 'Paid' && b.status !== 'Cancelled' ? `<button class="btn-row" title="Record Payment" onclick="openPaymentModal('bill',${b.id})">💳</button>` : ''}
+        <button class="btn-row btn-row-delete" title="Delete" onclick="deletePage('nau_bills',${b.id},renderBills)">🗑️</button>
+      </div></td>
+    </tr>`).join('') : '<tr><td colspan="8" class="table-empty"><span class="empty-icon">📋</span>No bills found.</td></tr>';
+}
+
+// ===== ACCOUNTING: RENDER PAYMENTS =====
+function renderPayments() {
+  const q = (document.getElementById('pay-search')||{}).value||'';
+  const type = (document.getElementById('pay-type-filter')||{}).value||'';
+  const method = (document.getElementById('pay-method-filter')||{}).value||'';
+  let data = DB.load('nau_payments').filter(p => {
+    const matchQ = !q || (p.paymentNo+p.referenceNo).toLowerCase().includes(q.toLowerCase());
+    const matchType = !type || p.type === type;
+    const matchMethod = !method || p.method === method;
+    return matchQ && matchType && matchMethod;
+  });
+  document.getElementById('pay-acc-tbody').innerHTML = data.length ? data.map(p => `
+    <tr>
+      <td><strong>${p.paymentNo}</strong></td>
+      <td><span class="badge ${p.type==='invoice'?'badge-published':'badge-quoted'}">${p.type}</span></td>
+      <td><span class="td-muted">${p.referenceNo||'-'}</span></td>
+      <td><strong>$${Number(p.amount||0).toLocaleString()}</strong> <span class="td-muted">${p.currency||'USD'}</span></td>
+      <td>${p.method||'-'}</td>
+      <td>${p.date||'-'}</td>
+      <td>${p.receiptId ? `<span class="badge badge-active" style="cursor:pointer" onclick="printReceipt(${p.receiptId})">REC-${String(p.receiptId).padStart(3,'0')}</span>` : '-'}</td>
+      <td><div class="row-actions">
+        ${p.receiptId ? `<button class="btn-row" title="Print Receipt" onclick="printReceipt(${p.receiptId})">🖨️</button>` : ''}
+        <button class="btn-row btn-row-delete" title="Delete" onclick="deletePage('nau_payments',${p.id},renderPayments)">🗑️</button>
+      </div></td>
+    </tr>`).join('') : '<tr><td colspan="8" class="table-empty"><span class="empty-icon">💳</span>No payments recorded yet.</td></tr>';
+}
+
+// ===== ACCOUNTING: RENDER RECEIPTS =====
+function renderReceipts() {
+  const q = (document.getElementById('rec-search')||{}).value||'';
+  let data = DB.load('nau_receipts').filter(r => {
+    return !q || (r.receiptNo+r.issuedTo+r.referenceNo).toLowerCase().includes(q.toLowerCase());
+  });
+  document.getElementById('rec-acc-tbody').innerHTML = data.length ? data.map(r => `
+    <tr>
+      <td><strong>${r.receiptNo}</strong></td>
+      <td><span class="td-muted">${r.paymentNo||'-'}</span></td>
+      <td>${r.issuedTo}</td>
+      <td><strong>$${Number(r.amount||0).toLocaleString()}</strong> <span class="td-muted">${r.currency||'USD'}</span></td>
+      <td>${r.method||'-'}</td>
+      <td>${r.issuedAt ? fmtDateShort(r.issuedAt) : '-'}</td>
+      <td><div class="row-actions">
+        <button class="btn-row" title="Print Receipt" onclick="printReceipt(${r.id})">🖨️</button>
+        <button class="btn-row btn-row-delete" title="Delete" onclick="deletePage('nau_receipts',${r.id},renderReceipts)">🗑️</button>
+      </div></td>
+    </tr>`).join('') : '<tr><td colspan="7" class="table-empty"><span class="empty-icon">🧾</span>No receipts yet.</td></tr>';
+}
+
+// ===== ACCOUNTING: RENDER FINANCIAL SUMMARY =====
+function renderAccSummary() {
+  const invoices = DB.load('nau_invoices');
+  const bills = DB.load('nau_bills');
+  const totalRevenue = invoices.filter(i => i.status === 'Paid').reduce((s, i) => s + Number(i.totalAmount||0), 0);
+  const totalExpenses = bills.filter(b => b.status === 'Paid').reduce((s, b) => s + Number(b.amount||0), 0);
+  const netProfit = totalRevenue - totalExpenses;
+  const outstanding = invoices.filter(i => ['Draft','Sent','Partially Paid'].includes(i.status))
+    .reduce((s, i) => s + (Number(i.totalAmount||0) - Number(i.paidAmount||0)), 0);
+
+  const statsEl = document.getElementById('acc-summary-stats');
+  if (statsEl) statsEl.innerHTML = [
+    { label: 'Total Revenue', value: '$' + totalRevenue.toLocaleString(), trend: 'up' },
+    { label: 'Total Expenses', value: '$' + totalExpenses.toLocaleString(), trend: 'neutral' },
+    { label: 'Net Profit', value: '$' + netProfit.toLocaleString(), trend: netProfit >= 0 ? 'up' : 'down' },
+    { label: 'Outstanding Receivables', value: '$' + outstanding.toLocaleString(), trend: 'neutral' }
+  ].map(s => `<div class="stat-card">
+    <div class="stat-card-label">${s.label}</div>
+    <div class="stat-card-value">${s.value}</div>
+    <div class="stat-card-trend trend-${s.trend}">── Accounting overview</div>
+  </div>`).join('');
+
+  const tablesEl = document.getElementById('acc-summary-tables');
+  if (tablesEl) tablesEl.innerHTML = `
+    <div class="dash-section"><h3>Recent Invoices</h3>
+      <table class="admin-table"><thead><tr><th>Invoice No</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead>
+      <tbody>${invoices.slice(-5).reverse().map(i => `<tr><td>${i.invoiceNo}</td><td>${i.customerName}</td><td>$${Number(i.totalAmount||0).toLocaleString()}</td><td>${invStatusBadge(i.status)}</td></tr>`).join('') || '<tr><td colspan="4" class="table-empty">No invoices</td></tr>'}</tbody>
+      </table>
+    </div>
+    <div class="dash-section"><h3>Recent Bills</h3>
+      <table class="admin-table"><thead><tr><th>Bill No</th><th>Vendor</th><th>Amount</th><th>Status</th></tr></thead>
+      <tbody>${bills.slice(-5).reverse().map(b => `<tr><td>${b.billNo}</td><td>${b.vendor}</td><td>$${Number(b.amount||0).toLocaleString()}</td><td>${billStatusBadge(b.status)}</td></tr>`).join('') || '<tr><td colspan="4" class="table-empty">No bills</td></tr>'}</tbody>
+      </table>
+    </div>`;
+
+  // Monthly bar chart (last 6 months)
+  const chartEl = document.getElementById('acc-monthly-chart');
+  if (chartEl) {
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      months.push({ label: d.toLocaleString('en-US', { month: 'short', year: '2-digit' }), year: d.getFullYear(), month: d.getMonth() });
+    }
+    const rows = months.map(m => {
+      const rev = invoices.filter(i => i.status === 'Paid' && i.paidAt && new Date(i.paidAt).getFullYear() === m.year && new Date(i.paidAt).getMonth() === m.month)
+        .reduce((s, i) => s + Number(i.totalAmount||0), 0);
+      const exp = bills.filter(b => b.status === 'Paid' && b.paidAt && new Date(b.paidAt).getFullYear() === m.year && new Date(b.paidAt).getMonth() === m.month)
+        .reduce((s, b) => s + Number(b.amount||0), 0);
+      return { label: m.label, rev, exp };
+    });
+    const maxVal = Math.max(...rows.map(r => Math.max(r.rev, r.exp)), 1);
+    chartEl.innerHTML = rows.map(r => `
+      <div class="bar-row">
+        <div class="bar-label" style="width:70px">${r.label}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem">
+            <div class="bar-track" style="flex:1"><div class="bar-fill" style="width:${Math.round(r.rev/maxVal*100)}%;background:#10b981"></div></div>
+            <div class="bar-value" style="width:60px;font-size:.75rem;color:#10b981">$${Math.round(r.rev/1000)}K</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <div class="bar-track" style="flex:1"><div class="bar-fill" style="width:${Math.round(r.exp/maxVal*100)}%;background:#c0392b"></div></div>
+            <div class="bar-value" style="width:60px;font-size:.75rem;color:#c0392b">$${Math.round(r.exp/1000)}K</div>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+// ===== ACCOUNTING: PRINT INVOICE =====
+function printInvoice(id) {
+  const inv = DB.load('nau_invoices').find(i => i.id === id);
+  if (!inv) { toast('Invoice not found'); return; }
+  const isPaid = inv.status === 'Paid';
+  document.getElementById('invoicePrintContent').innerHTML = `
+    <div class="invoice-doc">
+      <div class="inv-header">
+        <div class="inv-logo">
+          <h2>NipponAuto Uganda</h2>
+          <p>Plot 45, Nakawa Industrial Road, Kampala, Uganda</p>
+          <p>📞 +256 700 123 456 &nbsp;|&nbsp; ✉️ info@nipponauto.ug</p>
+        </div>
+        <div class="inv-meta">
+          <h1>INVOICE</h1>
+          <p><strong>${inv.invoiceNo}</strong></p>
+          <p>Date: ${fmtDateShort(inv.createdAt)}</p>
+          <p>Due: ${inv.dueDate||'-'}</p>
+        </div>
+      </div>
+      <div class="inv-parties">
+        <div class="inv-party">
+          <h4>From</h4>
+          <strong>NipponAuto Uganda</strong>
+          <p>Plot 45, Nakawa Industrial Road</p>
+          <p>Kampala, Uganda</p>
+          <p>TIN: 1234567890</p>
+        </div>
+        <div class="inv-party">
+          <h4>Bill To</h4>
+          <strong>${inv.customerName}</strong>
+          <p>${inv.customerEmail||''}</p>
+          <p>${inv.customerPhone||''}</p>
+          <p>${inv.customerAddress||''}</p>
+        </div>
+      </div>
+      <table class="inv-table">
+        <thead><tr><th>SKU</th><th>Description</th><th>Qty</th><th>Unit Price</th><th>Amount</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>${inv.vehicleSKU||'-'}</td>
+            <td>${inv.vehicleName||'-'}</td>
+            <td>1</td>
+            <td>$${Number(inv.salePrice||0).toLocaleString()}</td>
+            <td>$${Number(inv.salePrice||0).toLocaleString()}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="inv-totals">
+        <div class="tot-row"><span>Subtotal</span><span>$${Number(inv.salePrice||0).toLocaleString()}</span></div>
+        ${inv.discount ? `<div class="tot-row discount"><span>Discount</span><span>- $${Number(inv.discount||0).toLocaleString()}</span></div>` : ''}
+        ${inv.taxRate ? `<div class="tot-row"><span>VAT (${inv.taxRate}%)</span><span>$${Number(inv.taxAmount||0).toLocaleString()}</span></div>` : ''}
+        <div class="tot-row"><span>Total</span><span>$${Number(inv.totalAmount||0).toLocaleString()}</span></div>
+      </div>
+      <div class="inv-status-bar ${isPaid ? 'paid' : 'unpaid'}">
+        ${isPaid ? '✅ PAID — Payment received on ' + fmtDateShort(inv.paidAt) : '⏳ Payment Pending — Due ' + (inv.dueDate||'—')}
+        ${inv.paidAmount && !isPaid ? ' | Paid so far: $' + Number(inv.paidAmount||0).toLocaleString() : ''}
+      </div>
+      ${inv.notes ? `<p style="margin-top:1rem;font-size:.85rem;color:#374151"><strong>Notes:</strong> ${inv.notes}</p>` : ''}
+      <div class="inv-footer">
+        <p>Payment Method: ${inv.paymentMethod||'-'}</p>
+        <p style="margin-top:.5rem">Thank you for your business. For queries, contact info@nipponauto.ug or +256 700 123 456.</p>
+        <p>NipponAuto Uganda — Kampala's #1 Source for Genuine Japanese Cars</p>
+      </div>
+    </div>`;
+  document.getElementById('invoicePrintModal').style.display = 'block';
+}
+
+// ===== ACCOUNTING: PRINT RECEIPT =====
+function printReceipt(id) {
+  const rec = DB.load('nau_receipts').find(r => r.id === id);
+  if (!rec) { toast('Receipt not found'); return; }
+  document.getElementById('invoicePrintContent').innerHTML = `
+    <div class="receipt-doc">
+      <div class="rec-header">
+        <h2>NipponAuto Uganda</h2>
+        <div style="color:#6b7280;font-size:.82rem">Plot 45, Nakawa Industrial Road, Kampala</div>
+        <div class="rec-no">${rec.receiptNo}</div>
+        <div style="color:#6b7280;font-size:.82rem;margin-top:.25rem">${fmtDateShort(rec.issuedAt)}</div>
+      </div>
+      <div class="rec-row"><span>Issued To</span><span><strong>${rec.issuedTo}</strong></span></div>
+      <div class="rec-row"><span>Reference</span><span>${rec.referenceNo||'-'}</span></div>
+      <div class="rec-row"><span>Payment Method</span><span>${rec.method||'-'}</span></div>
+      <div class="rec-row"><span>Currency</span><span>${rec.currency||'USD'}</span></div>
+      ${rec.notes ? `<div class="rec-row"><span>Notes</span><span>${rec.notes}</span></div>` : ''}
+      <div class="rec-total"><span>Amount Paid</span><span>$${Number(rec.amount||0).toLocaleString()}</span></div>
+      <div class="rec-stamp">✅ PAYMENT CONFIRMED</div>
+      <div class="rec-footer">
+        <p>This is an official receipt issued by NipponAuto Uganda.</p>
+        <p>info@nipponauto.ug | +256 700 123 456</p>
+      </div>
+    </div>`;
+  document.getElementById('invoicePrintModal').style.display = 'block';
+}
+
+// ===== ACCOUNTING: OPEN PAYMENT MODAL =====
+function openPaymentModal(type, refId) {
+  let refNo, amount, issuedTo;
+  if (type === 'invoice') {
+    const inv = DB.load('nau_invoices').find(i => i.id === refId);
+    if (!inv) return;
+    refNo = inv.invoiceNo;
+    amount = inv.totalAmount - (inv.paidAmount || 0);
+    issuedTo = inv.customerName;
+  } else {
+    const bill = DB.load('nau_bills').find(b => b.id === refId);
+    if (!bill) return;
+    refNo = bill.billNo;
+    amount = bill.amount;
+    issuedTo = bill.vendor;
+  }
+
+  document.getElementById('modalTitle').textContent = 'Record Payment';
+  document.getElementById('modalBody').innerHTML = `
+    <div class="form-group"><label>Reference</label><input class="form-control" value="${refNo}" readonly /></div>
+    <div class="form-group"><label>Issued To</label><input class="form-control" value="${issuedTo}" readonly /></div>
+    <div class="form-row">
+      <div class="form-group"><label>Amount (USD)</label><input class="form-control" type="number" id="pmt-amount" value="${amount}" step="0.01" min="0" /></div>
+      <div class="form-group"><label>Currency</label><select class="form-control" id="pmt-currency"><option value="USD">USD</option><option value="UGX">UGX</option></select></div>
+    </div>
+    <div class="form-group"><label>Payment Method</label><select class="form-control" id="pmt-method">
+      <option>Cash</option><option>Bank Transfer</option><option>MTN Mobile Money</option><option>Airtel Money</option><option>Cheque</option>
+    </select></div>
+    <div class="form-group"><label>Payment Date</label><input class="form-control" type="date" id="pmt-date" value="${new Date().toISOString().split('T')[0]}" /></div>
+    <div class="form-group"><label>Notes</label><textarea class="form-control" id="pmt-notes" rows="2"></textarea></div>`;
+  document.getElementById('modalBackdrop').classList.add('open');
+
+  document.getElementById('modalSaveBtn').onclick = () => {
+    const pmtAmount = parseFloat(document.getElementById('pmt-amount').value) || 0;
+    if (!pmtAmount) { toast('❌ Enter payment amount'); return; }
+
+    const pmt = {
+      id: DB.nextId('nau_payments'),
+      paymentNo: genPaymentNo(),
+      type, referenceId: refId, referenceNo: refNo,
+      amount: pmtAmount, currency: document.getElementById('pmt-currency').value,
+      method: document.getElementById('pmt-method').value,
+      date: document.getElementById('pmt-date').value,
+      notes: document.getElementById('pmt-notes').value,
+      receiptId: null
+    };
+
+    const receipt = {
+      id: DB.nextId('nau_receipts'),
+      receiptNo: genReceiptNo(),
+      paymentId: pmt.id, paymentNo: pmt.paymentNo,
+      type, referenceId: refId, referenceNo: refNo,
+      issuedTo, amount: pmt.amount, currency: pmt.currency,
+      method: pmt.method, issuedAt: nowISO(), notes: pmt.notes
+    };
+    const recs = DB.load('nau_receipts');
+    recs.push(receipt);
+    DB.save('nau_receipts', recs);
+    pmt.receiptId = receipt.id;
+
+    const pmts = DB.load('nau_payments');
+    pmts.push(pmt);
+    DB.save('nau_payments', pmts);
+
+    if (type === 'invoice') {
+      const invs = DB.load('nau_invoices');
+      const inv = invs.find(i => i.id === refId);
+      if (inv) {
+        inv.paidAmount = (inv.paidAmount || 0) + pmt.amount;
+        if (inv.paidAmount >= inv.totalAmount) {
+          inv.status = 'Paid';
+          inv.paidAt = nowISO();
+          if (inv.vehicleId) markVehicleSold(inv.vehicleId);
+        } else {
+          inv.status = 'Partially Paid';
+        }
+        DB.save('nau_invoices', invs);
+      }
+    } else {
+      const billsArr = DB.load('nau_bills');
+      const bill = billsArr.find(b => b.id === refId);
+      if (bill) { bill.status = 'Paid'; bill.paidAt = nowISO(); DB.save('nau_bills', billsArr); }
+    }
+
+    closeModal();
+    document.getElementById('modalSaveBtn').onclick = submitModal;
+    toast('✅ Payment recorded. Receipt generated.');
+    if (currentPage === 'acc-invoices') renderInvoices();
+    else if (currentPage === 'acc-bills') renderBills();
+    else if (currentPage === 'acc-payments') renderPayments();
+  };
 }
 
 // ===== SEED DATA =====
@@ -1431,6 +2024,72 @@ function seedData() {
     {id:1,name:'Nakawa Showroom',address:'Plot 45, Nakawa Industrial Road',city:'Kampala',phone:'+256 700 123 456',primary:true}
   ]);
 
+  // Seed invoices (3)
+  if (!DB.load('nau_invoices').length) {
+    const invSeed = [
+      { id:1, invoiceNo:'INV-2026-001', vehicleId:1, vehicleName:'Toyota Hilux D-Cabin Silver 2020', vehicleSKU:'05-2026-106001',
+        customerName:'Musab Khalid', customerEmail:'musab@email.com', customerPhone:'+256700111222', customerAddress:'Kampala, Uganda',
+        salePrice:39000, discount:0, taxRate:18, taxAmount:7020, totalAmount:46020, currency:'USD', paidAmount:46020,
+        paymentMethod:'Bank Transfer', status:'Paid', dueDate:'2026-03-15', notes:'Full payment received.',
+        createdAt:'2026-03-01T09:00:00Z', paidAt:'2026-03-10T14:00:00Z' },
+      { id:2, invoiceNo:'INV-2026-002', vehicleId:5, vehicleName:'Toyota Land Cruiser Prado White 2022', vehicleSKU:'04-2026-105001',
+        customerName:'Grace Nakato', customerEmail:'grace@email.com', customerPhone:'+256701333444', customerAddress:'Entebbe, Uganda',
+        salePrice:42000, discount:1000, taxRate:18, taxAmount:7380, totalAmount:48380, currency:'USD', paidAmount:25000,
+        paymentMethod:'MTN Mobile Money', status:'Partially Paid', dueDate:'2026-04-30', notes:'Installment payment agreed.',
+        createdAt:'2026-04-01T10:00:00Z', paidAt:null },
+      { id:3, invoiceNo:'INV-2026-003', vehicleId:10, vehicleName:'Nissan Patrol Y62 White 2022', vehicleSKU:'03-2026-104001',
+        customerName:'Robert Ssekandi', customerEmail:'robert@email.com', customerPhone:'+256702555666', customerAddress:'Jinja, Uganda',
+        salePrice:36500, discount:0, taxRate:0, taxAmount:0, totalAmount:36500, currency:'USD', paidAmount:0,
+        paymentMethod:'Cash', status:'Sent', dueDate:'2026-05-30', notes:'Invoice sent, awaiting payment.',
+        createdAt:'2026-05-01T08:00:00Z', paidAt:null }
+    ];
+    DB.save('nau_invoices', invSeed);
+  }
+
+  // Seed bills (3)
+  if (!DB.load('nau_bills').length) {
+    const billSeed = [
+      { id:1, billNo:'BILL-2026-001', vendor:'Japan Auto Exports Ltd', category:'Vehicle Purchase',
+        vehicleId:1, vehicleName:'Toyota Hilux D-Cabin Silver 2020',
+        description:'Purchase price for Toyota Hilux D-Cabin Silver 2020 from Japan auction',
+        amount:22000, currency:'USD', dueDate:'2026-02-28', status:'Paid',
+        paymentMethod:'Bank Transfer', notes:'Wire transfer to Japan.', createdAt:'2026-02-01T09:00:00Z', paidAt:'2026-02-20T12:00:00Z' },
+      { id:2, billNo:'BILL-2026-002', vendor:'Kampala Freight Services', category:'Freight',
+        vehicleId:5, vehicleName:'Toyota Land Cruiser Prado White 2022',
+        description:'Sea freight + customs clearance for Prado from Mombasa',
+        amount:3500, currency:'USD', dueDate:'2026-04-15', status:'Paid',
+        paymentMethod:'Bank Transfer', notes:'', createdAt:'2026-04-01T09:00:00Z', paidAt:'2026-04-10T10:00:00Z' },
+      { id:3, billNo:'BILL-2026-003', vendor:'Nakawa Office Supplies', category:'Office Supplies',
+        vehicleId:null, vehicleName:null,
+        description:'Monthly office stationery and supplies',
+        amount:250, currency:'USD', dueDate:'2026-05-31', status:'Pending',
+        paymentMethod:'Cash', notes:'', createdAt:'2026-05-01T09:00:00Z', paidAt:null }
+    ];
+    DB.save('nau_bills', billSeed);
+  }
+
+  // Seed payments (2)
+  if (!DB.load('nau_payments').length) {
+    const pmtSeed = [
+      { id:1, paymentNo:'PMT-2026-001', type:'invoice', referenceId:1, referenceNo:'INV-2026-001',
+        amount:46020, currency:'USD', method:'Bank Transfer', date:'2026-03-10', notes:'Full payment', receiptId:1 },
+      { id:2, paymentNo:'PMT-2026-002', type:'invoice', referenceId:2, referenceNo:'INV-2026-002',
+        amount:25000, currency:'USD', method:'MTN Mobile Money', date:'2026-04-05', notes:'First installment', receiptId:2 }
+    ];
+    DB.save('nau_payments', pmtSeed);
+  }
+
+  // Seed receipts (2)
+  if (!DB.load('nau_receipts').length) {
+    const recSeed = [
+      { id:1, receiptNo:'REC-2026-001', paymentId:1, paymentNo:'PMT-2026-001', type:'invoice', referenceId:1, referenceNo:'INV-2026-001',
+        issuedTo:'Musab Khalid', amount:46020, currency:'USD', method:'Bank Transfer', issuedAt:'2026-03-10T14:00:00Z', notes:'Full payment' },
+      { id:2, receiptNo:'REC-2026-002', paymentId:2, paymentNo:'PMT-2026-002', type:'invoice', referenceId:2, referenceNo:'INV-2026-002',
+        issuedTo:'Grace Nakato', amount:25000, currency:'USD', method:'MTN Mobile Money', issuedAt:'2026-04-05T11:00:00Z', notes:'First installment' }
+    ];
+    DB.save('nau_receipts', recSeed);
+  }
+
   localStorage.setItem('nau_seeded', '1');
 }
 
@@ -1441,6 +2100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminShell').classList.add('visible');
     seedData();
+    archiveOldSoldVehicles();
     initVarTabs();
     navigate('dashboard');
   }
@@ -1454,6 +2114,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('adminShell').classList.add('visible');
       seedData();
+      archiveOldSoldVehicles();
       initVarTabs();
       navigate('dashboard');
     } else {

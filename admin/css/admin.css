@@ -1015,3 +1015,48 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   .bar-label { width: 70px; font-size: .72rem; }
   .modal-content { padding: 1.25rem 1rem; margin: .5rem; }
 }
+
+/* ===== ACCOUNTING MODULE ===== */
+.badge-overdue { background: #7d1c1c; color: #fff; }
+
+/* Invoice print styles */
+@media print {
+  body > *:not(#invoicePrintModal) { display: none !important; }
+  #invoicePrintModal { position: static !important; padding: 0 !important; }
+  #invoicePrintModal > div > div:first-child { display: none !important; }
+  .invoice-print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
+}
+.invoice-doc { font-family: 'Segoe UI', system-ui; color: #1a202c; }
+.invoice-doc .inv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 3px solid #c0392b; }
+.invoice-doc .inv-logo { display: flex; flex-direction: column; }
+.invoice-doc .inv-logo h2 { color: #0a1628; font-size: 1.4rem; margin: 0; }
+.invoice-doc .inv-logo p { color: #6b7280; font-size: .82rem; margin: .25rem 0 0; }
+.invoice-doc .inv-meta { text-align: right; }
+.invoice-doc .inv-meta h1 { font-size: 2rem; color: #c0392b; margin: 0 0 .5rem; letter-spacing: 1px; }
+.invoice-doc .inv-meta p { font-size: .85rem; color: #374151; margin: .15rem 0; }
+.invoice-doc .inv-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+.invoice-doc .inv-party h4 { font-size: .72rem; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; margin: 0 0 .5rem; }
+.invoice-doc .inv-party p { margin: .2rem 0; font-size: .88rem; }
+.invoice-doc .inv-party strong { color: #0a1628; font-size: 1rem; }
+.invoice-doc .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+.invoice-doc .inv-table th { background: #0a1628; color: #fff; padding: .7rem 1rem; text-align: left; font-size: .82rem; }
+.invoice-doc .inv-table td { padding: .7rem 1rem; border-bottom: 1px solid #e5e7eb; font-size: .88rem; }
+.invoice-doc .inv-table tr:last-child td { border-bottom: none; }
+.invoice-doc .inv-totals { width: 280px; margin-left: auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+.invoice-doc .inv-totals .tot-row { display: flex; justify-content: space-between; padding: .55rem 1rem; font-size: .88rem; border-bottom: 1px solid #e5e7eb; }
+.invoice-doc .inv-totals .tot-row:last-child { background: #0a1628; color: #fff; font-weight: 700; font-size: 1rem; border-bottom: none; }
+.invoice-doc .inv-totals .tot-row.discount { color: #16a34a; }
+.invoice-doc .inv-status-bar { margin: 1.5rem 0; padding: .75rem 1.25rem; border-radius: 8px; font-size: .9rem; font-weight: 600; }
+.invoice-doc .inv-status-bar.paid { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+.invoice-doc .inv-status-bar.unpaid { background: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b; }
+.invoice-doc .inv-footer { text-align: center; padding-top: 1.5rem; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: .82rem; }
+
+/* Receipt doc */
+.receipt-doc { font-family: 'Segoe UI', system-ui; color: #1a202c; max-width: 420px; margin: 0 auto; border: 2px dashed #d1d5db; border-radius: 12px; padding: 2rem; }
+.receipt-doc .rec-header { text-align: center; margin-bottom: 1.5rem; }
+.receipt-doc .rec-header h2 { color: #0a1628; margin: 0 .3rem 0; }
+.receipt-doc .rec-header .rec-no { font-size: 1.1rem; font-weight: 700; color: #c0392b; margin-top: .5rem; }
+.receipt-doc .rec-row { display: flex; justify-content: space-between; padding: .45rem 0; border-bottom: 1px dashed #e5e7eb; font-size: .88rem; }
+.receipt-doc .rec-total { display: flex; justify-content: space-between; padding: .75rem 0; font-size: 1.1rem; font-weight: 700; margin-top: .5rem; color: #0a1628; }
+.receipt-doc .rec-stamp { text-align: center; margin-top: 1.5rem; background: #d1fae5; color: #065f46; border-radius: 6px; padding: .6rem; font-weight: 700; font-size: 1rem; }
+.receipt-doc .rec-footer { text-align: center; margin-top: 1rem; color: #6b7280; font-size: .78rem; }
