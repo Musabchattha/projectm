@@ -1495,6 +1495,7 @@ ul { list-style: none; }
   .awards-grid { grid-template-columns: 1fr; }
   .port-regions { grid-template-columns: 1fr; }
   .detail-specs-grid { grid-template-columns: 1fr; }
+  .gallery-thumbs { grid-template-columns: repeat(2, 1fr); }
   .duty-result-grid { grid-template-columns: 1fr; }
   .finance-grid { grid-template-columns: 1fr; }
   .calc-results { grid-template-columns: 1fr; }

@@ -560,6 +560,13 @@ body.admin-body {
   overflow-y: visible;
   -webkit-overflow-scrolling: touch;
   box-shadow: 0 1px 4px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
+  /* Fade-right hint that content scrolls on mobile */
+  background-image: linear-gradient(to right, #fff 30%, transparent),
+                    linear-gradient(to right, transparent, #fff 70%);
+  background-position: left center, right center;
+  background-repeat: no-repeat;
+  background-size: 40px 100%, 40px 100%;
+  background-attachment: local, scroll;
 }
 
 .admin-table {
