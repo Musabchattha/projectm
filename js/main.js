@@ -96,6 +96,19 @@ document.querySelectorAll('.card-fav').forEach(btn => {
   startTimer();
 })();
 
+/* ---- Settings Integration ---- */
+function loadSiteSettings() {
+  const s = JSON.parse(localStorage.getItem('nau_settings') || '{}');
+  const wa = s.whatsapp || '256700123456';
+  const waClean = wa.replace(/\D/g, '');
+  // Replace all wa.me links on the page
+  document.querySelectorAll('a[href*="wa.me/"]').forEach(el => {
+    el.href = el.href.replace(/wa\.me\/\d+/, 'wa.me/' + waClean);
+  });
+  // Expose exchange rate globally
+  window.NAU_USD_RATE = Number(s.usdRate) || 3700;
+}
+
 /* ---- Hero Search Card ---- */
 (function initHeroSearchCard() {
   const advToggle = document.getElementById('hscAdvToggle');
@@ -113,12 +126,32 @@ document.querySelectorAll('.card-fav').forEach(btn => {
     const make = (document.getElementById('hscMake') || {}).value || '';
     const body = (document.getElementById('hscBody') || {}).value || '';
     const year = (document.getElementById('hscYear') || {}).value || '';
+    const price = (document.getElementById('hscPrice') || {}).value || '';
     const trans = (document.getElementById('hscTrans') || {}).value || '';
     const fuel = (document.getElementById('hscFuel') || {}).value || '';
     if (kw.trim()) params.set('q', kw.trim());
     if (make) params.set('make', make);
     if (body) params.set('body', body);
-    if (year) params.set('year', year);
+    // Year select uses ranges like "2023-2025" — split to yearMin/yearMax
+    if (year && year.includes('-')) {
+      const [yMin, yMax] = year.split('-');
+      if (yMin) params.set('yearMin', yMin.trim());
+      if (yMax) params.set('yearMax', yMax.trim());
+    } else if (year) {
+      params.set('yearMin', year);
+    }
+    // Price/budget select mapping
+    if (price === 'under50m') {
+      params.set('priceMax', '50000000');
+    } else if (price === '50m-100m') {
+      params.set('priceMin', '50000000');
+      params.set('priceMax', '100000000');
+    } else if (price === '100m-150m') {
+      params.set('priceMin', '100000000');
+      params.set('priceMax', '150000000');
+    } else if (price === 'over150m') {
+      params.set('priceMin', '150000000');
+    }
     if (trans) params.set('trans', trans);
     if (fuel) params.set('fuel', fuel);
     const qs = params.toString();
@@ -524,6 +557,85 @@ function subscribeNewsletter(e, form) {
 
 function showNewsletterSuccess(form, msg) {
   form.innerHTML = `<div style="text-align:center;font-size:1rem;font-weight:700;color:#27ae60;padding:.75rem;">${msg}</div>`;
+}
+
+/* ---- DOMContentLoaded: Settings + Dynamic Homepage ---- */
+document.addEventListener('DOMContentLoaded', function() {
+  loadSiteSettings();
+  renderFeaturedVehicles();
+  renderTestimonials();
+});
+
+/* ---- Dynamic Featured Vehicles ---- */
+function renderFeaturedVehicles() {
+  const vehicles = JSON.parse(localStorage.getItem('nau_vehicles') || '[]');
+  const mfrs = JSON.parse(localStorage.getItem('nau_manufacturers') || '[]');
+
+  let featured = vehicles.filter(v => v.status === 'Published' && v.badge === 'featured');
+  if (featured.length < 6) {
+    const extra = vehicles
+      .filter(v => v.status === 'Published' && v.badge !== 'featured')
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+      .slice(0, 6 - featured.length);
+    featured = [...featured, ...extra];
+  }
+  featured = featured.slice(0, 6);
+
+  const grid = document.getElementById('featuredGrid');
+  if (!grid) return;
+  if (!featured.length) return; // keep hardcoded if empty (fresh install before seedData runs)
+
+  const badgeMap = { 'hot-deal': '🔥 Hot Deal', 'new-arrival': '⭐ New Arrival', 'price-drop': '💰 Price Drop', 'featured': '🏆 Featured' };
+
+  grid.innerHTML = featured.map(v => {
+    const mfr = mfrs.find(m => m.id === v.manufacturerId);
+    const make = mfr ? mfr.name : (v.make || v.makeLabel || '');
+    const modelName = v.modelName || v.model || v.modelLabel || '';
+    const badgeHtml = v.badge && badgeMap[v.badge] ? `<span class="vehicle-badge badge-${v.badge}">${badgeMap[v.badge]}</span>` : '';
+    return `
+      <article class="vehicle-card">
+        <a href="vehicle-detail.html?id=${v.id}" style="text-decoration:none;color:inherit;">
+          <div class="card-img-wrap" style="position:relative;">
+            <img src="${v.imageUrl || 'https://placehold.co/400x280?text=No+Image'}" alt="${make} ${modelName}" loading="lazy" style="width:100%;height:220px;object-fit:cover;border-radius:8px 8px 0 0;">
+            ${badgeHtml}
+          </div>
+          <div class="card-body" style="padding:1rem;">
+            <h3 class="card-title" style="margin:0 0 .4rem;font-size:1rem;color:#0a1628;">${make} ${modelName}</h3>
+            <div class="card-specs" style="font-size:.83rem;color:#666;margin-bottom:.5rem;">
+              ${v.year ? `<span>${v.year}</span>` : ''}${v.fuelType ? ` · <span>${v.fuelType}</span>` : ''}${v.bodyType ? ` · <span>${v.bodyType}</span>` : ''}
+            </div>
+            <div class="card-price" style="font-weight:800;color:#c0392b;font-size:1rem;">UGX ${Number(v.priceUGX || 0).toLocaleString()}</div>
+            ${v.priceUSD ? `<div style="font-size:.8rem;color:#888;">≈ $${Number(v.priceUSD).toLocaleString()}</div>` : ''}
+          </div>
+        </a>
+      </article>
+    `;
+  }).join('');
+}
+
+/* ---- Dynamic Testimonials ---- */
+function renderTestimonials() {
+  const reviews = JSON.parse(localStorage.getItem('nau_reviews') || '[]')
+    .filter(r => r.status === 'Approved' || r.approved === true)
+    .slice(0, 3);
+
+  const grid = document.getElementById('testimonialsGrid');
+  if (!grid) return;
+  if (!reviews.length) return; // keep fallback static content if no reviews
+
+  grid.innerHTML = reviews.map(r => `
+    <div class="testimonial-card testi-card">
+      <div class="testimonial-stars" style="color:#f0a500;font-size:1.1rem;margin-bottom:.5rem;">${'★'.repeat(r.rating || 5)}</div>
+      <p class="testimonial-text testi-text" style="color:#555;font-style:italic;line-height:1.7;margin-bottom:1rem;">"${r.review || r.text || ''}"</p>
+      <div class="testimonial-author testi-author" style="display:flex;align-items:center;gap:.75rem;">
+        <div class="testimonial-avatar-initial" style="width:40px;height:40px;border-radius:50%;background:#0a1628;color:#f0a500;font-size:1.1rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${(r.customerName || r.customer || 'A')[0].toUpperCase()}</div>
+        <div>
+          <div style="font-weight:700;color:#0a1628;font-size:.9rem;">${r.customerName || r.customer || 'Happy Customer'}</div>
+          <div style="font-size:.8rem;color:#888;">${r.vehicle || r.vehicleId ? 'Verified Buyer' : 'NipponAuto Customer'}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
 }
 
 /* ---- NipponAuto Admin: Dynamic Inventory from localStorage ---- */
