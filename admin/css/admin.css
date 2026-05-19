@@ -1063,6 +1063,8 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 
 .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
+.dash-widget { background: #fff; border-radius: 10px; padding: 1.25rem; box-shadow: 0 2px 12px rgba(10,22,40,.08); }
+
 /* ===== BAR CHART (pure CSS) ===== */
 .bar-chart { display: flex; flex-direction: column; gap: .55rem; }
 .bar-row {

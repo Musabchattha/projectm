@@ -804,12 +804,56 @@ function renderDash(tab) {
   const mfrs = getMFRs();
   const totalVal = vehs.reduce((s,v)=>s+Number(v.priceUSD||0),0);
   if (tab==='overview') {
+    const pendingAppts = DB.load('nau_appointments').filter(a => a.status === 'Pending').length;
+    const today = new Date().toISOString().split('T')[0];
+    const upcomingAppts = DB.load('nau_appointments')
+      .filter(a => (a.status === 'Pending' || a.status === 'Confirmed') && a.date >= today)
+      .sort((a, b) => a.date.localeCompare(b.date) || (a.time||'').localeCompare(b.time||''))
+      .slice(0, 5);
+
+    const apptTableHtml = `
+      <div class="dash-widget" style="margin-top:1.5rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+          <h3 style="margin:0;font-size:1rem;color:#0a1628;">&#128197; Upcoming Appointments</h3>
+          <button onclick="navigate('appointments')" style="background:none;border:none;color:#c0392b;font-size:.83rem;font-weight:700;cursor:pointer;">View All &#8594;</button>
+        </div>
+        ${upcomingAppts.length === 0
+          ? '<p style="color:#999;text-align:center;padding:1rem;">No upcoming appointments.</p>'
+          : `<table style="width:100%;border-collapse:collapse;font-size:.85rem;">
+              <thead>
+                <tr style="background:#f4f6fa;">
+                  <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:#555;">Date &amp; Time</th>
+                  <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:#555;">Customer</th>
+                  <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:#555;">Vehicle Interest</th>
+                  <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:#555;">Status</th>
+                  <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:#555;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${upcomingAppts.map(a => `
+                  <tr style="border-top:1px solid #f0f0f0;">
+                    <td style="padding:.5rem .75rem;">${a.date}${a.time ? ' ' + a.time : ''}</td>
+                    <td style="padding:.5rem .75rem;">${a.customerName || a.name || '—'}<br><span style="color:#999;font-size:.78rem;">${a.email||''}</span></td>
+                    <td style="padding:.5rem .75rem;">${a.vehicleInterest || a.vehicle || '—'}</td>
+                    <td style="padding:.5rem .75rem;"><span style="background:${a.status==='Confirmed'?'#27ae60':'#999'};color:#fff;padding:.2rem .6rem;border-radius:20px;font-size:.75rem;">${a.status}</span></td>
+                    <td style="padding:.5rem .75rem;">
+                      ${a.status === 'Pending' ? `<button onclick="dashConfirmAppt(${a.id})" style="background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.25rem .5rem;font-size:.75rem;cursor:pointer;margin-right:.3rem;">Confirm</button>` : ''}
+                      <button onclick="dashCancelAppt(${a.id})" style="background:#c0392b;color:#fff;border:none;border-radius:4px;padding:.25rem .5rem;font-size:.75rem;cursor:pointer;">Cancel</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>`
+        }
+      </div>
+    `;
+
     document.getElementById('dashContent').innerHTML = `
       <div class="stats-grid-admin">
-        <div class="stat-card"><div class="stat-card-label">Total Vehicles in Stock</div><div class="stat-card-value">${vehs.length}</div><div class="stat-card-trend trend-neutral">↗ All inventory</div></div>
-        <div class="stat-card"><div class="stat-card-label">Total Sales (est.)</div><div class="stat-card-value">$${Math.round(totalVal/1000)}K</div><div class="stat-card-trend trend-up">↗ +0% vs last month</div></div>
-        <div class="stat-card"><div class="stat-card-label">Pending Inquiries</div><div class="stat-card-value">${inqs.filter(i=>i.status==='new').length}</div><div class="stat-card-trend trend-up">↗ New</div></div>
-        <div class="stat-card"><div class="stat-card-label">Total Quotes</div><div class="stat-card-value">${qts.length}</div><div class="stat-card-trend trend-neutral">── This month</div></div>
+        <div class="stat-card"><div class="stat-card-label">Total Vehicles in Stock</div><div class="stat-card-value">${vehs.length}</div><div class="stat-card-trend trend-neutral">&#8599; All inventory</div></div>
+        <div class="stat-card"><div class="stat-card-label">Total Sales (est.)</div><div class="stat-card-value">$${Math.round(totalVal/1000)}K</div><div class="stat-card-trend trend-up">&#8599; +0% vs last month</div></div>
+        <div class="stat-card"><div class="stat-card-label">Pending Inquiries</div><div class="stat-card-value">${inqs.filter(i=>i.status==='new').length}</div><div class="stat-card-trend trend-up">&#8599; New</div></div>
+        <div class="stat-card stat-card-orange"><div class="stat-card-label">&#128197; Pending Appointments</div><div class="stat-card-value">${pendingAppts}</div><div class="stat-card-trend trend-neutral" style="cursor:pointer;" onclick="navigate('appointments')">View Appointments &#8594;</div></div>
       </div>
       <div class="dash-grid">
         <div class="dash-section"><h3>Recent Inquiries <a href="#" data-nav="inquiries">View All</a></h3>
@@ -825,7 +869,8 @@ function renderDash(tab) {
               <div class="bar-row"><div class="bar-label">${k}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/mx*100)}%"></div></div><div class="bar-value">${v}</div></div>`).join('');
           })()}</div>
         </div>
-      </div>`;
+      </div>
+      ${apptTableHtml}`;
     document.querySelectorAll('#dashContent [data-nav]').forEach(a => a.addEventListener('click', e=>{e.preventDefault();navigate(a.dataset.nav);}));
   } else if (tab==='vehicles') {
     document.getElementById('dashContent').innerHTML = `<div class="dash-section"><h3>Vehicle Overview</h3>
@@ -851,6 +896,26 @@ function renderDash(tab) {
       <div class="stat-card"><div class="stat-card-label">Total Quotes Value</div><div class="stat-card-value">$${Math.round(qts.reduce((s,q)=>s+Number(q.quotedPrice||0),0)/1000)}K</div></div>
     </div>`;
   }
+}
+
+function dashConfirmAppt(id) {
+  const appts = DB.load('nau_appointments');
+  const idx = appts.findIndex(a => a.id === id);
+  if (idx === -1) return;
+  appts[idx].status = 'Confirmed';
+  DB.save('nau_appointments', appts);
+  renderDash('overview');
+  toast('Appointment confirmed.');
+}
+
+function dashCancelAppt(id) {
+  const appts = DB.load('nau_appointments');
+  const idx = appts.findIndex(a => a.id === id);
+  if (idx === -1) return;
+  appts[idx].status = 'Cancelled';
+  DB.save('nau_appointments', appts);
+  renderDash('overview');
+  toast('Appointment cancelled.');
 }
 
 // ===== SETTINGS =====
