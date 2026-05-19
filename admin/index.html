@@ -90,6 +90,10 @@
       </div>
 
       <div class="nav-item">
+        <button class="nav-link" data-nav="appointments">Appointments</button>
+      </div>
+
+      <div class="nav-item">
         <button class="nav-link" data-nav="acc-invoices">Accounting ▾</button>
         <div class="nav-dropdown">
           <a href="#" data-nav="acc-invoices">Invoices</a>
@@ -107,6 +111,14 @@
           <a href="#" data-nav="inquiries">All Inquiries</a>
           <a href="#" data-nav="inquiries-new">New Inquiries</a>
         </div>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link" data-nav="customers">Customers</button>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-link" data-nav="stock-alerts">Stock Alerts</button>
       </div>
 
       <div class="nav-item">
@@ -173,6 +185,7 @@
     <a class="amn-item" data-nav="auctions">🔨 Auctions</a>
     <a class="amn-item" data-nav="quotes">💬 Quotes</a>
     <a class="amn-item" data-nav="orders">📦 Orders</a>
+    <a class="amn-item" data-nav="appointments">📅 Appointments</a>
     <div class="amn-group">
       <button class="amn-group-toggle">💰 Accounting <span class="amn-arrow">▾</span></button>
       <div class="amn-sub">
@@ -208,6 +221,8 @@
         <a data-nav="marketing-campaigns">Campaigns</a>
       </div>
     </div>
+    <a class="amn-item" data-nav="customers">👥 Customers</a>
+    <a class="amn-item" data-nav="stock-alerts">🔔 Stock Alerts</a>
     <a class="amn-item" data-nav="support">🎫 Support</a>
     <a class="amn-item" data-nav="careers">💼 Careers</a>
     <a class="amn-item" data-nav="user-management">👤 User Management</a>
@@ -359,6 +374,7 @@
         <button class="btn-tool" onclick="downloadCSVTemplate()">⬇ CSV Template</button>
         <button class="btn-tool" onclick="exportVehiclesCSV()">📤 Export CSV</button>
         <button class="btn-tool btn-tool-red">📥 Import CSV</button>
+        <button class="btn-tool" onclick="openBulkUGXModal()" style="background:#7c3aed;color:#fff">💱 Recalculate UGX Prices</button>
       </div>
       <div class="table-meta"><span id="veh-count"></span></div>
       <div class="table-wrap">
@@ -477,7 +493,7 @@
       <div class="table-wrap">
         <table class="admin-table">
           <thead><tr>
-            <th>ID</th><th>SKU</th><th>Vehicle</th><th>Year</th><th>Chassis</th><th>Customer</th><th>Web Price</th><th>Quoted Price</th><th>Down Payment</th><th>Dates</th><th>Status</th>
+            <th>ID</th><th>SKU</th><th>Vehicle</th><th>Year</th><th>Chassis</th><th>Customer</th><th>Web Price</th><th>Quoted Price</th><th>Down Payment</th><th>Dates</th><th>Status</th><th>Actions</th>
           </tr></thead>
           <tbody id="qt-tbody"></tbody>
         </table>
@@ -620,10 +636,19 @@
     <!-- ===== REPORTS ===== -->
     <div class="page-section" id="page-reports">
       <div class="page-header"><div class="page-header-left"><h1>Reports</h1><p>Analytics and business reports</p></div></div>
-      <div class="stats-grid-admin" id="reports-stats"></div>
-      <div class="dash-grid">
-        <div class="dash-section"><h3>Sales by Manufacturer</h3><div class="bar-chart" id="rpt-mfr-chart"></div></div>
-        <div class="dash-section"><h3>Stock by Fuel Type</h3><div class="bar-chart" id="rpt-fuel-chart"></div></div>
+      <div class="sub-tabs" id="reportTabs">
+        <button class="sub-tab active" onclick="showReportTab('overview', this)">Overview</button>
+        <button class="sub-tab" onclick="showReportTab('staff', this)">Staff Performance</button>
+      </div>
+      <div id="rpt-overview-panel">
+        <div class="stats-grid-admin" id="reports-stats"></div>
+        <div class="dash-grid">
+          <div class="dash-section"><h3>Sales by Manufacturer</h3><div class="bar-chart" id="rpt-mfr-chart"></div></div>
+          <div class="dash-section"><h3>Stock by Fuel Type</h3><div class="bar-chart" id="rpt-fuel-chart"></div></div>
+        </div>
+      </div>
+      <div id="rpt-staff-panel" style="display:none">
+        <div id="rpt-staff-content"></div>
       </div>
     </div>
 
@@ -639,6 +664,7 @@
         <button class="sub-tab" onclick="showSettingsTab('api', this)">API Integrations</button>
         <button class="sub-tab" onclick="showSettingsTab('translation', this)">Translation</button>
         <button class="sub-tab" onclick="showSettingsTab('currency', this)">Currency</button>
+        <button class="sub-tab" onclick="showSettingsTab('finance-partners', this)">Finance Partners</button>
       </div>
 
       <!-- Company Info -->
@@ -785,6 +811,15 @@ Disallow: /admin/</textarea></div></div>
           <thead><tr><th>Language</th><th>Code</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody id="lang-tbody"></tbody>
         </table></div>
+      </div>
+
+      <!-- Finance Partners -->
+      <div id="settings-finance-partners" class="settings-body" style="display:none">
+        <div class="page-header" style="margin-bottom:1rem">
+          <div class="page-header-left"><h1 style="font-size:1.1rem">Finance Partners</h1></div>
+          <button class="btn-create" onclick="openModal('financePartner')">+ Add Partner</button>
+        </div>
+        <div class="table-wrap"><table class="admin-table"><thead><tr><th>Name</th><th>Interest Rate</th><th>Max Tenure</th><th>Amount Range</th><th>Status</th><th>Actions</th></tr></thead><tbody id="fp-tbody"></tbody></table></div>
       </div>
 
       <!-- Currency -->
@@ -1036,6 +1071,92 @@ Disallow: /admin/</textarea></div></div>
             <th>Account Name</th><th>Type</th><th>Currency</th><th>Bank / Provider</th><th>Account Number</th><th>Account Holder</th><th>Status</th><th>Actions</th>
           </tr></thead>
           <tbody id="acct-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== APPOINTMENTS ===== -->
+    <div class="page-section" id="page-appointments">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Appointments</h1><p>Manage test drives, viewings and collections</p></div>
+        <button class="btn-create" onclick="openModal('appointment')">+ New Appointment</button>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Search</label>
+          <input type="text" class="filter-input" id="apt-search" placeholder="Search by name, vehicle..." />
+        </div>
+        <div class="filter-group">
+          <label>Status</label>
+          <select class="filter-select" id="apt-status-filter">
+            <option value="">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn-filter btn-clear" onclick="clearFilters('appointments')">Clear All</button>
+          <button class="btn-filter btn-apply" onclick="renderAppointments()">🔍 Apply Filters</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Customer</th><th>Phone</th><th>Vehicle Interest</th><th>Date &amp; Time</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="apt-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== CUSTOMERS ===== -->
+    <div class="page-section" id="page-customers">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Customers</h1><p>Customer accounts and interaction history</p></div>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Search</label>
+          <input type="text" class="filter-input" id="cust-search" placeholder="Search by name, email, phone..." />
+        </div>
+        <div class="filter-actions">
+          <button class="btn-filter btn-clear" onclick="clearFilters('customers')">Clear All</button>
+          <button class="btn-filter btn-apply" onclick="renderCustomers()">🔍 Apply Filters</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th><th>Activity</th><th>Actions</th></tr></thead>
+          <tbody id="cust-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== STOCK ALERTS ===== -->
+    <div class="page-section" id="page-stock-alerts">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Stock Alerts / Waitlist</h1><p>Customers waiting for specific vehicles</p></div>
+        <button class="btn-create" onclick="openModal('stockAlert')">+ Add Alert</button>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label>Status</label>
+          <select class="filter-select" id="alert-status-filter">
+            <option value="">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Matched">Matched</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <button class="btn-filter btn-clear" onclick="clearFilters('alerts')">Clear All</button>
+          <button class="btn-filter btn-apply" onclick="renderAlerts()">🔍 Apply Filters</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Customer</th><th>Contact</th><th>Looking For</th><th>Max Price</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+          <tbody id="alert-tbody"></tbody>
         </table>
       </div>
     </div>

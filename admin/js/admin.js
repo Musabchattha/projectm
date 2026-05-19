@@ -97,6 +97,9 @@ function navigate(page) {
     'support': renderSupport,
     'careers': renderCareers,
     'user-management': renderUsers,
+    'appointments': renderAppointments,
+    'customers': renderCustomers,
+    'stock-alerts': renderAlerts,
     'reports': renderReports,
     'settings': () => showSettingsTab('company', document.querySelector('#page-settings .sub-tab')),
     'acc-invoices': renderInvoices,
@@ -124,6 +127,9 @@ function updateBreadcrumb(page) {
     'orders': ['Orders'],
     'inquiries': ['Inquiries'],
     'inquiries-new': ['Inquiries', 'New'],
+    'appointments': ['Appointments'],
+    'customers': ['Customers'],
+    'stock-alerts': ['Stock Alerts'],
     'content-slider': ['Content Management', 'Homepage Slider'],
     'content-topic': ['Content Management', 'Topic Pages'],
     'content-blogs': ['Content Management', 'Blogs'],
@@ -163,7 +169,8 @@ function updateNavActive(page) {
     if (nav === page || nav === base || (page.startsWith('inv') && nav === 'inv-vehicles') ||
         (page.startsWith('content') && nav === 'content-slider') ||
         (page.startsWith('marketing') && nav === 'marketing') ||
-        (page.startsWith('acc') && nav === 'acc-invoices')) {
+        (page.startsWith('acc') && nav === 'acc-invoices') ||
+        (page === 'stock-alerts' && nav === 'stock-alerts')) {
       b.classList.add('active');
     }
   });
@@ -185,7 +192,10 @@ function openModal(type, id) {
 
 function closeModal() {
   document.getElementById('modalBackdrop').classList.remove('open');
-  document.getElementById('modalSaveBtn').onclick = submitModal;
+  const saveBtn = document.getElementById('modalSaveBtn');
+  saveBtn.onclick = submitModal;
+  saveBtn.textContent = 'Save';
+  saveBtn.style.display = '';
   _modalType = null;
   _editId = null;
 }
@@ -317,7 +327,10 @@ function renderVehicles() {
       <td>${v.bodyType||'-'}${v.subBodyType?' / '+v.subBodyType:''}</td>
       <td>${v.fuelType||'-'}</td>
       <td><strong>$${Number(v.priceUSD||0).toLocaleString()}</strong></td>
-      <td><span class="badge badge-${(v.status||'draft').toLowerCase()}">${v.status||'Draft'}</span></td>
+      <td>
+        <span class="badge badge-${(v.status||'draft').toLowerCase()}">${v.status||'Draft'}</span>
+        ${v.journey ? `<div style="font-size:.7rem;color:#8a9ab5;margin-top:.2rem">${v.journey.filter(s=>s.completed).length}/6 stages</div>` : ''}
+      </td>
       <td>${fmtDateShort(v.createdAt)}</td>
       <td><div class="row-actions">
         <button class="btn-row" title="Share">📤</button>
@@ -448,7 +461,8 @@ function renderQuotes() {
       <td>${q.downPayment||70}%</td>
       <td><div class="td-two-line"><span class="line2">Req: ${q.reqDate||'-'}</span><span class="line2">Iss: ${q.issDate||'-'}</span></div></td>
       <td><span class="badge badge-${(q.status||'quoted').toLowerCase()}">${q.status||'Quoted'}</span></td>
-    </tr>`).join('') : '<tr><td colspan="11" class="table-empty"><span class="empty-icon">📋</span>No quotes found.</td></tr>';
+      <td><div class="row-actions"><button class="btn-row" title="WhatsApp" onclick="openWhatsAppModal('quote',${q.id})" style="background:#25d366;color:#fff">📱</button></div></td>
+    </tr>`).join('') : '<tr><td colspan="12" class="table-empty"><span class="empty-icon">📋</span>No quotes found.</td></tr>';
 }
 
 function showQuoteTab(tab, el) {
@@ -494,6 +508,7 @@ function renderInquiries() {
       <td><span class="badge badge-${i.status||'new'}">${(i.status||'new').charAt(0).toUpperCase()+(i.status||'new').slice(1)}</span></td>
       <td><div class="row-actions">
         <button class="btn-row" title="Next Status" onclick="cycleInqStatus(${i.id})">🔄</button>
+        <button class="btn-row" title="WhatsApp" onclick="openWhatsAppModal('inquiry',${i.id})" style="background:#25d366;color:#fff">📱</button>
         <button class="btn-row btn-row-delete" onclick="deleteInquiry(${i.id})">🗑️</button>
       </div></td>
     </tr>`).join('') : '<tr><td colspan="8" class="table-empty"><span class="empty-icon">💬</span>No inquiries found.</td></tr>';
@@ -682,12 +697,28 @@ function renderAuctions() {
 }
 
 // ===== REPORTS =====
+function showReportTab(tab, el) {
+  document.querySelectorAll('#reportTabs .sub-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const overviewPanel = document.getElementById('rpt-overview-panel');
+  const staffPanel = document.getElementById('rpt-staff-panel');
+  if (overviewPanel) overviewPanel.style.display = tab === 'overview' ? '' : 'none';
+  if (staffPanel) staffPanel.style.display = tab === 'staff' ? '' : 'none';
+  if (tab === 'staff') renderStaffPerformance();
+}
+
 function renderReports() {
   const vehs = getVehicles();
   const inqs = DB.load('nau_inquiries');
   const qts = DB.load('nau_quotes');
   const published = vehs.filter(v=>v.status==='published'||v.status==='Published').length;
   const sold = vehs.filter(v=>v.status==='sold'||v.status==='Sold').length;
+  // Reset to overview tab
+  document.querySelectorAll('#reportTabs .sub-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  const overviewPanel = document.getElementById('rpt-overview-panel');
+  const staffPanel = document.getElementById('rpt-staff-panel');
+  if (overviewPanel) overviewPanel.style.display = '';
+  if (staffPanel) staffPanel.style.display = 'none';
   document.getElementById('reports-stats').innerHTML = [
     {label:'Total Vehicles', value: vehs.length, trend:'neutral'},
     {label:'Published', value: published, trend:'up'},
@@ -711,6 +742,57 @@ function renderReports() {
   const maxF = Math.max(...Object.values(fuelCounts), 1);
   document.getElementById('rpt-fuel-chart').innerHTML = Object.entries(fuelCounts).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
     <div class="bar-row"><div class="bar-label">${k}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/maxF*100)}%"></div></div><div class="bar-value">${v}</div></div>`).join('');
+}
+
+// ===== STAFF PERFORMANCE =====
+function renderStaffPerformance() {
+  const invoices = DB.load('nau_invoices');
+  const staffMap = {};
+  const now = new Date();
+  const thisMonth = now.getMonth();
+  const thisYear = now.getFullYear();
+  invoices.forEach(inv => {
+    const staff = inv.createdBy || 'Super Admin';
+    if (!staffMap[staff]) staffMap[staff] = { count: 0, revenue: 0, thisMonth: 0 };
+    staffMap[staff].count++;
+    staffMap[staff].revenue += Number(inv.totalAmount || 0);
+    const d = new Date(inv.createdAt);
+    if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) {
+      staffMap[staff].thisMonth += Number(inv.totalAmount || 0);
+    }
+  });
+  if (!Object.keys(staffMap).length) staffMap['Super Admin'] = { count: 0, revenue: 0, thisMonth: 0 };
+  const rows = Object.entries(staffMap).sort((a, b) => b[1].revenue - a[1].revenue);
+  const maxRev = Math.max(...rows.map(r => r[1].revenue), 1);
+  const contentEl = document.getElementById('rpt-staff-content');
+  if (!contentEl) return;
+  contentEl.innerHTML = `
+    <div class="dash-section" style="margin-bottom:1.5rem">
+      <h3>Staff Revenue Performance</h3>
+      <div class="bar-chart" style="margin-top:1rem">
+        ${rows.map(([name, s]) => `
+          <div class="bar-row">
+            <div class="bar-label">${name}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.round(s.revenue/maxRev*100)}%"></div></div>
+            <div class="bar-value">$${Math.round(s.revenue/1000)}K</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="admin-table">
+        <thead><tr><th>Staff Name</th><th>Invoices Created</th><th>Total Revenue (USD)</th><th>Avg Deal Size</th><th>This Month</th></tr></thead>
+        <tbody>
+          ${rows.map(([name, s]) => `
+            <tr>
+              <td><strong>${name}</strong></td>
+              <td>${s.count}</td>
+              <td><strong>$${Number(s.revenue).toLocaleString()}</strong></td>
+              <td>$${s.count ? Math.round(s.revenue / s.count).toLocaleString() : '0'}</td>
+              <td>$${Number(s.thisMonth).toLocaleString()}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
 }
 
 // ===== DASHBOARD =====
@@ -775,7 +857,7 @@ function renderDash(tab) {
 function showSettingsTab(tab, el) {
   document.querySelectorAll('#page-settings .sub-tab').forEach(t=>t.classList.remove('active'));
   if (el) el.classList.add('active');
-  ['company','freights','locations','email','seo','api','translation','currency'].forEach(t => {
+  ['company','freights','locations','email','seo','api','translation','currency','finance-partners'].forEach(t => {
     const el2 = document.getElementById('settings-'+t);
     if (el2) el2.style.display = t===tab ? 'block' : 'none';
   });
@@ -784,6 +866,7 @@ function showSettingsTab(tab, el) {
   if (tab==='currency') renderCurrencyTable();
   if (tab==='freights') renderFreights();
   if (tab==='locations') renderLocations();
+  if (tab==='finance-partners') renderFinancePartners();
   loadSettings();
 }
 
@@ -931,14 +1014,38 @@ const modalConfigs = {
       <div class="form-row"><div class="form-group"><label>Status</label><select class="form-control" id="v-status"><option value="Published" ${d&&d.status==='Published'?'selected':''}>Published</option><option value="Draft" ${!d||d.status==='Draft'?'selected':''}>Draft</option><option value="Sold" ${d&&d.status==='Sold'?'selected':''}>Sold</option></select></div>
       <div class="form-group"><label>Showroom</label><select class="form-control" id="v-showroom"><option>Nakawa, Kampala</option></select></div></div>
       <div class="form-row full"><div class="form-group"><label>Image URL</label><input class="form-control" id="v-img" value="${d?d.imageUrl:''}" placeholder="https://..." /></div></div>
-      <div class="form-row full"><div class="form-group"><label>Description</label><textarea class="form-control" id="v-desc">${d?d.description:''}</textarea></div></div>`,
+      <div class="form-row full"><div class="form-group"><label>Description</label><textarea class="form-control" id="v-desc">${d?d.description:''}</textarea></div></div>
+      <div class="form-row full"><div class="form-group"><label style="font-weight:700;font-size:.92rem;margin-bottom:.5rem;display:block">📎 Documents</label>
+        <div class="form-row"><div class="form-group"><label>Auction Sheet URL</label><input class="form-control" id="v-doc-auction" value="${d&&d.documents?d.documents.auctionSheet||'':''}" placeholder="https://..." /></div>
+        <div class="form-group"><label>Inspection Report URL</label><input class="form-control" id="v-doc-inspect" value="${d&&d.documents?d.documents.inspectionReport||'':''}" placeholder="https://..." /></div></div>
+        <div class="form-row"><div class="form-group"><label>Import Declaration URL</label><input class="form-control" id="v-doc-import" value="${d&&d.documents?d.documents.importDecl||'':''}" placeholder="https://..." /></div>
+        <div class="form-group"><label>Logbook URL</label><input class="form-control" id="v-doc-logbook" value="${d&&d.documents?d.documents.logbook||'':''}" placeholder="https://..." /></div></div>
+      </div></div>
+      <div class="form-row full"><div class="form-group"><label style="font-weight:700;font-size:.92rem;margin-bottom:.75rem;display:block">🚢 Import Journey</label>
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+          ${(()=>{const stages=['Auctioned in Japan','Shipped','Mombasa Port','Uganda Clearing','In Showroom','Sold'];return stages.map((stage,i)=>{const sKey='stage_'+i;const jrn=d&&d.journey?d.journey[i]:null;return `<div style="display:grid;grid-template-columns:1.5rem 140px 140px 1fr;gap:.5rem;align-items:center"><input type="checkbox" id="v-j-done-${i}" ${jrn&&jrn.completed?'checked':''}><label style="font-size:.82rem;margin:0">${stage}</label><input type="date" class="form-control" id="v-j-date-${i}" value="${jrn&&jrn.date?jrn.date:''}" style="font-size:.78rem;padding:.3rem .5rem"><input class="form-control" id="v-j-notes-${i}" placeholder="Notes" value="${jrn&&jrn.notes?jrn.notes:''}" style="font-size:.78rem;padding:.3rem .5rem" /></div>`;}).join('');})()}
+        </div>
+      </div></div>`,
     collect: () => {
       const model = document.getElementById('v-model').value.trim();
       const year = document.getElementById('v-year').value;
       const price = document.getElementById('v-price').value;
       if (!model || !year || !price) { toast('⚠️ Model, Year and Price are required'); return null; }
       const usd = Number(price);
-      return { manufacturerId: Number(document.getElementById('v-mfr').value), make: document.getElementById('v-make').value || getMFRName(Number(document.getElementById('v-mfr').value)), model, color: document.getElementById('v-color').value, year: Number(year), chassis: document.getElementById('v-chassis').value, engineCC: document.getElementById('v-engine').value, mileage: document.getElementById('v-mileage').value, bodyType: document.getElementById('v-body').value, fuelType: document.getElementById('v-fuel').value, transmission: document.getElementById('v-trans').value, steering: document.getElementById('v-steer').value, priceUSD: usd, priceUGX: document.getElementById('v-ugx').value || usd*3700, status: document.getElementById('v-status').value, showroom: document.getElementById('v-showroom').value, imageUrl: document.getElementById('v-img').value, description: document.getElementById('v-desc').value };
+      const journeyStages = ['Auctioned in Japan','Shipped','Mombasa Port','Uganda Clearing','In Showroom','Sold'];
+      const journey = journeyStages.map((stage,i) => ({
+        stage,
+        completed: (document.getElementById('v-j-done-'+i)||{}).checked || false,
+        date: (document.getElementById('v-j-date-'+i)||{}).value || '',
+        notes: (document.getElementById('v-j-notes-'+i)||{}).value || ''
+      }));
+      const documents = {
+        auctionSheet: (document.getElementById('v-doc-auction')||{}).value || '',
+        inspectionReport: (document.getElementById('v-doc-inspect')||{}).value || '',
+        importDecl: (document.getElementById('v-doc-import')||{}).value || '',
+        logbook: (document.getElementById('v-doc-logbook')||{}).value || ''
+      };
+      return { manufacturerId: Number(document.getElementById('v-mfr').value), make: document.getElementById('v-make').value || getMFRName(Number(document.getElementById('v-mfr').value)), model, color: document.getElementById('v-color').value, year: Number(year), chassis: document.getElementById('v-chassis').value, engineCC: document.getElementById('v-engine').value, mileage: document.getElementById('v-mileage').value, bodyType: document.getElementById('v-body').value, fuelType: document.getElementById('v-fuel').value, transmission: document.getElementById('v-trans').value, steering: document.getElementById('v-steer').value, priceUSD: usd, priceUGX: document.getElementById('v-ugx').value || usd*3700, status: document.getElementById('v-status').value, showroom: document.getElementById('v-showroom').value, imageUrl: document.getElementById('v-img').value, description: document.getElementById('v-desc').value, documents, journey };
     },
     create: d => { const all = getVehicles(); all.push({id:DB.nextId('nau_vehicles'), sku:genSKU(), ...d, createdAt:nowISO()}); saveVehicles(all); },
     update: (id, d) => { const all = getVehicles(); const i = all.findIndex(v=>v.id===id); if(i>-1){all[i]={...all[i],...d};saveVehicles(all);} },
@@ -1349,6 +1456,85 @@ const modalConfigs = {
     refresh: renderBills
   },
 
+  appointment: {
+    label: 'Appointment',
+    getData: id => DB.load('nau_appointments').find(a => a.id === id),
+    form: d => `
+      <div class="form-row"><div class="form-group"><label>Customer Name<span class="required">*</span></label><input class="form-control" id="ap-name" value="${d?d.customerName:''}" /></div>
+      <div class="form-group"><label>Phone</label><input class="form-control" id="ap-phone" value="${d?d.customerPhone:''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Email</label><input class="form-control" id="ap-email" value="${d?d.customerEmail:''}" /></div>
+      <div class="form-group"><label>Vehicle Interest</label><input class="form-control" id="ap-veh" value="${d?d.vehicleName:''}" placeholder="e.g. Toyota Land Cruiser Prado 2022" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Date<span class="required">*</span></label><input class="form-control" type="date" id="ap-date" value="${d?d.date:''}" /></div>
+      <div class="form-group"><label>Time</label><select class="form-control" id="ap-time">
+        ${['9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM'].map(t=>`<option ${d&&d.time===t?'selected':''}>${t}</option>`).join('')}
+      </select></div></div>
+      <div class="form-row"><div class="form-group"><label>Type</label><select class="form-control" id="ap-type">
+        ${['Test Drive','Viewing','Collection'].map(t=>`<option ${d&&d.type===t?'selected':''}>${t}</option>`).join('')}
+      </select></div>
+      <div class="form-group"><label>Status</label><select class="form-control" id="ap-status">
+        ${['Pending','Confirmed','Completed','Cancelled'].map(s=>`<option ${d&&d.status===s?'selected':''}>${s}</option>`).join('')}
+      </select></div></div>
+      <div class="form-row full"><div class="form-group"><label>Notes</label><textarea class="form-control" id="ap-notes">${d?d.notes:''}</textarea></div></div>`,
+    collect: () => {
+      const name = document.getElementById('ap-name').value.trim();
+      const date = document.getElementById('ap-date').value;
+      if (!name || !date) { toast('⚠️ Customer Name and Date are required'); return null; }
+      return { customerName: name, customerPhone: document.getElementById('ap-phone').value, customerEmail: document.getElementById('ap-email').value, vehicleName: document.getElementById('ap-veh').value, date, time: document.getElementById('ap-time').value, type: document.getElementById('ap-type').value, status: document.getElementById('ap-status').value, notes: document.getElementById('ap-notes').value };
+    },
+    create: d => { const all = DB.load('nau_appointments'); all.push({id:DB.nextId('nau_appointments'),...d,createdAt:nowISO()}); DB.save('nau_appointments',all); },
+    update: (id,d) => { const all = DB.load('nau_appointments'); const i=all.findIndex(a=>a.id===id); if(i>-1){all[i]={...all[i],...d};DB.save('nau_appointments',all);} },
+    refresh: renderAppointments
+  },
+  financePartner: {
+    label: 'Finance Partner',
+    getData: id => DB.load('nau_finance_partners').find(fp => fp.id === id),
+    form: d => `
+      <div class="form-row full"><div class="form-group"><label>Partner Name<span class="required">*</span></label><input class="form-control" id="fp-name" value="${d?d.name:''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Interest Rate (%)</label><input class="form-control" type="number" step="0.1" id="fp-rate" value="${d?d.interestRate:''}" /></div>
+      <div class="form-group"><label>Max Tenure (months)</label><input class="form-control" type="number" id="fp-tenure" value="${d?d.maxTenure:''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Min Amount (USD)</label><input class="form-control" type="number" id="fp-min" value="${d?d.minAmountUSD:''}" /></div>
+      <div class="form-group"><label>Max Amount (USD)</label><input class="form-control" type="number" id="fp-max" value="${d?d.maxAmountUSD:''}" /></div></div>
+      <div class="form-row full"><div class="form-group"><label>Description</label><textarea class="form-control" id="fp-desc">${d?d.description:''}</textarea></div></div>
+      <div class="form-row"><div class="form-group"><label>Apply URL</label><input class="form-control" id="fp-url" value="${d?d.applyUrl:''}" placeholder="https://..." /></div>
+      <div class="form-group"><label>Logo URL</label><input class="form-control" id="fp-logo" value="${d?d.logoUrl:''}" placeholder="https://..." /></div></div>
+      <div class="form-group"><label>Status</label><label class="toggle-switch" style="margin-top:.4rem"><input type="checkbox" id="fp-status" ${!d||d.status?'checked':''}><span class="toggle-slider"></span></label></div>`,
+    collect: () => {
+      const name = document.getElementById('fp-name').value.trim();
+      if (!name) { toast('⚠️ Partner name required'); return null; }
+      return { name, interestRate: parseFloat(document.getElementById('fp-rate').value)||0, maxTenure: parseInt(document.getElementById('fp-tenure').value)||0, minAmountUSD: parseInt(document.getElementById('fp-min').value)||0, maxAmountUSD: parseInt(document.getElementById('fp-max').value)||0, description: document.getElementById('fp-desc').value, applyUrl: document.getElementById('fp-url').value, logoUrl: document.getElementById('fp-logo').value, status: document.getElementById('fp-status').checked };
+    },
+    create: d => { const all = DB.load('nau_finance_partners'); all.push({id:DB.nextId('nau_finance_partners'),...d}); DB.save('nau_finance_partners',all); },
+    update: (id,d) => { const all = DB.load('nau_finance_partners'); const i=all.findIndex(fp=>fp.id===id); if(i>-1){all[i]={...all[i],...d};DB.save('nau_finance_partners',all);} },
+    refresh: renderFinancePartners
+  },
+  stockAlert: {
+    label: 'Stock Alert',
+    getData: id => DB.load('nau_alerts').find(a => a.id === id),
+    form: d => `
+      <div class="form-row"><div class="form-group"><label>Customer Name<span class="required">*</span></label><input class="form-control" id="sa-name" value="${d?d.customerName:''}" /></div>
+      <div class="form-group"><label>Email</label><input class="form-control" id="sa-email" value="${d?d.customerEmail:''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Phone</label><input class="form-control" id="sa-phone" value="${d?d.customerPhone:''}" /></div>
+      <div class="form-group"><label>Max Price (USD)</label><input class="form-control" type="number" id="sa-price" value="${d?d.maxPriceUSD:''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Make</label><input class="form-control" id="sa-make" value="${d?d.make:''}" placeholder="e.g. Toyota" /></div>
+      <div class="form-group"><label>Model</label><input class="form-control" id="sa-model" value="${d?d.model:''}" placeholder="e.g. Land Cruiser Prado" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Fuel Type</label><select class="form-control" id="sa-fuel">
+        <option value="">Any</option>
+        ${['Diesel','Petrol','Hybrid','Electric'].map(f=>`<option ${d&&d.fuelType===f?'selected':''}>${f}</option>`).join('')}
+      </select></div>
+      <div class="form-group"><label>Body Type</label><input class="form-control" id="sa-body" value="${d?d.bodyType:''}" placeholder="e.g. SUV" /></div></div>
+      <div class="form-group"><label>Status</label><select class="form-control" id="sa-status">
+        ${['Active','Matched','Cancelled'].map(s=>`<option ${d&&d.status===s?'selected':''}>${s}</option>`).join('')}
+      </select></div>
+      <div class="form-row full"><div class="form-group"><label>Notes</label><textarea class="form-control" id="sa-notes">${d?d.notes:''}</textarea></div></div>`,
+    collect: () => {
+      const name = document.getElementById('sa-name').value.trim();
+      if (!name) { toast('⚠️ Customer name required'); return null; }
+      return { customerName: name, customerEmail: document.getElementById('sa-email').value, customerPhone: document.getElementById('sa-phone').value, maxPriceUSD: parseInt(document.getElementById('sa-price').value)||0, make: document.getElementById('sa-make').value, model: document.getElementById('sa-model').value, fuelType: document.getElementById('sa-fuel').value, bodyType: document.getElementById('sa-body').value, status: document.getElementById('sa-status').value, notes: document.getElementById('sa-notes').value };
+    },
+    create: d => { const all = DB.load('nau_alerts'); all.push({id:DB.nextId('nau_alerts'),...d,createdAt:nowISO()}); DB.save('nau_alerts',all); },
+    update: (id,d) => { const all = DB.load('nau_alerts'); const i=all.findIndex(a=>a.id===id); if(i>-1){all[i]={...all[i],...d};DB.save('nau_alerts',all);} },
+    refresh: renderAlerts
+  },
   payAccount: {
     label: 'Payment Account',
     getData: id => DB.load('nau_payment_accounts').find(a => a.id === id),
@@ -1412,6 +1598,9 @@ function clearFilters(section) {
     variables:[['var-search',''],['var-status-filter','']],
     quotes:[['qt-search',''],['qt-mfr',''],['qt-mdl','']],
     inquiries:[['inq-search',''],['inq-status','']],
+    appointments:[['apt-search',''],['apt-status-filter','']],
+    customers:[['cust-search','']],
+    alerts:[['alert-status-filter','']],
     invoices:[['inv-search',''],['inv-status-filter',''],['inv-date-from',''],['inv-date-to','']],
     bills:[['bill-search',''],['bill-cat-filter',''],['bill-status-filter','']],
     payments:[['pay-search',''],['pay-type-filter',''],['pay-method-filter','']],
@@ -1420,6 +1609,7 @@ function clearFilters(section) {
   };
   (map[section]||[]).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
   const renderMap = {manufacturers:renderManufacturers,models:renderModels,vehicles:renderVehicles,variables:renderVariables,quotes:renderQuotes,inquiries:renderInquiries,
+    appointments:renderAppointments,customers:renderCustomers,alerts:renderAlerts,
     invoices:renderInvoices,bills:renderBills,payments:renderPayments,receipts:renderReceipts,accounts:renderPaymentAccounts};
   if(renderMap[section]) renderMap[section]();
 }
@@ -1929,6 +2119,256 @@ function openPaymentModal(type, refId) {
   };
 }
 
+// ===== APPOINTMENTS =====
+function renderAppointments() {
+  const q = (document.getElementById('apt-search')||{}).value||'';
+  const st = (document.getElementById('apt-status-filter')||{}).value||'';
+  let data = DB.load('nau_appointments').filter(a => {
+    const matchQ = !q || (a.customerName+a.vehicleName).toLowerCase().includes(q.toLowerCase());
+    const matchSt = !st || a.status === st;
+    return matchQ && matchSt;
+  });
+  const statusBadge = s => {
+    const map = { Pending:'background:#f0a500;color:#fff', Confirmed:'background:#10b981;color:#fff', Completed:'background:#0a1628;color:#fff', Cancelled:'background:#9ca3af;color:#fff' };
+    return `<span style="display:inline-block;padding:.2rem .55rem;border-radius:999px;font-size:.75rem;font-weight:600;${map[s]||''}">${s}</span>`;
+  };
+  document.getElementById('apt-tbody').innerHTML = data.length ? data.map(a => `
+    <tr>
+      <td><div class="td-two-line"><span class="line1"><strong>${a.customerName}</strong></span><span class="line2 td-muted">${a.customerEmail||''}</span></div></td>
+      <td>${a.customerPhone||'-'}</td>
+      <td>${a.vehicleName||'-'}</td>
+      <td><div class="td-two-line"><span class="line1">${a.date||'-'}</span><span class="line2 td-muted">${a.time||'-'}</span></div></td>
+      <td><span class="badge badge-draft" style="font-size:.72rem">${a.type||'-'}</span></td>
+      <td>${statusBadge(a.status||'Pending')}</td>
+      <td><div class="row-actions">
+        <button class="btn-row" title="Edit" onclick="openModal('appointment',${a.id})">✏️</button>
+        <button class="btn-row btn-row-delete" title="Delete" onclick="deletePage('nau_appointments',${a.id},renderAppointments)">🗑️</button>
+      </div></td>
+    </tr>`).join('') : '<tr><td colspan="7" class="table-empty"><span class="empty-icon">📅</span>No appointments found.</td></tr>';
+}
+
+// ===== CUSTOMERS CRM =====
+function renderCustomers() {
+  const q = (document.getElementById('cust-search')||{}).value||'';
+  let data = DB.load('nau_customers').filter(c => {
+    return !q || (c.name+c.email+(c.phone||'')).toLowerCase().includes(q.toLowerCase());
+  });
+  const inqs = DB.load('nau_inquiries');
+  const quotes = DB.load('nau_quotes');
+  const orders = DB.load('nau_orders');
+  const invoices = DB.load('nau_invoices');
+  document.getElementById('cust-tbody').innerHTML = data.length ? data.map(c => {
+    const cInqs = inqs.filter(i => i.email === c.email).length;
+    const cQuotes = quotes.filter(q => q.customerEmail === c.email).length;
+    const cOrders = orders.filter(o => o.customerName && c.name && o.customerName.toLowerCase() === c.name.toLowerCase()).length;
+    const cInvoices = invoices.filter(i => i.customerEmail === c.email || (i.customerName && c.name && i.customerName.toLowerCase() === c.name.toLowerCase())).length;
+    return `
+    <tr style="cursor:pointer" onclick="openCustomerHistory(${c.id})">
+      <td><strong>${c.name}</strong></td>
+      <td><span class="td-muted">${c.email}</span></td>
+      <td>${c.phone||'-'}</td>
+      <td>${fmtDateShort(c.joinedAt||c.createdAt||'')}</td>
+      <td><span style="font-size:.78rem;color:#4b5563">${cInqs} inq · ${cQuotes} qt · ${cOrders} ord · ${cInvoices} inv</span></td>
+      <td><div class="row-actions"><button class="btn-row" title="View History" onclick="event.stopPropagation();openCustomerHistory(${c.id})">👁️</button></div></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="6" class="table-empty"><span class="empty-icon">👥</span>No customers found.</td></tr>';
+}
+
+function openCustomerHistory(id) {
+  const customers = DB.load('nau_customers');
+  const c = customers.find(x => x.id === id);
+  if (!c) return;
+  const inqs = DB.load('nau_inquiries').filter(i => i.email === c.email);
+  const quotes = DB.load('nau_quotes').filter(q => q.customerEmail === c.email);
+  const orders = DB.load('nau_orders').filter(o => o.customerName && c.name && o.customerName.toLowerCase() === c.name.toLowerCase());
+  const invoices = DB.load('nau_invoices').filter(i => i.customerEmail === c.email || (i.customerName && c.name && i.customerName.toLowerCase() === c.name.toLowerCase()));
+  document.getElementById('modalTitle').textContent = 'Customer History — ' + c.name;
+  document.getElementById('modalBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:.75rem;margin-bottom:1.25rem">
+      <div style="background:#f0f4ff;border-radius:8px;padding:.75rem;text-align:center"><div style="font-size:1.4rem;font-weight:700;color:#0a1628">${inqs.length}</div><div style="font-size:.75rem;color:#6b7280">Inquiries</div></div>
+      <div style="background:#f0fdf4;border-radius:8px;padding:.75rem;text-align:center"><div style="font-size:1.4rem;font-weight:700;color:#10b981">${quotes.length}</div><div style="font-size:.75rem;color:#6b7280">Quotes</div></div>
+      <div style="background:#fffbeb;border-radius:8px;padding:.75rem;text-align:center"><div style="font-size:1.4rem;font-weight:700;color:#f0a500">${orders.length}</div><div style="font-size:.75rem;color:#6b7280">Orders</div></div>
+      <div style="background:#fef2f2;border-radius:8px;padding:.75rem;text-align:center"><div style="font-size:1.4rem;font-weight:700;color:#c0392b">${invoices.length}</div><div style="font-size:.75rem;color:#6b7280">Invoices</div></div>
+    </div>
+    <div style="margin-bottom:.75rem;padding:.75rem;background:#f8fafc;border-radius:8px;font-size:.84rem">
+      <strong>${c.name}</strong> &nbsp;|&nbsp; ${c.email} &nbsp;|&nbsp; ${c.phone||'-'} &nbsp;|&nbsp; Joined: ${fmtDateShort(c.joinedAt||c.createdAt||'')}
+    </div>
+    ${inqs.length ? `<div style="margin-bottom:1rem"><strong style="font-size:.85rem">Inquiries</strong><div class="table-wrap" style="margin-top:.4rem"><table class="admin-table"><thead><tr><th>Vehicle</th><th>Date</th><th>Status</th></tr></thead><tbody>${inqs.map(i=>`<tr><td>${i.vehicleInterest||'-'}</td><td>${fmtDateShort(i.date)}</td><td><span class="badge badge-${i.status||'new'}">${i.status||'new'}</span></td></tr>`).join('')}</tbody></table></div></div>` : ''}
+    ${quotes.length ? `<div style="margin-bottom:1rem"><strong style="font-size:.85rem">Quotes</strong><div class="table-wrap" style="margin-top:.4rem"><table class="admin-table"><thead><tr><th>Quote No</th><th>Vehicle</th><th>Price</th><th>Status</th></tr></thead><tbody>${quotes.map(q=>`<tr><td>${q.quoteNo}</td><td>${q.vehicleName||'-'}</td><td>$${Number(q.quotedPrice||0).toLocaleString()}</td><td><span class="badge badge-${(q.status||'quoted').toLowerCase()}">${q.status||'Quoted'}</span></td></tr>`).join('')}</tbody></table></div></div>` : ''}
+    ${orders.length ? `<div style="margin-bottom:1rem"><strong style="font-size:.85rem">Orders</strong><div class="table-wrap" style="margin-top:.4rem"><table class="admin-table"><thead><tr><th>Order No</th><th>Vehicle</th><th>Amount</th><th>Status</th></tr></thead><tbody>${orders.map(o=>`<tr><td>${o.orderNo}</td><td>${o.vehicleName||'-'}</td><td>$${Number(o.amount||0).toLocaleString()}</td><td><span class="badge badge-${(o.status||'pending').toLowerCase()}">${o.status}</span></td></tr>`).join('')}</tbody></table></div></div>` : ''}
+    ${invoices.length ? `<div style="margin-bottom:1rem"><strong style="font-size:.85rem">Invoices</strong><div class="table-wrap" style="margin-top:.4rem"><table class="admin-table"><thead><tr><th>Invoice No</th><th>Vehicle</th><th>Total</th><th>Status</th></tr></thead><tbody>${invoices.map(i=>`<tr><td>${i.invoiceNo}</td><td>${i.vehicleName||'-'}</td><td>$${Number(i.totalAmount||0).toLocaleString()}</td><td>${invStatusBadge(i.status)}</td></tr>`).join('')}</tbody></table></div></div>` : ''}
+    ${!inqs.length && !quotes.length && !orders.length && !invoices.length ? '<p style="color:#8a9ab5;text-align:center;padding:1rem">No interaction history found for this customer.</p>' : ''}
+  `;
+  document.getElementById('modalSaveBtn').style.display = 'none';
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+// ===== BULK UGX RECALCULATION =====
+function openBulkUGXModal() {
+  const vehs = getVehicles().filter(v => v.status === 'Published');
+  document.getElementById('modalTitle').textContent = 'Recalculate UGX Prices';
+  const defaultRate = 3700;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="form-group" style="margin-bottom:1rem">
+      <label><strong>New USD → UGX Rate</strong></label>
+      <input class="form-control" type="number" id="ugx-rate" value="${defaultRate}" min="1" oninput="previewUGXCalc()" />
+    </div>
+    <div style="font-size:.82rem;color:#6b7280;margin-bottom:.75rem">${vehs.length} published vehicles will be updated.</div>
+    <div class="table-wrap" style="max-height:280px;overflow-y:auto">
+      <table class="admin-table" id="ugx-preview-table">
+        <thead><tr><th>SKU</th><th>Make/Model</th><th>Current UGX</th><th id="ugx-new-header">New UGX @ ${defaultRate}</th><th>Change</th></tr></thead>
+        <tbody id="ugx-preview-tbody">
+          ${vehs.map(v => {
+            const newUGX = v.priceUSD * defaultRate;
+            const diff = newUGX - Number(v.priceUGX||0);
+            return `<tr>
+              <td style="font-size:.72rem">${v.sku}</td>
+              <td>${v.make} ${v.model}</td>
+              <td>${Number(v.priceUGX||0).toLocaleString()}</td>
+              <td class="ugx-new-val">${newUGX.toLocaleString()}</td>
+              <td style="color:${diff>0?'#10b981':diff<0?'#c0392b':'#6b7280'}">${diff>0?'+':''}${Math.round(diff/1000000*10)/10}M</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById('modalSaveBtn').textContent = 'Apply to All Published';
+  document.getElementById('modalSaveBtn').style.display = '';
+  document.getElementById('modalSaveBtn').onclick = () => {
+    const rate = Number(document.getElementById('ugx-rate').value) || 3700;
+    const all = getVehicles();
+    all.forEach(v => { if (v.status === 'Published') v.priceUGX = Math.round(v.priceUSD * rate); });
+    saveVehicles(all);
+    closeModal();
+    document.getElementById('modalSaveBtn').onclick = submitModal;
+    document.getElementById('modalSaveBtn').textContent = 'Save';
+    toast('✅ UGX prices recalculated at ' + rate.toLocaleString() + ' UGX/USD');
+    renderVehicles();
+  };
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+function previewUGXCalc() {
+  const rate = Number((document.getElementById('ugx-rate')||{}).value) || 3700;
+  const header = document.getElementById('ugx-new-header');
+  if (header) header.textContent = 'New UGX @ ' + rate.toLocaleString();
+  const vehs = getVehicles().filter(v => v.status === 'Published');
+  const tbody = document.getElementById('ugx-preview-tbody');
+  if (!tbody) return;
+  tbody.querySelectorAll('tr').forEach((row, i) => {
+    if (vehs[i]) {
+      const newVal = row.querySelector('.ugx-new-val');
+      if (newVal) newVal.textContent = (vehs[i].priceUSD * rate).toLocaleString();
+    }
+  });
+}
+
+// ===== WHATSAPP TEMPLATES =====
+function openWhatsAppModal(type, id) {
+  let name, phone, vehicle, status;
+  if (type === 'inquiry') {
+    const item = DB.load('nau_inquiries').find(i => i.id === id);
+    if (!item) return;
+    name = item.name; phone = item.phone; vehicle = item.vehicleInterest; status = item.status;
+  } else if (type === 'quote') {
+    const item = DB.load('nau_quotes').find(q => q.id === id);
+    if (!item) return;
+    name = item.customerName; phone = item.customerPhone || ''; vehicle = item.vehicleName; status = 'quote';
+  }
+  let message = '';
+  if (type === 'inquiry') {
+    if (status === 'new') {
+      message = `Hi ${name}, thank you for your inquiry about ${vehicle}. We'd love to help you find your perfect vehicle. Can we schedule a viewing? — NipponAuto Uganda`;
+    } else if (status === 'contacted') {
+      message = `Hi ${name}, following up on your inquiry about ${vehicle}. Do you have any questions we can answer? — NipponAuto Uganda`;
+    } else {
+      message = `Hi ${name}, thank you for your interest in ${vehicle} at NipponAuto Uganda. Please let us know how we can assist you further. — NipponAuto Uganda`;
+    }
+  } else if (type === 'quote') {
+    message = `Hi ${name}, your quote for the ${vehicle} is ready. Please visit our showroom or contact us to review the full pricing details including all fees. — NipponAuto Uganda`;
+  }
+  const cleanPhone = (phone||'').replace(/[\s\-\+]/g, '').replace(/^0/, '256');
+  document.getElementById('modalTitle').textContent = '📱 WhatsApp Message';
+  document.getElementById('modalBody').innerHTML = `
+    <div class="form-group" style="margin-bottom:1rem">
+      <label><strong>Message Template</strong></label>
+      <textarea class="form-control" id="wa-msg" rows="5" style="min-height:100px">${message}</textarea>
+    </div>
+    <div class="form-group" style="margin-bottom:1rem">
+      <label>Phone Number</label>
+      <input class="form-control" id="wa-phone" value="${phone||''}" placeholder="+256 700 123 456" />
+    </div>
+    <div style="font-size:.8rem;color:#6b7280">Tip: Edit the message before sending. The number should include country code.</div>
+  `;
+  document.getElementById('modalSaveBtn').textContent = '📱 Copy & Open WhatsApp';
+  document.getElementById('modalSaveBtn').style.display = '';
+  document.getElementById('modalSaveBtn').onclick = () => {
+    const msg = document.getElementById('wa-msg').value;
+    const ph = (document.getElementById('wa-phone').value||'').replace(/[\s\-\+]/g,'').replace(/^0/,'256');
+    navigator.clipboard.writeText(msg).catch(()=>{});
+    const url = 'https://wa.me/' + ph + '?text=' + encodeURIComponent(msg);
+    window.open(url, '_blank');
+    closeModal();
+    document.getElementById('modalSaveBtn').onclick = submitModal;
+    document.getElementById('modalSaveBtn').textContent = 'Save';
+    toast('✅ Message copied & WhatsApp opened');
+  };
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+// ===== FINANCE PARTNERS =====
+function renderFinancePartners() {
+  const data = DB.load('nau_finance_partners');
+  const tbody = document.getElementById('fp-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = data.length ? data.map(fp => `
+    <tr>
+      <td><strong>${fp.name}</strong></td>
+      <td>${fp.interestRate}% p.a.</td>
+      <td>${fp.maxTenure} months</td>
+      <td>$${Number(fp.minAmountUSD||0).toLocaleString()} – $${Number(fp.maxAmountUSD||0).toLocaleString()}</td>
+      <td><label class="toggle-switch"><input type="checkbox" ${fp.status?'checked':''} onchange="toggleFP(${fp.id},this.checked)"><span class="toggle-slider"></span></label></td>
+      <td><div class="row-actions">
+        <button class="btn-row" title="Edit" onclick="openModal('financePartner',${fp.id})">✏️</button>
+        <button class="btn-row btn-row-delete" title="Delete" onclick="deletePage('nau_finance_partners',${fp.id},renderFinancePartners)">🗑️</button>
+      </div></td>
+    </tr>`).join('') : '<tr><td colspan="6" class="table-empty"><span class="empty-icon">🏦</span>No finance partners yet.</td></tr>';
+}
+
+function toggleFP(id, val) {
+  const data = DB.load('nau_finance_partners');
+  const item = data.find(x => x.id === id);
+  if (item) { item.status = val; DB.save('nau_finance_partners', data); toast('✅ Status updated'); }
+}
+
+// ===== STOCK ALERTS =====
+function renderAlerts() {
+  const st = (document.getElementById('alert-status-filter')||{}).value||'';
+  let data = DB.load('nau_alerts').filter(a => !st || a.status === st);
+  const statusColors = { Active:'background:#10b981;color:#fff', Matched:'background:#0a1628;color:#fff', Cancelled:'background:#9ca3af;color:#fff' };
+  document.getElementById('alert-tbody').innerHTML = data.length ? data.map(a => `
+    <tr>
+      <td><strong>${a.customerName}</strong></td>
+      <td><div class="td-two-line"><span class="line1">${a.customerEmail||'-'}</span><span class="line2 td-muted">${a.customerPhone||'-'}</span></div></td>
+      <td><div class="td-two-line"><span class="line1">${a.make||''} ${a.model||''}</span><span class="line2 td-muted">${a.fuelType||''} ${a.bodyType||''}</span></div></td>
+      <td>$${Number(a.maxPriceUSD||0).toLocaleString()}</td>
+      <td><span style="display:inline-block;padding:.2rem .55rem;border-radius:999px;font-size:.75rem;font-weight:600;${statusColors[a.status]||''}">${a.status||'Active'}</span></td>
+      <td>${fmtDateShort(a.createdAt)}</td>
+      <td><div class="row-actions">
+        ${a.status!=='Matched'?`<button class="btn-row" title="Mark Matched" onclick="setAlertStatus(${a.id},'Matched')" style="background:#0a1628;color:#fff;font-size:.78rem">✅</button>`:''}
+        ${a.status==='Active'?`<button class="btn-row" title="Cancel" onclick="setAlertStatus(${a.id},'Cancelled')" style="background:#c0392b;color:#fff;font-size:.78rem">❌</button>`:''}
+        <button class="btn-row" title="Edit" onclick="openModal('stockAlert',${a.id})">✏️</button>
+      </div></td>
+    </tr>`).join('') : '<tr><td colspan="7" class="table-empty"><span class="empty-icon">🔔</span>No stock alerts found.</td></tr>';
+}
+
+function setAlertStatus(id, status) {
+  const data = DB.load('nau_alerts');
+  const item = data.find(a => a.id === id);
+  if (item) { item.status = status; DB.save('nau_alerts', data); renderAlerts(); toast('✅ Alert status updated to ' + status); }
+}
+
 // ===== SEED DATA =====
 function seedData() {
   if (localStorage.getItem('nau_seeded')) return;
@@ -2315,6 +2755,32 @@ function seedData() {
       { id:4, name:'Cash UGX', type:'Cash', currency:'UGX', bankName:'', accountNumber:'', accountHolder:'NipponAuto Uganda Ltd', status:'Active', createdAt:nowISO() },
       { id:5, name:'MTN Mobile Money', type:'Mobile Money', currency:'UGX', bankName:'MTN Uganda', accountNumber:'+256700123456', accountHolder:'NipponAuto Uganda', status:'Active', createdAt:nowISO() },
       { id:6, name:'Airtel Money', type:'Mobile Money', currency:'UGX', bankName:'Airtel Uganda', accountNumber:'+256701123456', accountHolder:'NipponAuto Uganda', status:'Active', createdAt:nowISO() }
+    ]);
+  }
+
+  // Appointments
+  if (!DB.load('nau_appointments').length) {
+    DB.save('nau_appointments', [
+      {id:1, customerName:'Timothy Kabangira', customerPhone:'+256 701 234 567', customerEmail:'timothy@gmail.com', vehicleName:'Toyota Hilux D-Cab 2025', date:'2026-06-01', time:'10:00 AM', type:'Test Drive', status:'Confirmed', notes:'Interested in financing', createdAt:'2026-05-18T09:00:00Z'},
+      {id:2, customerName:'Grace Nakato', customerPhone:'+256 702 345 678', customerEmail:'grace.nakato@yahoo.com', vehicleName:'Toyota Land Cruiser Prado 2022', date:'2026-06-02', time:'2:00 PM', type:'Viewing', status:'Pending', notes:'', createdAt:'2026-05-18T10:00:00Z'},
+      {id:3, customerName:'Robert Ssekandi', customerPhone:'+256 703 456 789', customerEmail:'robert@email.com', vehicleName:'Lexus RX350 2022', date:'2026-05-28', time:'11:00 AM', type:'Test Drive', status:'Completed', notes:'Very interested, requested quote', createdAt:'2026-05-17T08:00:00Z'}
+    ]);
+  }
+
+  // Finance Partners
+  if (!DB.load('nau_finance_partners').length) {
+    DB.save('nau_finance_partners', [
+      {id:1, name:'Stanbic Bank Uganda', logoUrl:'', interestRate:18, maxTenure:60, minAmountUSD:5000, maxAmountUSD:100000, description:'Leading bank for vehicle financing in Uganda', applyUrl:'https://stanbicbank.co.ug', status:true},
+      {id:2, name:'Centenary Bank', logoUrl:'', interestRate:20, maxTenure:48, minAmountUSD:3000, maxAmountUSD:50000, description:'Trusted community bank with flexible terms', applyUrl:'https://centenarybank.co.ug', status:true},
+      {id:3, name:'DFCU Bank', logoUrl:'', interestRate:19, maxTenure:60, minAmountUSD:5000, maxAmountUSD:80000, description:'Development Finance Company of Uganda', applyUrl:'https://dfcugroup.com', status:true}
+    ]);
+  }
+
+  // Stock Alerts
+  if (!DB.load('nau_alerts').length) {
+    DB.save('nau_alerts', [
+      {id:1, customerName:'James Opolot', customerEmail:'james.opolot@gmail.com', customerPhone:'+256 704 111 222', make:'Toyota', model:'Land Cruiser Prado', maxPriceUSD:40000, fuelType:'Diesel', bodyType:'SUV', status:'Active', notes:'Prefers white or silver, 2020+', createdAt:'2026-05-10T09:00:00Z'},
+      {id:2, customerName:'Fatima Hassan', customerEmail:'fatima.hassan@outlook.com', customerPhone:'+256 705 333 444', make:'Nissan', model:'Patrol', maxPriceUSD:35000, fuelType:'Petrol', bodyType:'SUV', status:'Active', notes:'V8 preferred', createdAt:'2026-05-12T10:00:00Z'}
     ]);
   }
 
