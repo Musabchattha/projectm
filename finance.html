@@ -361,6 +361,57 @@
   <span class="wa-icon">💬</span><span class="wa-label">WhatsApp Us</span>
 </a>
 
+<script>
+// Read URL params and pre-fill calculator
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const price = params.get('price');
+  const make = params.get('make');
+  const model = params.get('model');
+  const year = params.get('year');
+  const engine = params.get('engine');
+
+  if (price) {
+    // CIF input ID is dutyVehiclePrice
+    const cifEl = document.getElementById('dutyVehiclePrice');
+    if (cifEl) {
+      cifEl.value = price;
+      cifEl.dispatchEvent(new Event('input'));
+      cifEl.dispatchEvent(new Event('change'));
+    }
+  }
+
+  if (engine) {
+    // Pre-select engine size in the duty calculator dropdown
+    const engineCC = parseInt(engine, 10);
+    const engEl = document.getElementById('dutyEngineCC');
+    if (engEl) {
+      if (engineCC <= 1500) engEl.value = '1500';
+      else if (engineCC <= 2000) engEl.value = '1800';
+      else if (engineCC <= 3000) engEl.value = '2500';
+      else engEl.value = '3500';
+    }
+  }
+
+  // Show context banner if vehicle info provided
+  if (make || model) {
+    const existing = document.getElementById('finance-context');
+    if (existing) {
+      existing.textContent = 'Estimating import costs for: ' + [make, model, year].filter(Boolean).join(' ');
+      existing.style.display = 'block';
+    } else {
+      const calcSection = document.querySelector('.duty-calc-wrap') || document.querySelector('.calc-wrap') || document.querySelector('.container');
+      if (calcSection) {
+        const banner = document.createElement('div');
+        banner.id = 'finance-context';
+        banner.style.cssText = 'background:#fffbf0;border:1px solid #f0a500;border-radius:8px;padding:.75rem 1rem;margin-bottom:1rem;font-size:.9rem;color:#0a1628;font-weight:600;';
+        banner.textContent = 'Estimating import costs for: ' + [make, model, year].filter(Boolean).join(' ');
+        calcSection.insertBefore(banner, calcSection.firstChild);
+      }
+    }
+  }
+})();
+</script>
 <script src="js/main.js"></script>
 </body>
 </html>

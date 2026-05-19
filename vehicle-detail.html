@@ -160,7 +160,7 @@
       <div class="detail-actions">
         <a href="https://wa.me/256700123456" class="btn btn-wa" id="vd-wa-btn" target="_blank" rel="noopener">💬 Enquire on WhatsApp</a>
         <a href="contact.html" class="btn btn-navy">Request Clearing Quote</a>
-        <a href="finance.html" class="btn btn-outline" style="border-color:var(--navy);color:var(--navy);">Calculate Import Costs</a>
+        <a id="vd-finance-btn" href="finance.html" class="btn btn-outline" style="border-color:var(--navy);color:var(--navy);">Calculate Import Costs</a>
         <div id="vd-auction-sheet-wrap" style="display:none;margin-top:.5rem;">
           <a href="#" target="_blank" rel="noopener" class="btn btn-outline" style="border-color:var(--navy);color:var(--navy);display:inline-flex;align-items:center;gap:.5rem;width:100%;justify-content:center;">
             📋 View Auction Sheet
@@ -171,6 +171,12 @@
           <button class="btn-share btn-share-copy" id="copyLinkBtn" onclick="copyVehicleLink()">🔗 Copy Link</button>
         </div>
         <div id="copyToast" class="copy-toast" style="display:none;">Link copied!</div>
+        <a id="vd-book-test-drive" href="login.html" class="btn-action" style="display:flex;align-items:center;justify-content:center;gap:.5rem;background:#0a1628;color:#fff;padding:.75rem 1rem;border-radius:8px;text-decoration:none;font-weight:700;font-size:.9rem;margin-top:.5rem;border:2px solid #0a1628;transition:all .2s;">
+          📅 Book Test Drive
+        </a>
+        <button id="vd-compare-btn" onclick="vdAddToCompare()" style="display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;background:#fff;color:#0a1628;padding:.65rem 1rem;border-radius:8px;font-weight:700;font-size:.85rem;margin-top:.5rem;border:2px solid #e0e0e0;cursor:pointer;transition:all .2s;">
+          📊 Add to Compare
+        </button>
       </div>
 
       <div style="margin-top:1.5rem;padding:1rem;background:var(--light);border-radius:8px;">
@@ -269,6 +275,45 @@
   v.makeLabel = (manufacturers.find(function(m){ return String(m.id) === String(v.manufacturerId); }) || {}).name || '';
   v.modelLabel = (models.find(function(m){ return String(m.id) === String(v.modelId); }) || {}).name || v.vehicleModel || '';
   window._currentVehicle = v;
+
+  // Book Test Drive button
+  const sess = JSON.parse(sessionStorage.getItem('nau_customer_session') || '{}');
+  const bookBtn = document.getElementById('vd-book-test-drive');
+  if (bookBtn) {
+    if (sess.email) {
+      // Store vehicle for pre-fill
+      const vehicleName = (v.makeLabel || v.make || '') + ' ' + (v.modelLabel || v.model || '') + (v.year ? ' ' + v.year : '');
+      sessionStorage.setItem('nau_book_vehicle', vehicleName.trim());
+      bookBtn.href = 'customer/index.html';
+    } else {
+      bookBtn.href = 'login.html';
+    }
+  }
+
+  // Finance button with price pre-fill
+  const financeBtn = document.getElementById('vd-finance-btn');
+  if (financeBtn && v) {
+    const fp = new URLSearchParams();
+    if (v.priceUSD) fp.set('price', v.priceUSD);
+    if (v.makeLabel || v.make) fp.set('make', v.makeLabel || v.make || '');
+    if (v.modelLabel || v.model) fp.set('model', v.modelLabel || v.model || '');
+    if (v.year) fp.set('year', v.year);
+    if (v.engineCC) fp.set('engine', v.engineCC);
+    financeBtn.href = 'finance.html?' + fp.toString();
+  }
+
+  // Update compare button state
+  (function() {
+    const compare = JSON.parse(sessionStorage.getItem('nau_compare') || '[]');
+    const btn = document.getElementById('vd-compare-btn');
+    if (btn && compare.includes(v.id)) {
+      btn.textContent = '✅ Added — View Comparison';
+      btn.style.background = '#f0a500';
+      btn.style.color = '#0a1628';
+      btn.style.borderColor = '#f0a500';
+      btn.onclick = () => window.location.href = 'compare.html';
+    }
+  })();
 
   // Video tour
   if (v.videoUrl) {
@@ -484,6 +529,32 @@
   // Customer reviews
   renderVehicleReviews(v.id, v.makeLabel + ' ' + v.modelLabel);
 })();
+
+// ===== Add to Compare =====
+function vdAddToCompare() {
+  const v = window._currentVehicle;
+  if (!v) return;
+  let compare = JSON.parse(sessionStorage.getItem('nau_compare') || '[]');
+  const btn = document.getElementById('vd-compare-btn');
+
+  if (compare.includes(v.id)) {
+    window.location.href = 'compare.html';
+    return;
+  }
+  if (compare.length >= 3) {
+    alert('You can compare up to 3 vehicles. Go to the compare page to remove one.');
+    return;
+  }
+  compare.push(v.id);
+  sessionStorage.setItem('nau_compare', JSON.stringify(compare));
+  if (btn) {
+    btn.textContent = '✅ Added — View Comparison';
+    btn.style.background = '#f0a500';
+    btn.style.color = '#0a1628';
+    btn.style.borderColor = '#f0a500';
+    btn.onclick = () => window.location.href = 'compare.html';
+  }
+}
 
 // ===== Reviews =====
 function renderVehicleReviews(vehicleId, vehicleText) {
