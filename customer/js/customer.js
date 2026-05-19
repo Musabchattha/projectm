@@ -259,5 +259,212 @@
     renderAlerts();
   };
 
+  // ===== TOAST =====
+  function showCToast(msg) {
+    var existing = document.getElementById('cToast');
+    if (existing) existing.remove();
+    var t = document.createElement('div');
+    t.id = 'cToast';
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;background:#0a1628;color:#fff;padding:.75rem 1.25rem;border-radius:10px;font-size:.88rem;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.25);opacity:0;transition:opacity .3s;';
+    document.body.appendChild(t);
+    requestAnimationFrame(function(){ t.style.opacity='1'; });
+    setTimeout(function(){ t.style.opacity='0'; setTimeout(function(){ t.remove(); }, 350); }, 3000);
+  }
+  window.showCToast = showCToast;
+
+  // ===== BOOK APPOINTMENT =====
+  function renderBookAppointment() {
+    var nameEl = document.getElementById('appt-name');
+    var phoneEl = document.getElementById('appt-phone');
+    if (nameEl) nameEl.value = session.name || '';
+    if (phoneEl) phoneEl.value = session.phone || '';
+    var dateEl = document.getElementById('appt-date');
+    if (dateEl) dateEl.min = new Date().toISOString().split('T')[0];
+    renderMyAppointments();
+  }
+
+  function renderMyAppointments() {
+    var el = document.getElementById('myApptsList');
+    if (!el) return;
+    var email = (session.email || '').toLowerCase();
+    var appts = load('nau_appointments')
+      .filter(function(a){ return (a.email || '').toLowerCase() === email; })
+      .sort(function(a, b){ return new Date(b.createdAt) - new Date(a.createdAt); });
+    if (!appts.length) {
+      el.innerHTML = '<p style="color:#999;text-align:center;padding:2rem;">No appointments yet.</p>';
+      return;
+    }
+    var statusColors = { Pending:'#999', Confirmed:'#27ae60', Completed:'#0a1628', Cancelled:'#c0392b' };
+    el.innerHTML = appts.map(function(a){
+      return '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem;">' +
+        '<div>' +
+          '<div style="font-weight:700;color:#0a1628;">' + esc(a.date) + ' at ' + esc(a.time) + '</div>' +
+          '<div style="font-size:.88rem;color:#555;margin-top:.2rem;">' + esc(a.vehicleInterest || 'General visit') + '</div>' +
+          (a.notes ? '<div style="font-size:.82rem;color:#888;margin-top:.2rem;">' + esc(a.notes) + '</div>' : '') +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:.75rem;">' +
+          '<span style="background:' + (statusColors[a.status] || '#999') + ';color:#fff;padding:.25rem .75rem;border-radius:20px;font-size:.78rem;font-weight:700;">' + esc(a.status) + '</span>' +
+          (a.status === 'Pending' ? '<button onclick="cancelAppointment(' + a.id + ')" style="background:none;border:1px solid #c0392b;color:#c0392b;border-radius:6px;padding:.3rem .7rem;font-size:.8rem;cursor:pointer;">Cancel</button>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  window.submitAppointment = function(e) {
+    e.preventDefault();
+    var date = document.getElementById('appt-date').value;
+    var time = document.getElementById('appt-time').value;
+    if (!date || !time) return;
+    var appts = load('nau_appointments');
+    var newAppt = {
+      id: Date.now(),
+      customerName: session.name || '',
+      email: (session.email || '').toLowerCase(),
+      phone: session.phone || '',
+      vehicleInterest: document.getElementById('appt-vehicle').value,
+      date: date,
+      time: time,
+      notes: document.getElementById('appt-notes').value,
+      status: 'Pending',
+      createdAt: new Date().toISOString()
+    };
+    appts.push(newAppt);
+    try { localStorage.setItem('nau_appointments', JSON.stringify(appts)); } catch(e) {}
+    document.getElementById('bookApptForm').reset();
+    document.getElementById('appt-name').value = session.name || '';
+    document.getElementById('appt-phone').value = session.phone || '';
+    showCToast('Appointment requested! We\'ll confirm within 24 hours.');
+    renderMyAppointments();
+  };
+
+  window.cancelAppointment = function(id) {
+    var appts = load('nau_appointments');
+    var idx = appts.findIndex(function(a){ return a.id === id; });
+    if (idx === -1) return;
+    appts[idx].status = 'Cancelled';
+    try { localStorage.setItem('nau_appointments', JSON.stringify(appts)); } catch(e) {}
+    renderMyAppointments();
+    showCToast('Appointment cancelled.');
+  };
+
+  // ===== MY INVOICES =====
+  function renderMyInvoices() {
+    var el = document.getElementById('myInvoicesList');
+    if (!el) return;
+    var email = (session.email || '').toLowerCase();
+    var invoices = load('nau_invoices')
+      .filter(function(inv){ return (inv.customerEmail || '').toLowerCase() === email; })
+      .sort(function(a, b){ return new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date); });
+    if (!invoices.length) {
+      el.innerHTML = '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1.5rem;text-align:center;padding:2rem;color:#999;">No invoices yet. Once you purchase a vehicle, your invoice will appear here.</div>';
+      return;
+    }
+    var statusColors = { Paid:'#27ae60', Unpaid:'#c0392b', Partial:'#f0a500' };
+    el.innerHTML = '<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">' +
+      '<table style="width:100%;border-collapse:collapse;">' +
+        '<thead><tr style="background:#f4f6fa;">' +
+          '<th style="padding:.75rem 1rem;text-align:left;font-size:.82rem;color:#666;">Invoice No</th>' +
+          '<th style="padding:.75rem 1rem;text-align:left;font-size:.82rem;color:#666;">Vehicle</th>' +
+          '<th style="padding:.75rem 1rem;text-align:left;font-size:.82rem;color:#666;">Amount</th>' +
+          '<th style="padding:.75rem 1rem;text-align:left;font-size:.82rem;color:#666;">Date</th>' +
+          '<th style="padding:.75rem 1rem;text-align:left;font-size:.82rem;color:#666;">Status</th>' +
+          '<th style="padding:.75rem 1rem;text-align:left;font-size:.82rem;color:#666;"></th>' +
+        '</tr></thead>' +
+        '<tbody>' +
+          invoices.map(function(inv){
+            var s = inv.status || 'Unpaid';
+            var bg = statusColors[s] || '#999';
+            var dateStr = (inv.date || inv.createdAt || '').split('T')[0];
+            return '<tr style="border-top:1px solid #f0f0f0;">' +
+              '<td style="padding:.7rem 1rem;font-weight:700;color:#0a1628;">' + esc(inv.invoiceNo || String(inv.id)) + '</td>' +
+              '<td style="padding:.7rem 1rem;font-size:.88rem;">' + esc(inv.vehicleName || inv.description || '—') + '</td>' +
+              '<td style="padding:.7rem 1rem;font-weight:600;">$' + Number(inv.total || inv.totalAmount || inv.amount || 0).toLocaleString() + '</td>' +
+              '<td style="padding:.7rem 1rem;font-size:.85rem;color:#666;">' + esc(dateStr) + '</td>' +
+              '<td style="padding:.7rem 1rem;"><span style="background:' + bg + ';color:#fff;padding:.2rem .65rem;border-radius:20px;font-size:.75rem;font-weight:700;">' + esc(s) + '</span></td>' +
+              '<td style="padding:.7rem 1rem;"><button onclick="openCustomerInvoice(' + inv.id + ')" style="background:none;border:1px solid #0a1628;color:#0a1628;border-radius:6px;padding:.3rem .7rem;font-size:.8rem;cursor:pointer;">🖨️ View</button></td>' +
+            '</tr>';
+          }).join('') +
+        '</tbody>' +
+      '</table>' +
+    '</div>';
+  }
+
+  window.openCustomerInvoice = function(id) {
+    var invoices = load('nau_invoices');
+    var inv = invoices.find(function(i){ return i.id === id; });
+    if (!inv) return;
+    var lines = inv.lines || inv.items || [];
+    var subtotal = inv.subtotal || inv.amount || 0;
+    var tax = inv.tax || inv.vatAmount || 0;
+    var total = inv.total || inv.totalAmount || (Number(subtotal) + Number(tax));
+    document.getElementById('customerInvoiceContent').innerHTML =
+      '<div style="border-bottom:2px solid #0a1628;padding-bottom:1rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-start;">' +
+        '<div>' +
+          '<div style="font-size:1.5rem;font-weight:900;color:#0a1628;">🚗 NipponAuto Uganda</div>' +
+          '<div style="font-size:.85rem;color:#666;">Uganda\'s Premier Japanese Car Importer</div>' +
+        '</div>' +
+        '<div style="text-align:right;">' +
+          '<div style="font-size:1.2rem;font-weight:800;color:#c0392b;">' + esc(inv.invoiceNo || String(inv.id)) + '</div>' +
+          '<div style="font-size:.82rem;color:#666;">Date: ' + esc((inv.date || inv.createdAt || '').split('T')[0]) + '</div>' +
+          (inv.dueDate ? '<div style="font-size:.82rem;color:#666;">Due: ' + esc(inv.dueDate) + '</div>' : '') +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:1.5rem;gap:2rem;">' +
+        '<div>' +
+          '<div style="font-weight:700;margin-bottom:.4rem;color:#0a1628;">FROM</div>' +
+          '<div>NipponAuto Uganda</div>' +
+          '<div style="font-size:.85rem;color:#666;">Plot 45, Nakawa Industrial Road, Kampala</div>' +
+          '<div style="font-size:.85rem;color:#666;">+256 700 123 456</div>' +
+        '</div>' +
+        '<div>' +
+          '<div style="font-weight:700;margin-bottom:.4rem;color:#0a1628;">TO</div>' +
+          '<div>' + esc(inv.customerName || '') + '</div>' +
+          '<div style="font-size:.85rem;color:#666;">' + esc(inv.customerEmail || '') + '</div>' +
+          '<div style="font-size:.85rem;color:#666;">' + esc(inv.customerPhone || '') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<table style="width:100%;border-collapse:collapse;margin-bottom:1rem;">' +
+        '<thead><tr style="background:#0a1628;color:#fff;">' +
+          '<th style="padding:.5rem .75rem;text-align:left;font-size:.82rem;">#</th>' +
+          '<th style="padding:.5rem .75rem;text-align:left;font-size:.82rem;">Description</th>' +
+          '<th style="padding:.5rem .75rem;text-align:right;font-size:.82rem;">Amount</th>' +
+        '</tr></thead>' +
+        '<tbody>' +
+          (lines.length ? lines.map(function(l, i){
+            return '<tr style="border-bottom:1px solid #eee;">' +
+              '<td style="padding:.5rem .75rem;font-size:.85rem;">' + (i+1) + '</td>' +
+              '<td style="padding:.5rem .75rem;font-size:.85rem;">' + esc(l.description || l.desc || '') + '</td>' +
+              '<td style="padding:.5rem .75rem;font-size:.85rem;text-align:right;">$' + Number(l.amount || l.unitPrice || 0).toLocaleString() + '</td>' +
+            '</tr>';
+          }).join('') : '<tr><td colspan="3" style="padding:.5rem .75rem;font-size:.85rem;">' + esc(inv.vehicleName || inv.description || 'Vehicle Purchase') + '</td></tr>') +
+        '</tbody>' +
+        '<tfoot>' +
+          '<tr><td colspan="2" style="padding:.4rem .75rem;text-align:right;font-size:.85rem;font-weight:600;">Subtotal</td><td style="padding:.4rem .75rem;text-align:right;font-size:.85rem;">$' + Number(subtotal).toLocaleString() + '</td></tr>' +
+          '<tr><td colspan="2" style="padding:.4rem .75rem;text-align:right;font-size:.85rem;font-weight:600;">Tax</td><td style="padding:.4rem .75rem;text-align:right;font-size:.85rem;">$' + Number(tax).toLocaleString() + '</td></tr>' +
+          '<tr style="border-top:2px solid #0a1628;"><td colspan="2" style="padding:.5rem .75rem;text-align:right;font-weight:800;color:#0a1628;">TOTAL</td><td style="padding:.5rem .75rem;text-align:right;font-weight:800;color:#0a1628;font-size:1.05rem;">$' + Number(total).toLocaleString() + '</td></tr>' +
+        '</tfoot>' +
+      '</table>' +
+      (inv.notes ? '<div style="font-size:.83rem;color:#555;">Notes: ' + esc(inv.notes) + '</div>' : '') +
+      '<div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid #eee;text-align:center;font-size:.82rem;color:#999;">Thank you for choosing NipponAuto Uganda • Plot 45, Nakawa Industrial Road, Kampala</div>';
+    document.getElementById('customerInvoiceOverlay').style.display = 'block';
+  };
+
+  window.closeCustomerInvoice = function() {
+    document.getElementById('customerInvoiceOverlay').style.display = 'none';
+  };
+
+  // ===== DECLINE QUOTE =====
+  window.declineQuote = function(id) {
+    if (!confirm('Are you sure you want to decline this quote?')) return;
+    var quotes = load('nau_quotes');
+    var idx = quotes.findIndex(function(q){ return q.id === id; });
+    if (idx === -1) return;
+    quotes[idx].status = 'Declined';
+    try { localStorage.setItem('nau_quotes', JSON.stringify(quotes)); } catch(e) {}
+    renderQuotes();
+    showCToast('Quote declined.');
+  };
+
   navigate('dashboard');
 })();

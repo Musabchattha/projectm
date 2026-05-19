@@ -2093,3 +2093,31 @@ ul { list-style: none; }
 
 /* ---- Inventory Rating Badge ---- */
 .card-rating-badge { background: #f0a500; color: #0a1628; font-size: .72rem; font-weight: 700; padding: .2rem .5rem; border-radius: 4px; }
+
+/* ---- Newsletter Widget ---- */
+.newsletter-widget { background: linear-gradient(135deg, #0a1628 0%, #1a2e4a 100%); padding: 3rem 0; }
+.nw-inner { display: flex; align-items: center; justify-content: space-between; gap: 2rem; flex-wrap: wrap; }
+.nw-text h3 { color: #f0a500; font-size: 1.4rem; margin: 0 0 .4rem; }
+.nw-text p { color: rgba(255,255,255,.75); font-size: .95rem; margin: 0; }
+.nw-form { display: flex; gap: .75rem; flex-wrap: wrap; min-width: 320px; }
+.nw-form input[type="email"] { flex: 1; padding: .7rem 1rem; border: none; border-radius: 8px; font-size: .9rem; font-family: inherit; min-width: 200px; }
+.nw-form button { background: #f0a500; color: #0a1628; border: none; border-radius: 8px; padding: .7rem 1.5rem; font-size: .9rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.nw-form button:hover { background: #e09500; }
+@media (max-width: 768px) {
+  .nw-inner { flex-direction: column; text-align: center; }
+  .nw-form { min-width: unset; width: 100%; justify-content: center; }
+}
+
+/* ---- Blog controls ---- */
+.blog-controls { margin-bottom: 1.5rem; }
+.blog-search-wrap { margin-bottom: 1rem; }
+.blog-category-tabs { display: flex; flex-wrap: wrap; gap: .5rem; }
+.blog-cat-tab { background: #f4f6fa; border: 1px solid #ddd; color: #555; padding: .4rem .9rem; border-radius: 20px; font-size: .83rem; font-weight: 600; cursor: pointer; transition: all .2s; font-family: inherit; }
+.blog-cat-tab.active, .blog-cat-tab:hover { background: #0a1628; color: #fff; border-color: #0a1628; }
+.blog-cat-badge { display: inline-block; background: #f0a500; color: #0a1628; font-size: .72rem; font-weight: 700; padding: .15rem .5rem; border-radius: 4px; margin-bottom: .4rem; }
+
+/* ---- Blog post share row ---- */
+.bp-share-row { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; padding: 1rem; background: #f4f6fa; border-radius: 8px; margin-top: 1.5rem; }
+.bp-share-btn { padding: .45rem .9rem; border-radius: 6px; border: none; font-size: .85rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+.bp-share-wa { background: #25d366; color: #fff; }
+.bp-share-copy { background: #0a1628; color: #fff; }

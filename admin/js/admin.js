@@ -461,7 +461,7 @@ function renderQuotes() {
       <td>${q.downPayment||70}%</td>
       <td><div class="td-two-line"><span class="line2">Req: ${q.reqDate||'-'}</span><span class="line2">Iss: ${q.issDate||'-'}</span></div></td>
       <td><span class="badge badge-${(q.status||'quoted').toLowerCase()}">${q.status||'Quoted'}</span></td>
-      <td><div class="row-actions"><button class="btn-row" title="WhatsApp" onclick="openWhatsAppModal('quote',${q.id})" style="background:#25d366;color:#fff">📱</button></div></td>
+      <td><div class="row-actions"><button class="btn-row" title="Edit" onclick="openModal('quote',${q.id})">✏️</button><button class="btn-row" title="WhatsApp" onclick="openWhatsAppModal('quote',${q.id})" style="background:#25d366;color:#fff">📱</button></div></td>
     </tr>`).join('') : '<tr><td colspan="12" class="table-empty"><span class="empty-icon">📋</span>No quotes found.</td></tr>';
 }
 
@@ -958,6 +958,37 @@ function renderLocations() {
 
 // ===== MODAL CONFIGS =====
 const modalConfigs = {
+  quote: {
+    label: 'Quote',
+    getData: id => DB.load('nau_quotes').find(q => q.id === id),
+    form: d => `
+      <div class="form-row"><div class="form-group"><label>Quote No</label><input class="form-control" id="q-no" value="${d?d.quoteNo:''}" readonly style="background:#f4f6fa;" /></div>
+      <div class="form-group"><label>Status</label><select class="form-control" id="q-status">
+        ${['Pending','Quoted','Accepted','Declined','Cancelled'].map(s=>`<option ${d&&d.status===s?'selected':''}>${s}</option>`).join('')}
+      </select></div></div>
+      <div class="form-row"><div class="form-group"><label>Customer Name</label><input class="form-control" id="q-cust" value="${d?d.customerName:''}" readonly style="background:#f4f6fa;" /></div>
+      <div class="form-group"><label>Customer Email</label><input class="form-control" id="q-email" value="${d?d.customerEmail:''}" readonly style="background:#f4f6fa;" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Vehicle</label><input class="form-control" id="q-vehicle" value="${d?d.vehicleName:''}" /></div>
+      <div class="form-group"><label>Web Price (USD)</label><input class="form-control" type="number" id="q-web-price" value="${d?d.webPrice:''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Quoted Price (USD)</label><input class="form-control" type="number" id="q-quoted-price" value="${d?d.quotedPrice:''}" /></div>
+      <div class="form-group"><label>Down Payment (%)</label><input class="form-control" type="number" id="q-down-pct" value="${d?d.downPayment:70}" /></div></div>
+      <div class="form-group"><label>Expiry Date</label><input class="form-control" type="date" id="q-expires" value="${d&&d.expiresAt?d.expiresAt:''}" /></div>
+      <div class="form-row full"><div class="form-group"><label>Notes</label><textarea class="form-control" id="q-notes">${d?d.notes||'':''}</textarea></div></div>`,
+    collect: () => {
+      return {
+        vehicleName: document.getElementById('q-vehicle').value,
+        webPrice: Number(document.getElementById('q-web-price').value) || 0,
+        quotedPrice: Number(document.getElementById('q-quoted-price').value) || 0,
+        downPayment: Number(document.getElementById('q-down-pct').value) || 70,
+        status: document.getElementById('q-status').value,
+        expiresAt: document.getElementById('q-expires').value || '',
+        notes: document.getElementById('q-notes').value
+      };
+    },
+    create: d => { const all = DB.load('nau_quotes'); const no = 'QT-' + new Date().getFullYear() + '-' + String(DB.nextId('nau_quotes')).padStart(2,'0'); all.push({id:DB.nextId('nau_quotes'),...d,quoteNo:no,reqDate:nowISO().split('T')[0],createdAt:nowISO()}); DB.save('nau_quotes',all); },
+    update: (id,d) => { const all = DB.load('nau_quotes'); const i = all.findIndex(q=>q.id===id); if(i>-1){all[i]={...all[i],...d};DB.save('nau_quotes',all);} },
+    refresh: renderQuotes
+  },
   manufacturer: {
     label: 'Manufacturer',
     getData: id => getMFRs().find(m=>m.id===id),
