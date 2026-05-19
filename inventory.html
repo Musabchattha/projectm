@@ -535,7 +535,7 @@
     var fuelL=(v.fuelType||'').toLowerCase();
     var transL=(v.transmission||'').toLowerCase();
     var title=[mfrName,v.color,String(v.year||'')].filter(Boolean).join(' ');
-    return '<article class="vehicle-card"'
+    return '<article class="vehicle-card" data-id="'+v.id+'"'
       +' data-make="'+mfrName.toLowerCase()+'"'
       +' data-name="'+title.toLowerCase()+'"'
       +' data-year="'+v.year+'"'
@@ -562,6 +562,7 @@
       +'</div>'
       +'<div class="card-actions">'
       +'<a href="vehicle-detail.html?id='+v.id+'" class="btn btn-navy btn-sm">View Details</a>'
+      +'<button class="btn btn-compare btn-sm" onclick="window.__toggleCompare(\''+v.id+'\',this)" data-id="'+v.id+'">+ Compare</button>'
       +'<a href="https://wa.me/256700123456" class="btn btn-wa btn-sm" target="_blank">💬</a>'
       +'</div></div></div></article>';
   }).join('');
@@ -576,6 +577,93 @@
     localStorage.setItem(key,JSON.stringify(saved));
   };
 })();
+</script>
+<!-- Compare sticky bar -->
+<div class="compare-bar" id="compareBar" style="display:none;">
+  <div class="compare-bar-inner">
+    <span class="compare-bar-label">Comparing: <strong id="compareCount">0</strong> vehicle(s)</span>
+    <div class="compare-bar-actions">
+      <a href="compare.html" class="btn btn-primary btn-sm" id="compareGoBtn">Compare (0) &rarr;</a>
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;border:none;" onclick="window.__clearCompare()">Clear</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Also add compare buttons to static HTML cards
+(function(){
+  document.querySelectorAll('.vehicle-card:not([data-id])').forEach(function(card, i){
+    var syntheticId = 'static-' + i;
+    card.dataset.id = syntheticId;
+    var actions = card.querySelector('.card-actions');
+    if(actions){
+      var btn = document.createElement('button');
+      btn.className = 'btn btn-compare btn-sm';
+      btn.setAttribute('data-id', syntheticId);
+      btn.textContent = '+ Compare';
+      btn.onclick = function(){ window.__toggleCompare(syntheticId, btn); };
+      actions.insertBefore(btn, actions.querySelector('.btn-wa'));
+    }
+  });
+})();
+
+window.__toggleCompare = function(id, btn) {
+  var arr = [];
+  try { arr = JSON.parse(sessionStorage.getItem('nau_compare') || '[]'); } catch(e) {}
+  var idx = arr.indexOf(String(id));
+  if (idx >= 0) {
+    arr.splice(idx, 1);
+    if (btn) { btn.textContent = '+ Compare'; btn.classList.remove('compare-active'); }
+  } else {
+    if (arr.length >= 3) {
+      alert('You can compare up to 3 vehicles at a time. Remove one to add another.');
+      return;
+    }
+    arr.push(String(id));
+    if (btn) { btn.textContent = '✓ Added'; btn.classList.add('compare-active'); }
+  }
+  sessionStorage.setItem('nau_compare', JSON.stringify(arr));
+  window.__updateCompareBar();
+};
+
+window.__clearCompare = function() {
+  sessionStorage.setItem('nau_compare', '[]');
+  document.querySelectorAll('.btn-compare').forEach(function(b){
+    b.textContent = '+ Compare';
+    b.classList.remove('compare-active');
+  });
+  window.__updateCompareBar();
+};
+
+window.__updateCompareBar = function() {
+  var arr = [];
+  try { arr = JSON.parse(sessionStorage.getItem('nau_compare') || '[]'); } catch(e) {}
+  var bar = document.getElementById('compareBar');
+  var countEl = document.getElementById('compareCount');
+  var goBtn = document.getElementById('compareGoBtn');
+  if (!bar) return;
+  if (arr.length > 0) {
+    bar.style.display = 'flex';
+    if (countEl) countEl.textContent = arr.length;
+    if (goBtn) goBtn.textContent = 'Compare (' + arr.length + ') →';
+    // Update button states
+    document.querySelectorAll('.btn-compare').forEach(function(b){
+      var bid = b.getAttribute('data-id');
+      if (arr.indexOf(String(bid)) >= 0) {
+        b.textContent = '✓ Added';
+        b.classList.add('compare-active');
+      } else {
+        b.textContent = '+ Compare';
+        b.classList.remove('compare-active');
+      }
+    });
+  } else {
+    bar.style.display = 'none';
+  }
+};
+
+// Init bar state on load
+window.__updateCompareBar();
 </script>
 <script src="js/main.js"></script>
 </body>

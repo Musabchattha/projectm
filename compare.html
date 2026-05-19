@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compare Vehicles — NipponAuto Uganda</title>
+  <meta name="description" content="Compare up to 3 Japanese vehicles side by side. NipponAuto Uganda." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23f0a500'/><text y='24' x='4' font-size='22'>🚗</text></svg>" />
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="container">
+    <div class="top-bar-inner">
+      <div class="top-bar-left">
+        <span>📞 +256 700 123 456</span>
+        <span>✉️ info@nipponauto.ug</span>
+        <span>🕐 Mon–Sat: 8AM–6PM EAT</span>
+      </div>
+      <div class="top-bar-right">
+        <a href="https://wa.me/256700123456" target="_blank" rel="noopener">💬 WhatsApp</a>
+        <span class="tb-divider">|</span>
+        <span>🇺🇬 Kampala, Uganda</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header id="header" class="site-header">
+  <div class="container">
+    <nav class="nav-inner">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">🚗</div>
+        <div class="logo-text"><span>NipponAuto</span><span>Uganda</span></div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="inventory.html" class="nav-active">Inventory</a></li>
+        <li><a href="finance.html">Finance</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <div class="nav-auth">
+        <a href="login.html" class="btn-auth-login">Login</a>
+        <a href="https://wa.me/256700123456" class="btn-auth-signup" target="_blank" rel="noopener">💬 WhatsApp</a>
+      </div>
+      <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+    </nav>
+  </div>
+</header>
+
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="mobileClose">✕</button>
+  <a href="index.html">Home</a>
+  <a href="inventory.html">Inventory</a>
+  <a href="finance.html">Finance</a>
+  <a href="about.html">About</a>
+  <a href="contact.html">Contact</a>
+  <div style="display:flex;gap:.8rem;margin-top:1rem;">
+    <a href="login.html" class="btn-auth-login" style="flex:1;text-align:center;padding:.7rem;">Login</a>
+    <a href="https://wa.me/256700123456" class="btn-auth-signup" style="flex:1;text-align:center;padding:.7rem;" target="_blank" rel="noopener">💬 WhatsApp</a>
+  </div>
+</div>
+
+<section class="page-hero">
+  <div class="container">
+    <div class="breadcrumb"><a href="index.html">Home</a><span>›</span><a href="inventory.html">Inventory</a><span>›</span><span>Compare Vehicles</span></div>
+    <h1>Compare Vehicles</h1>
+    <p>Compare up to 3 vehicles side by side to find the best match for your needs.</p>
+  </div>
+</section>
+
+<div class="container" style="padding:3rem 1.25rem;">
+  <div style="margin-bottom:1.5rem;">
+    <a href="inventory.html" class="btn btn-navy">&larr; Back to Inventory</a>
+  </div>
+  <div id="compareRoot"></div>
+</div>
+
+<section class="cta-banner" style="margin-top:3rem;">
+  <div class="container">
+    <div class="cta-inner">
+      <div class="cta-text">
+        <span class="section-label">Ready to Buy?</span>
+        <h2>Found Your Perfect Match?</h2>
+        <p>Contact us on WhatsApp or browse more vehicles in our inventory.</p>
+      </div>
+      <div class="cta-actions">
+        <a href="inventory.html" class="btn btn-primary">Browse Inventory</a>
+        <a href="https://wa.me/256700123456" class="btn btn-outline" target="_blank" rel="noopener">💬 WhatsApp Us</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand"><a href="index.html" class="logo"><div class="logo-icon">🚗</div><div class="logo-text"><span>NipponAuto</span><span>Uganda</span></div></a><p>Kampala's #1 source for genuine Japanese cars since 2012.</p><div class="footer-social"><a href="#">📘</a><a href="#">📸</a><a href="#">▶️</a><a href="https://wa.me/256700123456">💬</a></div></div>
+      <div class="footer-col"><h4>Quick Links</h4><ul><li><a href="index.html">Home</a></li><li><a href="inventory.html">Browse Cars</a></li><li><a href="finance.html">Finance</a></li><li><a href="about.html">About Us</a></li><li><a href="contact.html">Contact</a></li></ul></div>
+      <div class="footer-col"><h4>Vehicle Types</h4><ul><li><a href="inventory.html?body=suv">SUVs &amp; 4WD</a></li><li><a href="inventory.html?body=pickup">Pickup Trucks</a></li><li><a href="inventory.html?body=van">Vans &amp; Minivans</a></li><li><a href="inventory.html?fuel=hybrid">Hybrid Vehicles</a></li></ul></div>
+      <div class="footer-col"><h4>Contact</h4><ul class="footer-contact"><li><span class="icon">📍</span><span>Plot 45, Nakawa Industrial Road, Kampala</span></li><li><span class="icon">📞</span><span>+256 700 123 456</span></li><li><span class="icon">✉️</span><span>info@nipponauto.ug</span></li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>© 2025 NipponAuto Uganda. All rights reserved.</span><span><a href="#">Privacy Policy</a> · <a href="#">Terms</a> · <a href="login.html" style="opacity:.5">Staff Login</a></span></div>
+  </div>
+</footer>
+
+<a href="https://wa.me/256700123456" class="whatsapp-float" target="_blank" rel="noopener">
+  <span class="wa-icon">💬</span><span class="wa-label">WhatsApp Us</span>
+</a>
+
+<script>
+(function(){
+  var root = document.getElementById('compareRoot');
+
+  // Load compare IDs from sessionStorage
+  var ids = [];
+  try { ids = JSON.parse(sessionStorage.getItem('nau_compare') || '[]'); } catch(e) {}
+
+  if (!ids.length) {
+    root.innerHTML = '<div class="compare-empty"><div class="compare-empty-icon">⚖️</div><h2>No vehicles selected for comparison</h2><p>Browse our inventory and click <strong>Compare</strong> on vehicles to add them here.</p><a href="inventory.html" class="btn btn-navy" style="margin-top:1.25rem;">Browse Inventory</a></div>';
+    return;
+  }
+
+  // Load vehicles from localStorage
+  var allVehicles = [];
+  try { allVehicles = JSON.parse(localStorage.getItem('nau_vehicles') || '[]'); } catch(e) {}
+  var manufacturers = [];
+  try { manufacturers = JSON.parse(localStorage.getItem('nau_manufacturers') || '[]'); } catch(e) {}
+
+  // Filter to selected vehicles, preserving order
+  var vehicles = ids.map(function(id){
+    return allVehicles.find(function(v){ return String(v.id) === String(id); });
+  }).filter(Boolean);
+
+  if (!vehicles.length) {
+    root.innerHTML = '<div class="compare-empty"><div class="compare-empty-icon">⚖️</div><h2>No vehicles selected for comparison</h2><p>Browse our inventory and click <strong>Compare</strong> on vehicles to add them here.</p><a href="inventory.html" class="btn btn-navy" style="margin-top:1.25rem;">Browse Inventory</a></div>';
+    return;
+  }
+
+  function getMake(v) {
+    var m = manufacturers.find(function(mfr){ return mfr.id === v.manufacturerId; });
+    return m ? m.name : (v.make || '');
+  }
+
+  function fmtUGX(v) {
+    var n = v.priceUGX ? Number(v.priceUGX) : (v.priceUSD ? Number(v.priceUSD) * 3700 : 0);
+    return n ? 'UGX ' + n.toLocaleString() : '—';
+  }
+
+  function fmtUSD(v) {
+    return v.priceUSD ? '$' + Number(v.priceUSD).toLocaleString() : '—';
+  }
+
+  // Spec rows: [label, accessor fn]
+  var specs = [
+    ['Make',          function(v){ return getMake(v); }],
+    ['Model',         function(v){ return v.model || '—'; }],
+    ['Year',          function(v){ return v.year || '—'; }],
+    ['Price (UGX)',   fmtUGX],
+    ['Price (USD)',   fmtUSD],
+    ['Fuel Type',     function(v){ return v.fuelType || '—'; }],
+    ['Transmission',  function(v){ return v.transmission || '—'; }],
+    ['Engine CC',     function(v){ return v.engineCC ? v.engineCC + 'cc' : '—'; }],
+    ['Drivetrain',    function(v){ return v.drivetrain || '—'; }],
+    ['Steering',      function(v){ return v.steering || 'RHD'; }],
+    ['Body Type',     function(v){ return v.bodyType || '—'; }],
+    ['Colour',        function(v){ return v.color || v.colour || '—'; }],
+    ['Chassis No.',   function(v){ return v.chassis || v.chassisNo || '—'; }],
+    ['Condition Grade', function(v){ return v.conditionGrade || v.grade || '—'; }]
+  ];
+
+  function removeVehicle(id) {
+    var arr;
+    try { arr = JSON.parse(sessionStorage.getItem('nau_compare') || '[]'); } catch(e) { arr = []; }
+    arr = arr.filter(function(x){ return String(x) !== String(id); });
+    sessionStorage.setItem('nau_compare', JSON.stringify(arr));
+    window.location.reload();
+  }
+  window.__removeCompare = removeVehicle;
+
+  // Build table
+  var colCount = vehicles.length;
+  var imgCols = vehicles.map(function(v){
+    var img = v.imageUrl || ('https://picsum.photos/seed/' + v.id + '/600/380');
+    return '<th class="compare-th"><img src="' + img + '" alt="' + getMake(v) + '" class="compare-img" /><div class="compare-car-title">' + getMake(v) + ' ' + (v.model || '') + '</div><button class="btn compare-remove-btn" onclick="__removeCompare(\'' + v.id + '\')">Remove</button></th>';
+  }).join('');
+
+  var bodyRows = specs.map(function(spec){
+    var label = spec[0];
+    var fn = spec[1];
+    var vals = vehicles.map(function(v){ return String(fn(v)); });
+    var allSame = vals.every(function(val){ return val === vals[0]; });
+    var tds = vals.map(function(val){
+      var highlight = !allSame && colCount > 1 ? ' class="compare-diff"' : '';
+      return '<td' + highlight + '>' + (val || '—') + '</td>';
+    }).join('');
+    return '<tr><th class="compare-row-label">' + label + '</th>' + tds + '</tr>';
+  }).join('');
+
+  var html = '<div class="compare-table-wrap"><table class="compare-table">'
+    + '<thead><tr><th class="compare-th compare-label-col"></th>' + imgCols + '</tr></thead>'
+    + '<tbody>' + bodyRows + '</tbody>'
+    + '</table></div>';
+
+  root.innerHTML = html;
+})();
+</script>
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -235,6 +235,36 @@
   </div>
 </section>
 
+<!-- FINANCE PARTNERS -->
+<section style="padding:5rem 0;background:var(--light);">
+  <div class="container">
+    <div class="text-center" style="margin-bottom:2.5rem;">
+      <span class="section-label">Banking Partners</span>
+      <h2 class="section-title">Our Finance Partners</h2>
+      <p class="section-sub">We work with Uganda's leading banks to help you finance your Japanese car purchase. Competitive rates, fast approval.</p>
+    </div>
+    <div id="financePartnersGrid" class="fp-grid"></div>
+  </div>
+</section>
+
+<!-- TRADE-IN CTA BANNER -->
+<section class="tradein-cta-banner">
+  <div class="container">
+    <div class="tradein-cta-inner">
+      <div class="tradein-cta-icon">🔄</div>
+      <div class="tradein-cta-text">
+        <span class="section-label" style="color:var(--gold);">Upgrade Your Ride</span>
+        <h2>Trade In Your Current Vehicle</h2>
+        <p>Get a free, no-obligation valuation for your current car. Use the trade-in value towards your next Japanese import from NipponAuto Uganda.</p>
+      </div>
+      <div class="tradein-cta-actions">
+        <a href="trade-in.html" class="btn btn-primary">Get a Trade-In Valuation &rarr;</a>
+        <a href="https://wa.me/256700123456?text=Hi, I'd like to trade in my vehicle" class="btn btn-outline" target="_blank" rel="noopener">💬 WhatsApp Us</a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- CTA -->
 <section class="cta-banner">
   <div class="container">
@@ -251,6 +281,48 @@
     </div>
   </div>
 </section>
+
+<script>
+(function(){
+  var grid = document.getElementById('financePartnersGrid');
+  if (!grid) return;
+
+  var partners = [];
+  try { partners = JSON.parse(localStorage.getItem('nau_finance_partners') || '[]'); } catch(e) {}
+
+  var activePartners = partners.filter(function(p){ return p.status !== false && p.status !== 'Inactive'; });
+
+  if (!activePartners.length) {
+    // Fallback hardcoded placeholders
+    activePartners = [
+      { name: 'Stanbic Bank Uganda', interestRate: 'from 18% p.a.', maxTenure: '60 months', minAmount: 'UGX 10M', maxAmount: 'UGX 500M', description: 'Uganda\'s leading bank offering competitive vehicle financing. Up to 80% financing available. Pre-approval in 48 hours.', applyUrl: 'https://www.stanbicbank.co.ug', logoUrl: '' },
+      { name: 'Centenary Bank', interestRate: 'from 20% p.a.', maxTenure: '48 months', minAmount: 'UGX 5M', maxAmount: 'UGX 200M', description: 'Uganda\'s most popular bank with over 70 branches nationwide. Flexible repayment schedules to fit your income.', applyUrl: 'https://www.centenarybank.co.ug', logoUrl: '' },
+      { name: 'DFCU Bank', interestRate: 'from 19% p.a.', maxTenure: '60 months', minAmount: 'UGX 8M', maxAmount: 'UGX 400M', description: 'Both individual and business fleet financing available. Mobile money repayments accepted. Fast online application.', applyUrl: 'https://www.dfcugroup.com', logoUrl: '' }
+    ];
+  }
+
+  grid.innerHTML = activePartners.map(function(p){
+    var logo = p.logoUrl ? '<img src="' + p.logoUrl + '" alt="' + escHtml(p.name) + '" class="fp-logo" />' : '<div class="fp-logo-placeholder">🏦</div>';
+    var rate = p.interestRate || '—';
+    var tenure = p.maxTenure || '—';
+    var apply = p.applyUrl ? '<a href="' + p.applyUrl + '" class="btn btn-navy btn-sm" target="_blank" rel="noopener">Apply Now &rarr;</a>' : '';
+    return '<div class="fp-card">'
+      + '<div class="fp-logo-wrap">' + logo + '</div>'
+      + '<h3 class="fp-name">' + escHtml(p.name) + '</h3>'
+      + '<div class="fp-stats">'
+      + '<div class="fp-stat"><div class="fp-stat-val">' + escHtml(rate) + '</div><div class="fp-stat-label">Interest Rate</div></div>'
+      + '<div class="fp-stat"><div class="fp-stat-val">' + escHtml(tenure) + '</div><div class="fp-stat-label">Max Tenure</div></div>'
+      + '</div>'
+      + '<p class="fp-desc">' + escHtml(p.description || '') + '</p>'
+      + (apply ? '<div style="margin-top:1rem;">' + apply + '</div>' : '')
+      + '</div>';
+  }).join('');
+
+  function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+})();
+</script>
 
 <footer class="footer">
   <div class="container">
