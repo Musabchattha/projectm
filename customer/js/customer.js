@@ -78,14 +78,126 @@
     });
     grid.innerHTML=html||'<div class="c-empty-saved"><div class="big">❤️</div><p>No saved vehicles found.</p></div>';
   }
-  function renderProfile(){
-    document.getElementById('pName').value=session.name;
-    document.getElementById('pEmail').value=session.email;
-    document.getElementById('pPhone').value=session.phone||'Not provided';
-    var customers=load('nau_customers');
-    var me=customers.find(function(c){return c.id===session.id;});
-    document.getElementById('pSince').value=me&&me.createdAt?me.createdAt:'N/A';
+  function renderProfile() {
+    var sess = JSON.parse(sessionStorage.getItem('nau_customer_session') || '{}');
+    var customers = JSON.parse(localStorage.getItem('nau_customers') || '[]');
+    var customer = customers.find(function(c){ return (c.email || '').toLowerCase() === (sess.email || '').toLowerCase(); });
+
+    var el = document.getElementById('section-profile');
+    if (!el) return;
+
+    el.innerHTML = '<h2 class="c-section-title">My Profile</h2>' +
+
+      '<div class="c-card" style="max-width:480px;margin-bottom:1.5rem;">' +
+        '<h3 style="margin:0 0 1.25rem;font-size:1rem;color:#0a1628;font-weight:700;">Personal Information</h3>' +
+        '<form onsubmit="saveProfile(event)">' +
+          '<div class="c-form-row">' +
+            '<label>Full Name</label>' +
+            '<input type="text" id="prof-name" value="' + (customer ? customer.name : sess.name || '').replace(/"/g, '&quot;') + '" required placeholder="Your full name">' +
+          '</div>' +
+          '<div class="c-form-row">' +
+            '<label>Email Address</label>' +
+            '<input type="email" value="' + (sess.email || '').replace(/"/g, '&quot;') + '" readonly style="background:#f4f6fa;color:#888;cursor:not-allowed;">' +
+            '<small style="color:#999;font-size:.75rem;">Email address cannot be changed.</small>' +
+          '</div>' +
+          '<div class="c-form-row">' +
+            '<label>Phone Number</label>' +
+            '<input type="text" id="prof-phone" value="' + ((customer ? customer.phone : sess.phone) || '').replace(/"/g, '&quot;') + '" placeholder="+256 700 000 000">' +
+          '</div>' +
+          '<div class="c-form-row">' +
+            '<label>Member Since</label>' +
+            '<input type="text" value="' + (customer && customer.createdAt ? new Date(customer.createdAt).toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'}) : 'N/A') + '" readonly style="background:#f4f6fa;color:#888;cursor:not-allowed;">' +
+          '</div>' +
+          '<button type="submit" class="c-btn-primary" style="margin-top:.5rem;">💾 Save Changes</button>' +
+        '</form>' +
+      '</div>' +
+
+      '<div class="c-card" style="max-width:480px;">' +
+        '<h3 style="margin:0 0 1.25rem;font-size:1rem;color:#0a1628;font-weight:700;">Change Password</h3>' +
+        '<form onsubmit="changePassword(event)">' +
+          '<div class="c-form-row">' +
+            '<label>Current Password</label>' +
+            '<input type="password" id="prof-cur-pass" required placeholder="Enter current password">' +
+          '</div>' +
+          '<div class="c-form-row">' +
+            '<label>New Password <span style="color:#888;font-size:.78rem;">(min. 6 characters)</span></label>' +
+            '<input type="password" id="prof-new-pass" required minlength="6" placeholder="Enter new password">' +
+          '</div>' +
+          '<div class="c-form-row">' +
+            '<label>Confirm New Password</label>' +
+            '<input type="password" id="prof-conf-pass" required placeholder="Repeat new password">' +
+          '</div>' +
+          '<button type="submit" class="c-btn-primary" style="margin-top:.5rem;">🔒 Update Password</button>' +
+        '</form>' +
+      '</div>';
   }
+
+  window.saveProfile = function(e) {
+    e.preventDefault();
+    var sess = JSON.parse(sessionStorage.getItem('nau_customer_session') || '{}');
+    var name = (document.getElementById('prof-name') ? document.getElementById('prof-name').value : '').trim();
+    var phone = (document.getElementById('prof-phone') ? document.getElementById('prof-phone').value : '').trim();
+
+    if (!name) { showCToast('Please enter your name.'); return; }
+
+    // Update nau_customers record
+    var customers = JSON.parse(localStorage.getItem('nau_customers') || '[]');
+    var idx = customers.findIndex(function(c){ return (c.email || '').toLowerCase() === (sess.email || '').toLowerCase(); });
+    if (idx !== -1) {
+      customers[idx].name = name;
+      customers[idx].phone = phone;
+      localStorage.setItem('nau_customers', JSON.stringify(customers));
+    }
+
+    // Update session
+    sess.name = name;
+    if (phone) sess.phone = phone;
+    sessionStorage.setItem('nau_customer_session', JSON.stringify(sess));
+
+    // Update topbar display name
+    var nameEl = document.getElementById('cUserBadge');
+    if (nameEl) nameEl.textContent = '👤 ' + name.split(' ')[0];
+
+    showCToast('Profile updated successfully! ✓');
+  };
+
+  window.changePassword = function(e) {
+    e.preventDefault();
+    var sess = JSON.parse(sessionStorage.getItem('nau_customer_session') || '{}');
+    var curPass = document.getElementById('prof-cur-pass') ? document.getElementById('prof-cur-pass').value : '';
+    var newPass = document.getElementById('prof-new-pass') ? document.getElementById('prof-new-pass').value : '';
+    var confPass = document.getElementById('prof-conf-pass') ? document.getElementById('prof-conf-pass').value : '';
+
+    if (newPass !== confPass) {
+      showCToast('New passwords do not match.');
+      return;
+    }
+    if (newPass.length < 6) {
+      showCToast('Password must be at least 6 characters.');
+      return;
+    }
+
+    var customers = JSON.parse(localStorage.getItem('nau_customers') || '[]');
+    var idx = customers.findIndex(function(c){ return (c.email || '').toLowerCase() === (sess.email || '').toLowerCase(); });
+    if (idx === -1) {
+      showCToast('Profile not found. Please sign up again.');
+      return;
+    }
+    if (customers[idx].password !== curPass) {
+      showCToast('Current password is incorrect.');
+      return;
+    }
+
+    customers[idx].password = newPass;
+    localStorage.setItem('nau_customers', JSON.stringify(customers));
+
+    // Clear password fields
+    document.getElementById('prof-cur-pass').value = '';
+    document.getElementById('prof-new-pass').value = '';
+    document.getElementById('prof-conf-pass').value = '';
+
+    showCToast('Password updated successfully! 🔒');
+  };
   var DEFAULT_STAGES=['Auctioned in Japan','Shipped','Mombasa Port','Uganda Clearing','In Showroom','Delivered'];
   function renderJourney(){
     var el=document.getElementById('journeyContent');
@@ -282,6 +394,16 @@
     var dateEl = document.getElementById('appt-date');
     if (dateEl) dateEl.min = new Date().toISOString().split('T')[0];
     renderMyAppointments();
+
+    // Pre-fill vehicle if coming from vehicle-detail.html
+    var preVehicle = sessionStorage.getItem('nau_book_vehicle');
+    if (preVehicle) {
+      var apptVehicleEl = document.getElementById('appt-vehicle');
+      if (apptVehicleEl && !apptVehicleEl.value) {
+        apptVehicleEl.value = preVehicle;
+      }
+      sessionStorage.removeItem('nau_book_vehicle');
+    }
   }
 
   function renderMyAppointments() {
