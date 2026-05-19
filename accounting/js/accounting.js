@@ -1136,7 +1136,8 @@ function showReportTab(tab) {
     aging: renderAging,
     'aged-payables': renderAgedPayables,
     'tax-report': renderTaxReport,
-    expenses: renderExpenseBreakdown
+    expenses: renderExpenseBreakdown,
+    'vehicle-pl': renderVehiclePL
   };
   if (renders[tab]) renders[tab]();
 }
@@ -1420,7 +1421,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const renders = {
       pnl: renderPNL, 'trial-balance': renderTrialBalance, 'balance-sheet': renderBalanceSheet,
       'general-ledger': renderGeneralLedger, aging: renderAging, 'aged-payables': renderAgedPayables,
-      'tax-report': renderTaxReport, expenses: renderExpenseBreakdown
+      'tax-report': renderTaxReport, expenses: renderExpenseBreakdown, 'vehicle-pl': renderVehiclePL
     };
     if (renders[currentReportTab]) renders[currentReportTab]();
   });
@@ -3398,4 +3399,121 @@ function renderPOStats() {
     <div class="po-stat" style="border-color:#f0a500"><div class="po-stat-val" style="color:#d97706">${confirmed}</div><div class="po-stat-label">Awaiting Receipt</div></div>
     <div class="po-stat" style="border-color:#10b981"><div class="po-stat-val" style="color:#10b981">${received}</div><div class="po-stat-label">Received → In Inventory</div></div>
     <div class="po-stat"><div class="po-stat-val">${fmtMoney(totalValue)}</div><div class="po-stat-label">Total Procurement Value</div></div>`;
+}
+
+// ===== REPORTS: VEHICLE P&L =====
+function renderVehiclePL() {
+  const el = document.getElementById('vehicle-pl-content');
+  if (!el) return;
+
+  const pos = DB.load('nau_purchase_orders');
+  const invoices = DB.load('nau_invoices');
+  const bills = DB.load('nau_bills');
+
+  // Build rows for all non-cancelled POs
+  const rows = pos.filter(p => p.status !== 'Cancelled').map(po => {
+    const vehicleName = ((po.vehicleMake || '') + ' ' + (po.vehicleModel || '')).trim();
+
+    // Find matching invoice by vehicleId or vehicle name in lineItems
+    let matchedInvoice = null;
+    if (po.vehicleId) {
+      matchedInvoice = invoices.find(inv => inv.vehicleId === po.vehicleId);
+    }
+    if (!matchedInvoice && vehicleName) {
+      matchedInvoice = invoices.find(inv => {
+        if (inv.vehicleId && po.vehicleId && inv.vehicleId === po.vehicleId) return true;
+        const items = inv.lineItems || [];
+        return items.some(li => {
+          const desc = (li.description || li.desc || '').toLowerCase();
+          return desc.includes((po.vehicleMake || '').toLowerCase()) &&
+                 desc.includes((po.vehicleModel || '').toLowerCase());
+        });
+      });
+    }
+
+    // Find bills tagged to this vehicleId
+    const relatedBills = bills.filter(b => {
+      if (po.vehicleId && b.vehicleId && b.vehicleId === po.vehicleId) return true;
+      return false;
+    });
+
+    const purchaseCost = Number(po.purchasePrice || 0);
+    const additionalCosts = relatedBills.reduce((s, b) => s + Number(b.amount || b.total || 0), 0);
+    const totalCost = purchaseCost + additionalCosts;
+    const revenue = matchedInvoice ? Number(matchedInvoice.totalAmount || matchedInvoice.total || 0) : 0;
+    const grossProfit = revenue - totalCost;
+    const marginPct = revenue > 0 ? (grossProfit / revenue * 100) : null;
+    const isReceived = po.status === 'Received';
+
+    return { po, vehicleName, purchaseCost, additionalCosts, totalCost, revenue, grossProfit, marginPct, isReceived, matchedInvoice };
+  });
+
+  // Totals for received POs
+  const receivedRows = rows.filter(r => r.isReceived);
+  const totPurchase = receivedRows.reduce((s, r) => s + r.purchaseCost, 0);
+  const totAddl = receivedRows.reduce((s, r) => s + r.additionalCosts, 0);
+  const totCost = receivedRows.reduce((s, r) => s + r.totalCost, 0);
+  const totRevenue = receivedRows.reduce((s, r) => s + r.revenue, 0);
+  const totProfit = receivedRows.reduce((s, r) => s + r.grossProfit, 0);
+  const totMargin = totRevenue > 0 ? (totProfit / totRevenue * 100) : null;
+
+  if (!rows.length) {
+    el.innerHTML = '<div class="report-card"><p style="color:#9ca3af;text-align:center;padding:2rem">No purchase orders found.</p></div>';
+    return;
+  }
+
+  el.innerHTML = `<div class="report-card">
+    <h3 style="margin-bottom:1.25rem;font-size:1rem;font-weight:700">Vehicle Profit & Loss</h3>
+    <div class="table-scroll">
+      <table class="acc-table" style="width:100%">
+        <thead>
+          <tr>
+            <th>PO #</th>
+            <th>Vehicle</th>
+            <th>Purchase Cost</th>
+            <th>Add. Costs</th>
+            <th>Total Cost</th>
+            <th>Revenue</th>
+            <th>Gross Profit</th>
+            <th>Margin</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r => {
+            const statusLabel = r.isReceived
+              ? (r.matchedInvoice ? 'Sold' : 'In Stock')
+              : r.po.status;
+            const profitClass = r.isReceived
+              ? (r.grossProfit >= 0 ? 'pl-profit' : 'pl-loss')
+              : '';
+            const rowStyle = !r.isReceived ? 'color:#9ca3af' : '';
+            return `<tr style="${rowStyle}">
+              <td>${r.po.poNo || r.po.id}</td>
+              <td>${r.vehicleName || '-'}</td>
+              <td>${fmtMoney(r.purchaseCost, r.po.currency || 'USD')}</td>
+              <td>${r.additionalCosts ? fmtMoney(r.additionalCosts, r.po.currency || 'USD') : '-'}</td>
+              <td>${fmtMoney(r.totalCost, r.po.currency || 'USD')}</td>
+              <td>${r.revenue ? fmtMoney(r.revenue) : '-'}</td>
+              <td class="${profitClass}">${r.isReceived ? fmtMoney(r.grossProfit) : '-'}</td>
+              <td class="${profitClass}">${r.marginPct !== null ? r.marginPct.toFixed(1) + '%' : '-'}</td>
+              <td>${statusLabel}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+        ${receivedRows.length ? `<tfoot>
+          <tr class="pl-summary-row">
+            <td colspan="2">Totals (Received POs)</td>
+            <td>${fmtMoney(totPurchase)}</td>
+            <td>${fmtMoney(totAddl)}</td>
+            <td>${fmtMoney(totCost)}</td>
+            <td>${fmtMoney(totRevenue)}</td>
+            <td class="${totProfit >= 0 ? 'pl-profit' : 'pl-loss'}">${fmtMoney(totProfit)}</td>
+            <td class="${totProfit >= 0 ? 'pl-profit' : 'pl-loss'}">${totMargin !== null ? totMargin.toFixed(1) + '%' : '-'}</td>
+            <td></td>
+          </tr>
+        </tfoot>` : ''}
+      </table>
+    </div>
+  </div>`;
 }

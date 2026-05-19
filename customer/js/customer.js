@@ -13,13 +13,15 @@
     if(t)t.classList.add('active');
     var btn=document.querySelector('[data-page="'+page+'"]');
     if(btn)btn.classList.add('active');
-    var titles={dashboard:'Dashboard',inquiries:'My Inquiries',quotes:'My Quotes',saved:'Saved Vehicles',profile:'My Profile'};
+    var titles={dashboard:'Dashboard',inquiries:'My Inquiries',quotes:'My Quotes',saved:'Saved Vehicles',profile:'My Profile',journey:'Vehicle Journey',alerts:'Stock Alerts'};
     document.getElementById('cPageTitle').textContent=titles[page]||page;
     if(page==='dashboard')renderDash();
     if(page==='inquiries')renderInquiries();
     if(page==='quotes')renderQuotes();
     if(page==='saved')renderSaved();
     if(page==='profile')renderProfile();
+    if(page==='journey')renderJourney();
+    if(page==='alerts')renderAlerts();
   }
   document.querySelectorAll('.cs-nav-item').forEach(function(btn){btn.addEventListener('click',function(){navigate(this.dataset.page);});});
   document.getElementById('logoutBtn').addEventListener('click',function(){sessionStorage.removeItem('nau_customer_session');window.location.href='../login.html';});
@@ -71,5 +73,88 @@
     var me=customers.find(function(c){return c.id===session.id;});
     document.getElementById('pSince').value=me&&me.createdAt?me.createdAt:'N/A';
   }
+  var DEFAULT_STAGES=['Auctioned in Japan','Shipped','Mombasa Port','Uganda Clearing','In Showroom','Delivered'];
+  function renderJourney(){
+    var el=document.getElementById('journeyContent');
+    if(!el)return;
+    var orders=load('nau_orders').filter(function(o){
+      return o.customerName&&o.customerName.toLowerCase()===session.name.toLowerCase()||
+             o.customerId===session.id||
+             (o.customerEmail&&o.customerEmail.toLowerCase()===session.email.toLowerCase());
+    });
+    if(!orders.length){
+      el.innerHTML='<p style="color:#8a9ab5;font-size:.9rem">You don\'t have any active vehicle orders. <a href="../inventory.html">Browse our inventory</a> to find your perfect vehicle.</p>';
+      return;
+    }
+    var vehicles=load('nau_vehicles');
+    var html='';
+    orders.forEach(function(order){
+      var vehicle=null;
+      if(order.vehicleId)vehicle=vehicles.find(function(v){return String(v.id)===String(order.vehicleId);});
+      if(!vehicle&&order.vehicleName)vehicle=vehicles.find(function(v){return(v.make+' '+v.model).toLowerCase()===String(order.vehicleName).toLowerCase();});
+      var stages=vehicle&&vehicle.journey&&vehicle.journey.length?vehicle.journey:DEFAULT_STAGES.map(function(s,i){return{stage:s,completed:i===4,date:'',notes:''};});
+      var foundCurrent=false;
+      var vName=vehicle?(esc(vehicle.make||'')+' '+esc(vehicle.model||'')).trim():esc(order.vehicleName||('Order #'+order.id));
+      html+='<div style="margin-bottom:2rem"><h4 style="font-size:.95rem;font-weight:700;color:#0a1628;margin-bottom:.75rem">'+vName+'</h4>';
+      html+='<div class="journey-timeline">';
+      stages.forEach(function(step){
+        var dotClass='pending';
+        if(step.completed){dotClass='done';}
+        else if(!foundCurrent){dotClass='current';foundCurrent=true;}
+        var icon=step.completed?'✅':dotClass==='current'?'⏳':'○';
+        html+='<div class="journey-step">';
+        html+='<div class="journey-dot '+dotClass+'"></div>';
+        html+='<div><div class="journey-stage">'+icon+' '+esc(step.stage||'')+'</div>';
+        if(step.date)html+='<div class="journey-date">'+esc(step.date)+'</div>';
+        if(step.notes)html+='<div class="journey-notes">'+esc(step.notes)+'</div>';
+        html+='</div></div>';
+      });
+      html+='</div></div>';
+    });
+    el.innerHTML=html;
+  }
+
+  function renderAlerts(){
+    var el=document.getElementById('alertsList');
+    if(!el)return;
+    var alerts=load('nau_alerts').filter(function(a){return a.customerEmail&&a.customerEmail.toLowerCase()===session.email.toLowerCase();});
+    if(!alerts.length){el.innerHTML='<p style="color:#8a9ab5;font-size:.85rem">No active alerts. Click "+ Set New Alert" to create one.</p>';return;}
+    var html='<div class="c-table-wrap"><table class="c-table"><thead><tr><th>Make</th><th>Model</th><th>Max Price</th><th>Fuel</th><th>Body</th><th>Status</th><th></th></tr></thead><tbody>';
+    alerts.forEach(function(a){
+      html+='<tr><td>'+esc(a.make||'Any')+'</td><td>'+esc(a.model||'Any')+'</td><td>'+(a.maxPrice?'$'+Number(a.maxPrice).toLocaleString():'Any')+'</td><td>'+esc(a.fuelType||'Any')+'</td><td>'+esc(a.bodyType||'Any')+'</td><td><span class="c-badge c-badge-'+esc((a.status||'Active').toLowerCase())+'">'+esc(a.status||'Active')+'</span></td>';
+      html+='<td><button class="c-btn" style="background:#fee2e2;color:#dc2626;font-size:.78rem;padding:.25rem .6rem" onclick="cancelAlert('+a.id+')">Cancel</button></td></tr>';
+    });
+    html+='</tbody></table></div>';
+    el.innerHTML=html;
+  }
+
+  window.toggleAlertForm=function(){
+    var wrap=document.getElementById('alertFormWrap');
+    if(wrap)wrap.style.display=wrap.style.display==='none'?'block':'none';
+  };
+
+  window.saveAlert=function(){
+    var make=(document.getElementById('alMake')||{}).value||'';
+    var model=(document.getElementById('alModel')||{}).value||'';
+    var maxPrice=(document.getElementById('alPrice')||{}).value||'';
+    var fuelType=(document.getElementById('alFuel')||{}).value||'';
+    var bodyType=(document.getElementById('alBody')||{}).value||'';
+    var alerts=load('nau_alerts');
+    var newId=alerts.length?Math.max.apply(null,alerts.map(function(a){return a.id||0;}))+1:1;
+    alerts.push({id:newId,customerName:session.name,customerEmail:session.email,customerId:session.id,make:make,model:model,maxPrice:maxPrice,fuelType:fuelType,bodyType:bodyType,status:'Active',createdAt:new Date().toISOString()});
+    try{localStorage.setItem('nau_alerts',JSON.stringify(alerts));}catch(e){}
+    window.toggleAlertForm();
+    var form=['alMake','alModel','alPrice','alFuel','alBody'];
+    form.forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+    renderAlerts();
+  };
+
+  window.cancelAlert=function(id){
+    var alerts=load('nau_alerts');
+    var idx=alerts.findIndex(function(a){return a.id===id;});
+    if(idx>-1){alerts[idx].status='Cancelled';try{localStorage.setItem('nau_alerts',JSON.stringify(alerts));}catch(e){}}
+    renderAlerts();
+  };
+
   navigate('dashboard');
 })();

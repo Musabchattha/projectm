@@ -348,3 +348,20 @@ body.customer-body {
   .c-topbar-right .c-user-badge { display: none; }
   .c-page { padding: 1rem .75rem; }
 }
+
+/* Journey Timeline */
+.journey-timeline { display: flex; flex-direction: column; gap: 0; }
+.journey-step { display: flex; gap: 1rem; padding: .85rem 0; border-left: 2px solid #e5e7eb; margin-left: .75rem; padding-left: 1.25rem; position: relative; }
+.journey-step:last-child { border-left-color: transparent; }
+.journey-dot { width: 18px; height: 18px; border-radius: 50%; position: absolute; left: -1rem; top: .9rem; flex-shrink: 0; }
+.journey-dot.done { background: #16a34a; }
+.journey-dot.current { background: #f0a500; }
+.journey-dot.pending { background: #d1d5db; border: 2px solid #9ca3af; }
+.journey-stage { font-weight: 700; font-size: .88rem; color: #0a1628; }
+.journey-date { font-size: .78rem; color: #6b7280; margin-top: .1rem; }
+.journey-notes { font-size: .82rem; color: #374151; margin-top: .2rem; font-style: italic; }
+
+/* Stock Alerts */
+.alert-form { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.25rem; margin-top: 1rem; }
+.alert-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+@media (max-width: 600px) { .alert-form .form-row { grid-template-columns: 1fr; } }

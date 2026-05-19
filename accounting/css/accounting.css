@@ -1602,3 +1602,8 @@ textarea.form-control { resize: vertical; min-height: 72px; }
 .po-stat { background:#fff; border-radius:8px; padding:.9rem 1rem; border:1px solid #e8ecf0; }
 .po-stat-val { font-size:1.35rem; font-weight:800; color:#0a1628; }
 .po-stat-label { font-size:.75rem; color:#6b7280; margin-top:.2rem; }
+
+/* Vehicle P&L Report */
+.pl-profit { color: #16a34a; font-weight: 700; }
+.pl-loss { color: #dc2626; font-weight: 700; }
+.pl-summary-row td { background: #f0f9ff; font-weight: 700; border-top: 2px solid #0a1628; }
