@@ -38,6 +38,15 @@
         <li><a href="finance.html">Finance</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="contact.html">Contact</a></li>
+        <li class="nav-has-dropdown">
+          <a href="#">Resources ▾</a>
+          <ul class="nav-dropdown">
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="auction-grades.html">Auction Grade Guide</a></li>
+            <li><a href="finance.html">Import Cost Calculator</a></li>
+            <li><a href="trade-in.html">Trade-In Valuation</a></li>
+          </ul>
+        </li>
       </ul>
       <div class="nav-auth">
         <a href="login.html" class="btn-auth-login">Login</a>
@@ -55,7 +64,9 @@
   <a href="finance.html">Finance</a>
   <a href="about.html">About</a>
   <a href="contact.html">Contact</a>
-  <div style="display:flex;gap:.8rem;margin-top:1rem;">
+  <a href="blog.html">Blog</a>
+  <a href="trade-in.html">Trade-In</a>
+  <div style="display:flex;gap:.8rem;margin-top:1.2rem;">
     <a href="login.html" class="btn-auth-login" style="flex:1;text-align:center;padding:.7rem;">Login</a>
     <a href="https://wa.me/256700123456" class="btn-auth-signup" style="flex:1;text-align:center;padding:.7rem;" target="_blank" rel="noopener">💬 WhatsApp</a>
   </div>
@@ -135,6 +146,11 @@
         <a href="https://wa.me/256700123456" class="btn btn-wa" id="vd-wa-btn" target="_blank" rel="noopener">💬 Enquire on WhatsApp</a>
         <a href="contact.html" class="btn btn-navy">Request Clearing Quote</a>
         <a href="finance.html" class="btn btn-outline" style="border-color:var(--navy);color:var(--navy);">Calculate Import Costs</a>
+        <div class="share-row">
+          <button class="btn-share btn-share-wa" onclick="shareWhatsApp()">💬 Share on WhatsApp</button>
+          <button class="btn-share btn-share-copy" id="copyLinkBtn" onclick="copyVehicleLink()">🔗 Copy Link</button>
+        </div>
+        <div id="copyToast" class="copy-toast" style="display:none;">Link copied!</div>
       </div>
 
       <div style="margin-top:1.5rem;padding:1rem;background:var(--light);border-radius:8px;">
@@ -218,6 +234,11 @@
 
   var v = vehicles.find(function(x){ return String(x.id) === String(id); });
   if (!v) return;
+
+  // Store for social sharing
+  v.makeLabel = (manufacturers.find(function(m){ return String(m.id) === String(v.manufacturerId); }) || {}).name || '';
+  v.modelLabel = (models.find(function(m){ return String(m.id) === String(v.modelId); }) || {}).name || v.vehicleModel || '';
+  window._currentVehicle = v;
 
   var mfr  = manufacturers.find(function(m){ return String(m.id) === String(v.manufacturerId); }) || {};
   var mdl  = models.find(function(m){ return String(m.id) === String(v.modelId); }) || {};
@@ -402,6 +423,24 @@
     }
   }
 })();
+
+function shareWhatsApp() {
+  var v = window._currentVehicle;
+  if (!v) return;
+  var name = (v.makeLabel || '') + ' ' + (v.modelLabel || v.model || '');
+  var price = v.priceUGX ? 'UGX ' + Number(v.priceUGX).toLocaleString() : (v.priceUSD ? '$' + Number(v.priceUSD).toLocaleString() : '');
+  var url = window.location.href;
+  var text = encodeURIComponent('Check out this vehicle: ' + name + ' at ' + price + ' — ' + url);
+  window.open('https://wa.me/?text=' + text, '_blank');
+}
+
+function copyVehicleLink() {
+  navigator.clipboard.writeText(window.location.href).then(function() {
+    var toast = document.getElementById('copyToast');
+    toast.style.display = 'block';
+    setTimeout(function() { toast.style.display = 'none'; }, 2500);
+  });
+}
 </script>
 <script src="js/main.js"></script>
 </body>

@@ -216,16 +216,35 @@ document.querySelectorAll('.card-fav').forEach(btn => {
     return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
   }
 
+  function pushFiltersToURL(filters) {
+    const params = new URLSearchParams();
+    if (filters.makes && filters.makes.length) params.set('make', filters.makes.join(','));
+    if (filters.bodies && filters.bodies.length) params.set('body', filters.bodies.join(','));
+    if (filters.fuels && filters.fuels.length) params.set('fuel', filters.fuels.join(','));
+    if (filters.transes && filters.transes.length) params.set('trans', filters.transes.join(','));
+    if (filters.q) params.set('q', filters.q);
+    if (filters.yearMin && filters.yearMin !== '2014' && filters.yearMin !== '2015') params.set('yearMin', filters.yearMin);
+    if (filters.yearMax && filters.yearMax !== '2025') params.set('yearMax', filters.yearMax);
+    if (filters.priceMin && filters.priceMin !== '0') params.set('priceMin', filters.priceMin);
+    if (filters.priceMax && filters.priceMax !== '999999999') params.set('priceMax', filters.priceMax);
+    const qs = params.toString();
+    history.pushState({}, '', qs ? '?' + qs : window.location.pathname);
+  }
+
   function filterCards() {
     const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
     const makes = getCheckedValues('make');
     const bodies = getCheckedValues('body');
     const fuels = getCheckedValues('fuel');
     const transes = getCheckedValues('trans');
-    const yearMin = parseInt((document.getElementById('yearMin') || {}).value || '2014');
-    const yearMax = parseInt((document.getElementById('yearMax') || {}).value || '2025');
-    const priceMin = parseInt((document.getElementById('priceMin') || {}).value || '0');
-    const priceMax = parseInt((document.getElementById('priceMax') || {}).value || '999999999');
+    const yearMinVal = (document.getElementById('yearMin') || {}).value || '2014';
+    const yearMaxVal = (document.getElementById('yearMax') || {}).value || '2025';
+    const priceMinVal = (document.getElementById('priceMin') || {}).value || '0';
+    const priceMaxVal = (document.getElementById('priceMax') || {}).value || '999999999';
+    const yearMin = parseInt(yearMinVal);
+    const yearMax = parseInt(yearMaxVal);
+    const priceMin = parseInt(priceMinVal);
+    const priceMax = parseInt(priceMaxVal);
     let visible = 0;
     cards.forEach(card => {
       const name = (card.dataset.name || '').toLowerCase();
@@ -248,6 +267,7 @@ document.querySelectorAll('.card-fav').forEach(btn => {
     });
     if (resultsCount) resultsCount.textContent = visible;
     if (noResults) noResults.style.display = visible === 0 ? 'block' : 'none';
+    pushFiltersToURL({ makes, bodies, fuels, transes, q, yearMin: yearMinVal, yearMax: yearMaxVal, priceMin: priceMinVal, priceMax: priceMaxVal });
     sortCards();
   }
 
@@ -292,10 +312,22 @@ document.querySelectorAll('.card-fav').forEach(btn => {
     const params = new URLSearchParams(window.location.search);
     const make = params.get('make');
     const body = params.get('body');
+    const fuel = params.get('fuel');
+    const trans = params.get('trans');
     const q = params.get('q');
-    if (make) { const cb = document.querySelector(`input[name="make"][value="${make.toLowerCase()}"]`); if (cb) cb.checked = true; }
-    if (body) { const cb = document.querySelector(`input[name="body"][value="${body.toLowerCase()}"]`); if (cb) cb.checked = true; }
+    const yearMin = params.get('yearMin');
+    const yearMax = params.get('yearMax');
+    const priceMin = params.get('priceMin');
+    const priceMax = params.get('priceMax');
+    if (make) { make.split(',').forEach(v => { const cb = document.querySelector(`input[name="make"][value="${v.toLowerCase()}"]`); if (cb) cb.checked = true; }); }
+    if (body) { body.split(',').forEach(v => { const cb = document.querySelector(`input[name="body"][value="${v.toLowerCase()}"]`); if (cb) cb.checked = true; }); }
+    if (fuel) { fuel.split(',').forEach(v => { const cb = document.querySelector(`input[name="fuel"][value="${v.toLowerCase()}"]`); if (cb) cb.checked = true; }); }
+    if (trans) { trans.split(',').forEach(v => { const cb = document.querySelector(`input[name="trans"][value="${v.toLowerCase()}"]`); if (cb) cb.checked = true; }); }
     if (q && searchInput) searchInput.value = q;
+    if (yearMin) { const el = document.getElementById('yearMin'); if (el) el.value = yearMin; }
+    if (yearMax) { const el = document.getElementById('yearMax'); if (el) el.value = yearMax; }
+    if (priceMin) { const el = document.getElementById('priceMin'); if (el) el.value = priceMin; }
+    if (priceMax) { const el = document.getElementById('priceMax'); if (el) el.value = priceMax; }
   })();
 
   filterCards();
@@ -512,6 +544,8 @@ function runCalc() {
     const badgeLabel = isNew ? 'New' : (v.isFeatured ? 'Featured' : '');
     const img = v.imageUrl || `https://picsum.photos/seed/${v.make}${v.year}/600/380`;
     const wa = `https://wa.me/256700123456?text=Hi, I'm interested in ${v.make} ${v.model} (${v.year})`;
+    const badgeMap = { 'hot-deal': '🔥 Hot Deal', 'new-arrival': '⭐ New Arrival', 'price-drop': '💰 Price Drop', 'featured': '🏆 Featured' };
+    const badgeHtml = v.badge && badgeMap[v.badge] ? `<span class="vehicle-badge badge-${v.badge}">${badgeMap[v.badge]}</span>` : '';
     return `
     <article class="vehicle-card"
       data-make="${(v.make||'').toLowerCase()}"
@@ -525,6 +559,7 @@ function runCalc() {
       <div class="card-img-wrap">
         <img src="${img}" alt="${v.make} ${v.model}" loading="lazy"/>
         ${badge ? `<span class="card-badge ${badge}">${badgeLabel}</span>` : ''}
+        ${badgeHtml}
         <button class="card-fav" title="Save">🤍</button>
       </div>
       <div class="card-body">

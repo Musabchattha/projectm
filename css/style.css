@@ -894,6 +894,21 @@ ul { list-style: none; }
 /* ============================
    FOOTER
    ============================ */
+
+/* Discover More section */
+.discover-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+.discover-card { display: flex; flex-direction: column; align-items: center; text-align: center; background: #fff; border-radius: 12px; padding: 2rem 1.5rem; box-shadow: 0 4px 24px rgba(10,22,40,.1); text-decoration: none; color: inherit; transition: transform .2s, box-shadow .2s; }
+.discover-card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(10,22,40,.16); }
+.discover-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+.discover-card h3 { font-size: 1.1rem; color: #0a1628; margin-bottom: .5rem; }
+.discover-card p { font-size: .88rem; color: #666; line-height: 1.6; margin-bottom: 1rem; flex: 1; }
+.discover-cta { font-size: .85rem; font-weight: 700; color: #f0a500; }
+@media (max-width: 900px) { .discover-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .discover-grid { grid-template-columns: 1fr; } }
+
+/* Footer 5-column grid (brand + 4 content cols) */
+.footer-grid-5 { grid-template-columns: 2fr 1fr 1fr 1fr 1.2fr !important; }
+
 .footer {
   background: var(--navy);
   color: rgba(255,255,255,.72);
@@ -903,8 +918,8 @@ ul { list-style: none; }
 }
 .footer-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1.5fr;
-  gap: 2.5rem;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 2rem;
   padding: 4rem 0 2.5rem;
   border-bottom: 1px solid rgba(255,255,255,.07);
 }
@@ -2050,3 +2065,19 @@ ul { list-style: none; }
   .fp-grid { grid-template-columns: repeat(2, 1fr); }
   .ag-marks-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ---- Vehicle Badges ---- */
+.vehicle-badge { position: absolute; top: .6rem; left: .6rem; padding: .25rem .65rem; border-radius: 20px; font-size: .75rem; font-weight: 700; z-index: 2; }
+.badge-hot-deal { background: #e74c3c; color: #fff; }
+.badge-new-arrival { background: #27ae60; color: #fff; }
+.badge-price-drop { background: #8e44ad; color: #fff; }
+.badge-featured { background: #f0a500; color: #0a1628; }
+
+/* ---- Social Share Buttons ---- */
+.share-row { display: flex; gap: .5rem; margin-top: .5rem; }
+.btn-share { flex: 1; padding: .55rem .75rem; border: none; border-radius: 8px; font-size: .82rem; font-weight: 700; cursor: pointer; transition: all .2s ease; }
+.btn-share-wa { background: #25d366; color: #fff; }
+.btn-share-wa:hover { background: #1ebe5d; }
+.btn-share-copy { background: var(--light); color: var(--navy); border: 1.5px solid #d1d5db; }
+.btn-share-copy:hover { background: #e5e7eb; }
+.copy-toast { margin-top: .4rem; padding: .4rem .85rem; background: var(--navy); color: #fff; border-radius: 6px; font-size: .8rem; font-weight: 600; text-align: center; }

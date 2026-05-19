@@ -33,7 +33,24 @@
   <main class="customer-main">
     <div class="customer-topbar">
       <div id="cPageTitle" class="c-page-title">Dashboard</div>
-      <div id="cUserBadge" class="c-user-badge"></div>
+      <div class="c-topbar-right">
+        <div class="notif-bell-wrap" id="notifBellWrap">
+          <button class="notif-bell-btn" id="notifBellBtn" onclick="toggleNotifDropdown()">
+            🔔
+            <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown" style="display:none;">
+            <div class="notif-dropdown-header">
+              <span>Notifications</span>
+              <button class="notif-mark-all" onclick="markAllNotifsRead()">Mark all read</button>
+            </div>
+            <div id="notifList" class="notif-list">
+              <div class="notif-empty">No notifications</div>
+            </div>
+          </div>
+        </div>
+        <div id="cUserBadge" class="c-user-badge"></div>
+      </div>
     </div>
     <div class="c-page active" id="cpage-dashboard">
       <div class="c-welcome" id="cWelcome"></div>

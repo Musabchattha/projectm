@@ -1607,3 +1607,18 @@ textarea.form-control { resize: vertical; min-height: 72px; }
 .pl-profit { color: #16a34a; font-weight: 700; }
 .pl-loss { color: #dc2626; font-weight: 700; }
 .pl-summary-row td { background: #f0f9ff; font-weight: 700; border-top: 2px solid #0a1628; }
+
+/* Print invoice layout */
+.invoice-print-wrap { max-width: 800px; margin: 0 auto; padding: 2rem; font-family: 'Segoe UI', system-ui; }
+.inv-print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #0a1628; }
+.inv-print-parties { display: flex; justify-content: space-between; margin-bottom: 2rem; gap: 2rem; }
+.inv-print-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+.inv-print-table th { background: #0a1628; color: #fff; padding: .65rem 1rem; text-align: left; font-size: .85rem; }
+.inv-print-table td { padding: .6rem 1rem; border-bottom: 1px solid #eee; font-size: .88rem; }
+.inv-total-row td { font-size: 1.1rem; color: #0a1628; border-top: 2px solid #0a1628; }
+.inv-print-footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; text-align: center; color: #555; font-size: .85rem; }
+
+@media print {
+  body > *:not(#invoicePrintModal) { display: none !important; }
+  #invoicePrintModal { display: block !important; }
+}

@@ -26,6 +26,7 @@
   document.querySelectorAll('.cs-nav-item').forEach(function(btn){btn.addEventListener('click',function(){navigate(this.dataset.page);});});
   document.getElementById('logoutBtn').addEventListener('click',function(){sessionStorage.removeItem('nau_customer_session');window.location.href='../login.html';});
   function renderDash(){
+    initNotifications();
     var inqs=load('nau_inquiries').filter(function(i){return i.email&&i.email.toLowerCase()===session.email.toLowerCase();});
     var qts=load('nau_quotes').filter(function(q){return q.customerEmail&&q.customerEmail.toLowerCase()===session.email.toLowerCase();});
     var saved=load('nau_saved_'+session.id);
@@ -127,6 +128,96 @@
     html+='</tbody></table></div>';
     el.innerHTML=html;
   }
+
+  // ===== NOTIFICATION BELL =====
+  function getCustomerEmail() {
+    return (session && session.email ? session.email : '').toLowerCase();
+  }
+
+  function generateNotifications() {
+    var email = getCustomerEmail();
+    if (!email) return [];
+    var notifs = [];
+
+    // Quotes that have been responded to
+    var quotes = load('nau_quotes');
+    quotes.filter(function(q){return (q.customerEmail||'').toLowerCase()===email && q.status==='Quoted';}).forEach(function(q){
+      notifs.push({id:'q_'+q.id,type:'quote',text:'Your quote for '+(q.vehicleName||q.sku||'a vehicle')+' has been responded to.',time:q.issDate||q.reqDate||''});
+    });
+
+    // Confirmed appointments
+    var appts = load('nau_appointments');
+    appts.filter(function(a){return (a.email||'').toLowerCase()===email && a.status==='Confirmed';}).forEach(function(a){
+      notifs.push({id:'a_'+a.id,type:'appointment',text:'Your appointment on '+(a.date||'')+' has been confirmed.',time:a.date||''});
+    });
+
+    // Matched stock alerts
+    var alerts = load('nau_alerts');
+    alerts.filter(function(al){return (al.email||al.customerEmail||'').toLowerCase()===email && al.status==='Matched';}).forEach(function(al){
+      notifs.push({id:'al_'+al.id,type:'alert',text:'A vehicle matching your alert ('+(al.make||'')+' '+(al.model||'')+') is now available.',time:al.updatedAt||''});
+    });
+
+    return notifs;
+  }
+
+  function initNotifications() {
+    var readKey = 'nau_notif_read_' + getCustomerEmail();
+    var readIds = [];
+    try { readIds = JSON.parse(localStorage.getItem(readKey) || '[]'); } catch(e) {}
+    var notifs = generateNotifications();
+    var unread = notifs.filter(function(n){ return readIds.indexOf(n.id) === -1; });
+
+    var badge = document.getElementById('notifBadge');
+    if (badge) {
+      if (unread.length > 0) { badge.textContent = unread.length; badge.style.display = 'inline-flex'; }
+      else { badge.style.display = 'none'; }
+    }
+
+    var list = document.getElementById('notifList');
+    if (list) {
+      if (notifs.length === 0) {
+        list.innerHTML = '<div class="notif-empty">No notifications</div>';
+      } else {
+        list.innerHTML = notifs.map(function(n){
+          return '<div class="notif-item ' + (readIds.indexOf(n.id) !== -1 ? 'notif-read' : 'notif-unread') + '" onclick="markNotifRead(\'' + n.id + '\')">' +
+            '<div class="notif-text">' + esc(n.text) + '</div>' +
+            (n.time ? '<div class="notif-time">' + esc(n.time) + '</div>' : '') +
+            '</div>';
+        }).join('');
+      }
+    }
+  }
+
+  window.toggleNotifDropdown = function() {
+    var dd = document.getElementById('notifDropdown');
+    if (dd) dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+  };
+
+  window.markNotifRead = function(id) {
+    var readKey = 'nau_notif_read_' + getCustomerEmail();
+    var readIds = [];
+    try { readIds = JSON.parse(localStorage.getItem(readKey) || '[]'); } catch(e) {}
+    if (readIds.indexOf(id) === -1) { readIds.push(id); localStorage.setItem(readKey, JSON.stringify(readIds)); }
+    initNotifications();
+  };
+
+  window.markAllNotifsRead = function() {
+    var notifs = generateNotifications();
+    var readKey = 'nau_notif_read_' + getCustomerEmail();
+    var readIds = notifs.map(function(n){ return n.id; });
+    localStorage.setItem(readKey, JSON.stringify(readIds));
+    var dd = document.getElementById('notifDropdown');
+    if (dd) dd.style.display = 'none';
+    initNotifications();
+  };
+
+  document.addEventListener('click', function(e) {
+    var wrap = document.getElementById('notifBellWrap');
+    if (wrap && !wrap.contains(e.target)) {
+      var dd = document.getElementById('notifDropdown');
+      if (dd) dd.style.display = 'none';
+    }
+  });
 
   window.toggleAlertForm=function(){
     var wrap=document.getElementById('alertFormWrap');

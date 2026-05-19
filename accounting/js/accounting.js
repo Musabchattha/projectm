@@ -710,6 +710,7 @@ function renderInvoices() {
       <td>
         <div class="row-actions">
           <button class="btn-row" title="View / Print" onclick="printInvoiceModal(${inv.id})">👁️</button>
+          <button class="btn-row" title="Print" onclick="openPrintModal(${inv.id})">🖨️</button>
           ${canEdit ? `<button class="btn-row" title="Edit" onclick="openModal('invoice',${inv.id})">✏️</button>` : ''}
           ${canPay ? `<button class="btn-row" title="Record Payment" onclick="openPaymentModal('invoice',${inv.id})">💳</button>` : ''}
           ${canDelete ? `<button class="btn-row btn-row-delete" title="Delete" onclick="deleteItem('nau_invoices',${inv.id},renderInvoices)">🗑️</button>` : ''}
@@ -1083,6 +1084,42 @@ function printInvoiceModal(id) {
     </div>`;
 
   document.getElementById('printOverlay').classList.add('open');
+}
+
+function openPrintModal(id) {
+  const invoices = DB.load('nau_invoices');
+  const inv = invoices.find(i => i.id === id);
+  if (!inv) return;
+
+  document.getElementById('invoicePrintModal').style.display = 'block';
+  document.getElementById('invPrintNo').textContent = inv.invoiceNo || inv.id;
+  document.getElementById('invPrintDate').textContent = 'Date: ' + (inv.date || inv.createdAt || '').split('T')[0];
+  document.getElementById('invPrintDue').textContent = inv.dueDate ? 'Due: ' + inv.dueDate : '';
+  document.getElementById('invPrintCustomer').textContent = inv.customerName || '';
+  document.getElementById('invPrintEmail').textContent = inv.customerEmail || '';
+  document.getElementById('invPrintPhone').textContent = inv.customerPhone || '';
+
+  const lines = inv.lines || inv.items || [];
+  document.getElementById('invPrintLines').innerHTML = lines.map((l, i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td>${l.description || l.desc || ''}</td>
+      <td>${l.qty || 1}</td>
+      <td>$${Number(l.unitPrice || l.price || 0).toLocaleString()}</td>
+      <td>$${Number(l.amount || (l.qty * l.unitPrice) || 0).toLocaleString()}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="5">Vehicle: ' + (inv.vehicleName || inv.description || '') + '</td></tr>';
+
+  const subtotal = inv.subtotal || inv.amount || 0;
+  const tax = inv.tax || inv.vatAmount || inv.taxAmount || 0;
+  const total = inv.total || inv.totalAmount || (subtotal + tax);
+  document.getElementById('invPrintSubtotal').textContent = '$' + Number(subtotal).toLocaleString();
+  document.getElementById('invPrintTax').textContent = '$' + Number(tax).toLocaleString();
+  document.getElementById('invPrintTotal').textContent = '$' + Number(total).toLocaleString();
+  document.getElementById('invPrintNotes').textContent = inv.notes ? 'Notes: ' + inv.notes : '';
+
+  window.print();
+  document.getElementById('invoicePrintModal').style.display = 'none';
 }
 
 function printReceiptModal(id) {

@@ -956,6 +956,62 @@
   </div>
 </div>
 
+<!-- Invoice Print Modal -->
+<div id="invoicePrintModal" style="display:none;">
+  <div class="invoice-print-wrap">
+    <div class="inv-print-header">
+      <div class="inv-print-logo">
+        <div style="font-size:2rem;font-weight:900;color:#0a1628;">🚗 NipponAuto</div>
+        <div style="font-size:.9rem;color:#666;">Uganda's Premier Japanese Car Importer</div>
+      </div>
+      <div class="inv-print-meta">
+        <h2 style="margin:0;color:#0a1628;" id="invPrintTitle">INVOICE</h2>
+        <div id="invPrintNo" style="font-size:1.1rem;font-weight:700;color:#c0392b;"></div>
+        <div id="invPrintDate" style="color:#666;font-size:.85rem;"></div>
+        <div id="invPrintDue" style="color:#666;font-size:.85rem;"></div>
+      </div>
+    </div>
+    <div class="inv-print-parties">
+      <div>
+        <div style="font-weight:700;margin-bottom:.5rem;color:#0a1628;">FROM</div>
+        <div>NipponAuto Uganda</div>
+        <div>Plot 45, Nakawa Industrial Road</div>
+        <div>Kampala, Uganda</div>
+        <div>+256 700 123 456</div>
+        <div>info@nipponauto.ug</div>
+      </div>
+      <div>
+        <div style="font-weight:700;margin-bottom:.5rem;color:#0a1628;">TO</div>
+        <div id="invPrintCustomer"></div>
+        <div id="invPrintEmail"></div>
+        <div id="invPrintPhone"></div>
+      </div>
+    </div>
+    <table class="inv-print-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Description</th>
+          <th>Qty</th>
+          <th>Unit Price</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody id="invPrintLines"></tbody>
+      <tfoot>
+        <tr><td colspan="4" style="text-align:right;font-weight:600;">Subtotal</td><td id="invPrintSubtotal"></td></tr>
+        <tr><td colspan="4" style="text-align:right;font-weight:600;">Tax</td><td id="invPrintTax"></td></tr>
+        <tr class="inv-total-row"><td colspan="4" style="text-align:right;font-weight:800;">TOTAL</td><td id="invPrintTotal"></td></tr>
+      </tfoot>
+    </table>
+    <div id="invPrintNotes" style="margin-top:1.5rem;font-size:.85rem;color:#555;"></div>
+    <div class="inv-print-footer">
+      <div>Thank you for choosing NipponAuto Uganda.</div>
+      <div style="font-size:.8rem;color:#999;margin-top:.25rem;">Plot 45, Nakawa Industrial Road, Kampala | +256 700 123 456 | info@nipponauto.ug</div>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>

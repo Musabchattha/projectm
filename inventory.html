@@ -40,6 +40,15 @@
         <li><a href="finance.html">Finance</a></li>
         <li><a href="about.html">About</a></li>
         <li><a href="contact.html">Contact</a></li>
+        <li class="nav-has-dropdown">
+          <a href="#">Resources ▾</a>
+          <ul class="nav-dropdown">
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="auction-grades.html">Auction Grade Guide</a></li>
+            <li><a href="finance.html">Import Cost Calculator</a></li>
+            <li><a href="trade-in.html">Trade-In Valuation</a></li>
+          </ul>
+        </li>
       </ul>
       <div class="nav-auth">
         <a href="login.html" class="btn-auth-login">Login</a>
@@ -57,7 +66,9 @@
   <a href="finance.html">Finance</a>
   <a href="about.html">About</a>
   <a href="contact.html">Contact</a>
-  <div style="display:flex;gap:.8rem;margin-top:1rem;">
+  <a href="blog.html">Blog</a>
+  <a href="trade-in.html">Trade-In</a>
+  <div style="display:flex;gap:.8rem;margin-top:1.2rem;">
     <a href="login.html" class="btn-auth-login" style="flex:1;text-align:center;padding:.7rem;">Login</a>
     <a href="https://wa.me/256700123456" class="btn-auth-signup" style="flex:1;text-align:center;padding:.7rem;" target="_blank" rel="noopener">💬 WhatsApp</a>
   </div>
@@ -535,6 +546,8 @@
     var fuelL=(v.fuelType||'').toLowerCase();
     var transL=(v.transmission||'').toLowerCase();
     var title=[mfrName,v.color,String(v.year||'')].filter(Boolean).join(' ');
+    var badgeMap={'hot-deal':'🔥 Hot Deal','new-arrival':'⭐ New Arrival','price-drop':'💰 Price Drop','featured':'🏆 Featured'};
+    var badgeHtml=v.badge&&badgeMap[v.badge]?'<span class="vehicle-badge badge-'+v.badge+'">'+badgeMap[v.badge]+'</span>':'';
     return '<article class="vehicle-card" data-id="'+v.id+'"'
       +' data-make="'+mfrName.toLowerCase()+'"'
       +' data-name="'+title.toLowerCase()+'"'
@@ -545,6 +558,7 @@
       +' data-trans="'+transL+'">'
       +'<div class="card-img-wrap">'
       +'<img src="'+img+'" alt="'+title+'" loading="lazy">'
+      +badgeHtml
       +'<button class="card-fav" title="Save" onclick="window.__toggleSave(\''+v.id+'\',this)">🤍</button>'
       +'</div>'
       +'<div class="card-body">'
