@@ -2081,3 +2081,15 @@ ul { list-style: none; }
 .btn-share-copy { background: var(--light); color: var(--navy); border: 1.5px solid #d1d5db; }
 .btn-share-copy:hover { background: #e5e7eb; }
 .copy-toast { margin-top: .4rem; padding: .4rem .85rem; background: var(--navy); color: #fff; border-radius: 6px; font-size: .8rem; font-weight: 600; text-align: center; }
+
+/* ---- Review Cards ---- */
+.vd-reviews { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid #eee; }
+.vd-section-heading { font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 1.25rem; }
+.review-card { background: #f9f9f9; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+.review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: .5rem; }
+.review-name { font-weight: 700; color: #0a1628; font-size: .9rem; }
+.review-date { font-size: .78rem; color: #999; }
+.review-text { font-size: .88rem; color: #555; line-height: 1.6; }
+
+/* ---- Inventory Rating Badge ---- */
+.card-rating-badge { background: #f0a500; color: #0a1628; font-size: .72rem; font-weight: 700; padding: .2rem .5rem; border-radius: 4px; }

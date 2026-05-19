@@ -13,7 +13,7 @@
     if(t)t.classList.add('active');
     var btn=document.querySelector('[data-page="'+page+'"]');
     if(btn)btn.classList.add('active');
-    var titles={dashboard:'Dashboard',inquiries:'My Inquiries',quotes:'My Quotes',saved:'Saved Vehicles',profile:'My Profile',journey:'Vehicle Journey',alerts:'Stock Alerts'};
+    var titles={dashboard:'Dashboard',inquiries:'My Inquiries',quotes:'My Quotes',saved:'Saved Vehicles',profile:'My Profile',journey:'Vehicle Journey',alerts:'Stock Alerts','book-appointment':'Book Appointment','my-invoices':'My Invoices'};
     document.getElementById('cPageTitle').textContent=titles[page]||page;
     if(page==='dashboard')renderDash();
     if(page==='inquiries')renderInquiries();
@@ -22,6 +22,8 @@
     if(page==='profile')renderProfile();
     if(page==='journey')renderJourney();
     if(page==='alerts')renderAlerts();
+    if(page==='book-appointment')renderBookAppointment();
+    if(page==='my-invoices')renderMyInvoices();
   }
   document.querySelectorAll('.cs-nav-item').forEach(function(btn){btn.addEventListener('click',function(){navigate(this.dataset.page);});});
   document.getElementById('logoutBtn').addEventListener('click',function(){sessionStorage.removeItem('nau_customer_session');window.location.href='../login.html';});
@@ -48,8 +50,18 @@
   function renderQuotes(){
     var qts=load('nau_quotes').filter(function(q){return q.customerEmail&&q.customerEmail.toLowerCase()===session.email.toLowerCase();}).reverse();
     var tbody=document.getElementById('cQtTbody');
-    if(!qts.length){tbody.innerHTML='<tr><td colspan="6" class="c-empty">No quotes found. <a href="../inventory.html">Browse vehicles</a> to request a quote.</td></tr>';return;}
-    tbody.innerHTML=qts.map(function(q){var s=(q.status||'quoted').toLowerCase();return'<tr><td><strong>'+esc(q.quoteNo||('QT-'+q.id))+'</strong></td><td>'+esc(q.vehicleName||'')+'</td><td>$'+Number(q.webPrice||0).toLocaleString()+'</td><td>$'+Number(q.quotedPrice||0).toLocaleString()+'</td><td>'+esc(q.issDate||q.reqDate||'')+'</td><td><span class="c-badge c-badge-'+s+'">'+esc(q.status||'Quoted')+'</span></td></tr>';}).join('');
+    if(!qts.length){tbody.innerHTML='<tr><td colspan="7" class="c-empty">No quotes found. <a href="../inventory.html">Browse vehicles</a> to request a quote.</td></tr>';return;}
+    tbody.innerHTML=qts.map(function(q){
+      var s=(q.status||'quoted').toLowerCase();
+      var expiryHtml='';
+      if(q.expiresAt){
+        var expired=new Date(q.expiresAt)<new Date();
+        expiryHtml='<div style="font-size:.78rem;color:'+(expired?'#c0392b':'#888')+';margin-top:.2rem;">⏳ Expires: '+new Date(q.expiresAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+'</div>';
+      }
+      var canDecline=(q.status==='Pending'||q.status==='Quoted');
+      var declineBtn=canDecline?'<td><button onclick="declineQuote('+q.id+')" style="background:none;border:1px solid #c0392b;color:#c0392b;border-radius:6px;padding:.3rem .75rem;font-size:.8rem;cursor:pointer;">❌ Decline</button></td>':'<td></td>';
+      return'<tr><td><strong>'+esc(q.quoteNo||('QT-'+q.id))+'</strong></td><td>'+esc(q.vehicleName||'')+'</td><td>$'+Number(q.webPrice||0).toLocaleString()+'</td><td>$'+Number(q.quotedPrice||0).toLocaleString()+'</td><td>'+esc(q.issDate||q.reqDate||'')+expiryHtml+'</td><td><span class="c-badge c-badge-'+s+'">'+esc(q.status||'Quoted')+'</span></td>'+declineBtn+'</tr>';
+    }).join('');
   }
   function renderSaved(){
     var saved=load('nau_saved_'+session.id);

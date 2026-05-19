@@ -503,6 +503,29 @@ function runCalc() {
   wa.addEventListener('mouseenter', () => { wa.style.animation = 'none'; });
 })();
 
+/* ---- Newsletter Widget (public) ---- */
+function subscribeNewsletter(e, form) {
+  e.preventDefault();
+  const emailInput = form.querySelector('input[type="email"]');
+  const email = (emailInput?.value || '').trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    alert('Please enter a valid email address.');
+    return;
+  }
+  const subs = JSON.parse(localStorage.getItem('nau_newsletter') || '[]');
+  if (subs.some(s => s.email === email)) {
+    showNewsletterSuccess(form, "You're already subscribed! 🎉");
+    return;
+  }
+  subs.push({ id: Date.now(), email, name: '', status: 'Subscribed', source: 'public-web', subscribedAt: new Date().toISOString() });
+  localStorage.setItem('nau_newsletter', JSON.stringify(subs));
+  showNewsletterSuccess(form, "✅ You're subscribed!");
+}
+
+function showNewsletterSuccess(form, msg) {
+  form.innerHTML = `<div style="text-align:center;font-size:1rem;font-weight:700;color:#27ae60;padding:.75rem;">${msg}</div>`;
+}
+
 /* ---- NipponAuto Admin: Dynamic Inventory from localStorage ---- */
 (function initDynamicInventory() {
   // Read vehicles from localStorage

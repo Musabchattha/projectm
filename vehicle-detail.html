@@ -119,6 +119,14 @@
         </div>
       </div>
 
+      <!-- Video Tour -->
+      <div id="vd-video-section" style="display:none;margin-top:1.5rem;">
+        <h4 style="font-size:1rem;color:#0a1628;margin-bottom:.75rem;">🎬 Watch Video Tour</h4>
+        <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;">
+          <iframe id="vd-video-frame" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:8px;"></iframe>
+        </div>
+      </div>
+
       <!-- Description -->
       <div style="background:var(--white);border:1px solid #e5e7eb;border-radius:var(--radius);padding:2rem;margin-top:1.5rem;">
         <h2 style="font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:1rem;">📝 Vehicle Description</h2>
@@ -126,6 +134,13 @@
           <p style="font-size:.9rem;color:var(--mid);line-height:1.8;">Vehicle details loading…</p>
         </div>
       </div>
+
+      <!-- Customer Reviews -->
+      <section class="vd-reviews" id="vd-reviews-section">
+        <h3 class="vd-section-heading">Customer Reviews</h3>
+        <div id="vd-reviews-summary"></div>
+        <div id="vd-reviews-list"></div>
+      </section>
 
     </div>
 
@@ -146,6 +161,11 @@
         <a href="https://wa.me/256700123456" class="btn btn-wa" id="vd-wa-btn" target="_blank" rel="noopener">💬 Enquire on WhatsApp</a>
         <a href="contact.html" class="btn btn-navy">Request Clearing Quote</a>
         <a href="finance.html" class="btn btn-outline" style="border-color:var(--navy);color:var(--navy);">Calculate Import Costs</a>
+        <div id="vd-auction-sheet-wrap" style="display:none;margin-top:.5rem;">
+          <a href="#" target="_blank" rel="noopener" class="btn btn-outline" style="border-color:var(--navy);color:var(--navy);display:inline-flex;align-items:center;gap:.5rem;width:100%;justify-content:center;">
+            📋 View Auction Sheet
+          </a>
+        </div>
         <div class="share-row">
           <button class="btn-share btn-share-wa" onclick="shareWhatsApp()">💬 Share on WhatsApp</button>
           <button class="btn-share btn-share-copy" id="copyLinkBtn" onclick="copyVehicleLink()">🔗 Copy Link</button>
@@ -250,6 +270,26 @@
   v.modelLabel = (models.find(function(m){ return String(m.id) === String(v.modelId); }) || {}).name || v.vehicleModel || '';
   window._currentVehicle = v;
 
+  // Video tour
+  if (v.videoUrl) {
+    var ytMatch = v.videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/]+)/);
+    if (ytMatch) {
+      var embedUrl = 'https://www.youtube.com/embed/' + ytMatch[1];
+      document.getElementById('vd-video-frame').src = embedUrl;
+      document.getElementById('vd-video-section').style.display = 'block';
+    }
+  }
+
+  // Auction sheet
+  if (v.documents && v.documents.auctionSheet) {
+    var asBtnWrap = document.getElementById('vd-auction-sheet-wrap');
+    if (asBtnWrap) {
+      asBtnWrap.style.display = 'block';
+      var asLink = asBtnWrap.querySelector('a');
+      if (asLink) asLink.href = v.documents.auctionSheet;
+    }
+  }
+
   var mfr  = manufacturers.find(function(m){ return String(m.id) === String(v.manufacturerId); }) || {};
   var mdl  = models.find(function(m){ return String(m.id) === String(v.modelId); }) || {};
   var mc   = modelCodes.find(function(c){ return String(c.id) === String(v.modelCodeId); }) || {};
@@ -291,7 +331,15 @@
   while (imgs.length < 4) imgs.push('https://picsum.photos/seed/' + padSeeds[imgs.length] + '/800/500');
 
   var mainImg = document.getElementById('mainImage');
-  if (mainImg) { mainImg.src = imgs[0]; mainImg.alt = fullName; }
+  if (mainImg) {
+    mainImg.src = imgs[0];
+    mainImg.alt = fullName;
+    mainImg.style.cursor = 'zoom-in';
+    mainImg.onclick = function() { openLightbox(0); };
+  }
+
+  // Build lightbox image array
+  lbImages = imgs.slice(0, 4);
 
   var thumbsEl = document.getElementById('vd-thumbs');
   if (thumbsEl) {
@@ -300,7 +348,7 @@
         '<img src="' + src + '" alt="' + fullName + ' view ' + (i+1) + '" ' +
         'onclick="document.getElementById(\'mainImage\').src=this.src;' +
         'document.querySelectorAll(\'.thumb\').forEach(function(t){t.classList.remove(\'active\')});' +
-        'this.parentElement.classList.add(\'active\')" /></div>';
+        'this.parentElement.classList.add(\'active\');openLightbox(' + i + ')" /></div>';
     }).join('');
   }
 
@@ -432,7 +480,60 @@
       simGrid.innerHTML = '<p style="color:var(--mid);text-align:center;width:100%;padding:2rem;">No similar vehicles available right now.</p>';
     }
   }
+
+  // Customer reviews
+  renderVehicleReviews(v.id, v.makeLabel + ' ' + v.modelLabel);
 })();
+
+// ===== Reviews =====
+function renderVehicleReviews(vehicleId, vehicleText) {
+  var reviews;
+  try { reviews = JSON.parse(localStorage.getItem('nau_reviews') || '[]'); } catch(e) { reviews = []; }
+  reviews = reviews.filter(function(r) {
+    return r.status === 'Approved' && (
+      String(r.vehicleId) === String(vehicleId) ||
+      ((r.vehicle || '').toLowerCase().indexOf((vehicleText || '').toLowerCase().trim()) !== -1)
+    );
+  });
+
+  var summaryEl = document.getElementById('vd-reviews-summary');
+  var listEl = document.getElementById('vd-reviews-list');
+  if (!summaryEl || !listEl) return;
+
+  if (!reviews.length) {
+    summaryEl.innerHTML = '';
+    listEl.innerHTML = '<p style="color:#999;font-style:italic;">Be the first to review this vehicle. Contact us after your purchase.</p>';
+    return;
+  }
+
+  var avg = reviews.reduce(function(s, r) { return s + (r.rating || 5); }, 0) / reviews.length;
+  function stars(r) {
+    var rating = Math.round(r.rating || 5);
+    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+  }
+
+  summaryEl.innerHTML =
+    '<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding:1rem;background:#fffbf0;border-radius:8px;">' +
+      '<div style="font-size:2.5rem;color:#f0a500;line-height:1;">' + avg.toFixed(1) + '</div>' +
+      '<div>' +
+        '<div style="color:#f0a500;font-size:1.2rem;">' + '★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg)) + '</div>' +
+        '<div style="font-size:.85rem;color:#666;">' + reviews.length + ' review' + (reviews.length !== 1 ? 's' : '') + '</div>' +
+      '</div>' +
+    '</div>';
+
+  listEl.innerHTML = reviews.map(function(r) {
+    var nameParts = (r.customerName || 'Anonymous').split(' ');
+    var displayName = nameParts.map(function(w, i) { return i === 0 ? w : (w[0] ? w[0] + '.' : ''); }).join(' ');
+    var dateStr = new Date(r.createdAt || r.date || Date.now()).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+    return '<div class="review-card">' +
+      '<div class="review-header">' +
+        '<div><span class="review-name">' + displayName + '</span><span class="review-stars" style="color:#f0a500;margin-left:.5rem;">' + stars(r) + '</span></div>' +
+        '<div class="review-date">' + dateStr + '</div>' +
+      '</div>' +
+      '<div class="review-text">' + (r.review || r.text || '') + '</div>' +
+    '</div>';
+  }).join('');
+}
 
 function shareWhatsApp() {
   var v = window._currentVehicle;
@@ -451,7 +552,67 @@ function copyVehicleLink() {
     setTimeout(function() { toast.style.display = 'none'; }, 2500);
   });
 }
+
+// ===== Lightbox =====
+var lbImages = [];
+var lbIndex = 0;
+
+function openLightbox(idx) {
+  if (!lbImages.length) return;
+  lbIndex = idx;
+  document.getElementById('lb-img').src = lbImages[lbIndex];
+  document.getElementById('lb-counter').textContent = (lbIndex + 1) + ' / ' + lbImages.length;
+  document.getElementById('vd-lightbox').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  document.getElementById('vd-lightbox').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function lbPrev() {
+  lbIndex = (lbIndex - 1 + lbImages.length) % lbImages.length;
+  document.getElementById('lb-img').src = lbImages[lbIndex];
+  document.getElementById('lb-counter').textContent = (lbIndex + 1) + ' / ' + lbImages.length;
+}
+
+function lbNext() {
+  lbIndex = (lbIndex + 1) % lbImages.length;
+  document.getElementById('lb-img').src = lbImages[lbIndex];
+  document.getElementById('lb-counter').textContent = (lbIndex + 1) + ' / ' + lbImages.length;
+}
+
+// Keyboard nav
+document.addEventListener('keydown', function(e) {
+  var lb = document.getElementById('vd-lightbox');
+  if (!lb || lb.style.display === 'none') return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowLeft') lbPrev();
+  if (e.key === 'ArrowRight') lbNext();
+});
+
+// Touch swipe
+(function() {
+  var touchX = 0;
+  var lb = document.getElementById('vd-lightbox');
+  if (!lb) return;
+  lb.addEventListener('touchstart', function(e) { touchX = e.touches[0].clientX; });
+  lb.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 50) { dx < 0 ? lbNext() : lbPrev(); }
+  });
+})();
 </script>
 <script src="js/main.js"></script>
+
+<!-- Lightbox -->
+<div id="vd-lightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;align-items:center;justify-content:center;flex-direction:column;">
+  <button onclick="closeLightbox()" style="position:absolute;top:1.25rem;right:1.5rem;background:none;border:none;color:#fff;font-size:2rem;cursor:pointer;line-height:1;">✕</button>
+  <div style="position:absolute;top:1.25rem;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.6);font-size:.9rem;" id="lb-counter"></div>
+  <button onclick="lbPrev()" style="position:absolute;left:1.5rem;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:2rem;width:50px;height:50px;border-radius:50%;cursor:pointer;">‹</button>
+  <img id="lb-img" src="" alt="" style="max-width:90vw;max-height:85vh;object-fit:contain;border-radius:8px;">
+  <button onclick="lbNext()" style="position:absolute;right:1.5rem;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:2rem;width:50px;height:50px;border-radius:50%;cursor:pointer;">›</button>
+</div>
 </body>
 </html>

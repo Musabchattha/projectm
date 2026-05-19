@@ -24,6 +24,8 @@
       <button class="cs-nav-item" data-page="profile">👤 Profile</button>
       <button class="cs-nav-item" data-page="journey">🚢 Vehicle Journey</button>
       <button class="cs-nav-item" data-page="alerts">🔔 Stock Alerts</button>
+      <button class="cs-nav-item" data-page="book-appointment">📅 Book Appointment</button>
+      <button class="cs-nav-item" data-page="my-invoices">🧾 My Invoices</button>
     </nav>
     <div class="cs-sidebar-footer">
       <a href="../index.html" class="cs-back-link">← Back to Website</a>
@@ -122,6 +124,74 @@
           </div>
         </div>
         <div id="alertsList" style="margin-top:1.5rem"></div>
+      </div>
+    </div>
+    <!-- ===== BOOK APPOINTMENT ===== -->
+    <div class="c-page" id="cpage-book-appointment">
+      <div class="c-section">
+        <h3>📅 Book an Appointment</h3>
+        <p style="color:#666;margin-bottom:1.5rem;">Schedule a showroom visit or test drive. We'll confirm within 24 hours.</p>
+        <div style="max-width:560px;">
+          <form id="bookApptForm" onsubmit="submitAppointment(event)">
+            <div class="c-form-row">
+              <label>Vehicle of Interest <span style="color:#999;font-size:.8rem;">(optional)</span></label>
+              <input type="text" id="appt-vehicle" placeholder="e.g. Toyota Prado 2022">
+            </div>
+            <div class="c-form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+              <div>
+                <label>Preferred Date <span style="color:#c0392b;">*</span></label>
+                <input type="date" id="appt-date" required>
+              </div>
+              <div>
+                <label>Preferred Time <span style="color:#c0392b;">*</span></label>
+                <select id="appt-time" required>
+                  <option value="">Select time</option>
+                  <option value="09:00">9:00 AM</option>
+                  <option value="10:00">10:00 AM</option>
+                  <option value="11:00">11:00 AM</option>
+                  <option value="12:00">12:00 PM</option>
+                  <option value="13:00">1:00 PM</option>
+                  <option value="14:00">2:00 PM</option>
+                  <option value="15:00">3:00 PM</option>
+                  <option value="16:00">4:00 PM</option>
+                  <option value="17:00">5:00 PM</option>
+                </select>
+              </div>
+            </div>
+            <div class="c-form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+              <div>
+                <label>Your Name</label>
+                <input type="text" id="appt-name" readonly>
+              </div>
+              <div>
+                <label>Phone</label>
+                <input type="text" id="appt-phone" readonly>
+              </div>
+            </div>
+            <div class="c-form-row">
+              <label>Notes <span style="color:#999;font-size:.8rem;">(optional)</span></label>
+              <textarea id="appt-notes" rows="3" placeholder="Any specific questions or requests..."></textarea>
+            </div>
+            <button type="submit" class="c-btn" style="width:100%;background:#0a1628;color:#fff;padding:.7rem;font-size:.9rem;font-weight:700;border-radius:8px;border:none;cursor:pointer;">Request Appointment</button>
+          </form>
+        </div>
+        <h3 style="margin:2rem 0 1rem;">My Appointments</h3>
+        <div id="myApptsList"></div>
+      </div>
+    </div>
+
+    <!-- ===== MY INVOICES ===== -->
+    <div class="c-page" id="cpage-my-invoices">
+      <div class="c-section">
+        <h3>🧾 My Invoices</h3>
+        <div id="myInvoicesList"></div>
+      </div>
+      <!-- Invoice view overlay -->
+      <div id="customerInvoiceOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;overflow-y:auto;padding:2rem;">
+        <div style="max-width:700px;margin:0 auto;background:#fff;border-radius:12px;padding:2rem;position:relative;">
+          <button onclick="closeCustomerInvoice()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.5rem;cursor:pointer;">✕</button>
+          <div id="customerInvoiceContent"></div>
+        </div>
       </div>
     </div>
   </main>

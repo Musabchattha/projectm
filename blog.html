@@ -85,7 +85,30 @@
 
 <section style="padding:3rem 0 5rem;">
   <div class="container">
+    <div class="blog-controls">
+      <div class="blog-search-wrap">
+        <input type="text" id="blogSearch" placeholder="Search articles..." oninput="filterBlogs()" style="width:100%;padding:.65rem 1rem;border:1px solid #ddd;border-radius:8px;font-size:.9rem;font-family:inherit;">
+      </div>
+      <div class="blog-category-tabs" id="blogCategoryTabs">
+        <button class="blog-cat-tab active" data-cat="all" onclick="selectBlogCat(this,'all')">All</button>
+      </div>
+    </div>
     <div id="blogGrid" class="blog-grid"></div>
+  </div>
+</section>
+
+<section class="newsletter-widget">
+  <div class="container">
+    <div class="nw-inner">
+      <div class="nw-text">
+        <h3>Stay in the Loop</h3>
+        <p>New arrivals, import tips, and exclusive deals — straight to your inbox.</p>
+      </div>
+      <form class="nw-form" onsubmit="subscribeNewsletter(event,this)">
+        <input type="email" placeholder="Your email address" required>
+        <button type="submit">Subscribe →</button>
+      </form>
+    </div>
   </div>
 </section>
 
@@ -132,38 +155,64 @@
 </a>
 
 <script>
-(function(){
-  var grid = document.getElementById('blogGrid');
-  var posts = [];
-  try { posts = JSON.parse(localStorage.getItem('nau_blogs') || '[]'); } catch(e) {}
+let allBlogPosts = [];
+let activeBlogCat = 'all';
 
-  var published = posts.filter(function(p){
-    return p.status === 'Published' || p.status === true;
-  });
+function renderBlogList() {
+  const posts = JSON.parse(localStorage.getItem('nau_blogs') || '[]')
+    .filter(p => p.status === 'Published' || p.status === 'published' || p.status === true);
+  allBlogPosts = posts.sort((a, b) => new Date(b.createdAt || b.date || 0) - new Date(a.createdAt || a.date || 0));
 
-  if (!published.length) {
-    grid.innerHTML = '<div class="compare-empty" style="grid-column:1/-1;"><div class="compare-empty-icon">📝</div><h2>No blog posts yet</h2><p>Check back soon for news, tips, and guides about Japanese cars in Uganda.</p></div>';
+  // Build category tabs
+  const cats = [...new Set(posts.map(p => p.category).filter(Boolean))];
+  const defaultCats = ['Import Tips', 'Market News', 'Guides', 'Company News'];
+  const allCats = [...new Set([...cats, ...defaultCats.filter(c => !cats.includes(c))])];
+  const tabsEl = document.getElementById('blogCategoryTabs');
+  if (tabsEl) {
+    const extra = allCats.map(c => `<button class="blog-cat-tab" data-cat="${c}" onclick="selectBlogCat(this,'${c}')">${c}</button>`).join('');
+    tabsEl.innerHTML = `<button class="blog-cat-tab${activeBlogCat==='all'?' active':''}" data-cat="all" onclick="selectBlogCat(this,'all')">All</button>${extra}`;
+  }
+
+  filterBlogs();
+}
+
+function selectBlogCat(btn, cat) {
+  activeBlogCat = cat;
+  document.querySelectorAll('.blog-cat-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  filterBlogs();
+}
+
+function filterBlogs() {
+  const q = (document.getElementById('blogSearch')?.value || '').toLowerCase();
+  let posts = allBlogPosts;
+  if (activeBlogCat !== 'all') posts = posts.filter(p => p.category === activeBlogCat);
+  if (q) posts = posts.filter(p => (p.title||'').toLowerCase().includes(q) || (p.excerpt||p.content||'').toLowerCase().includes(q));
+
+  const grid = document.getElementById('blogGrid');
+  if (!grid) return;
+  if (!posts.length) {
+    grid.innerHTML = '<p style="text-align:center;color:#999;grid-column:1/-1;padding:2rem;">No articles found.</p>';
     return;
   }
+  grid.innerHTML = posts.map(p => `
+    <a href="blog-post.html?id=${p.id}" class="blog-card" style="text-decoration:none;">
+      ${p.imageUrl ? `<div class="blog-card-img" style="background-image:url('${p.imageUrl}');background-size:cover;background-position:center;height:180px;border-radius:8px 8px 0 0;"></div>` : ''}
+      <div class="blog-card-body">
+        ${p.category ? `<span class="blog-cat-badge">${p.category}</span>` : ''}
+        <h3 class="blog-card-title">${p.title || 'Untitled'}</h3>
+        <p class="blog-card-excerpt">${((p.excerpt || (p.content||'').replace(/<[^>]*>/g,'').substring(0, 150) || '')).substring(0, 150)}${(p.excerpt||(p.content||'').replace(/<[^>]*>/g,'')||'').length > 150 ? '…' : ''}</p>
+        <div class="blog-card-meta">
+          <span>${p.author || 'NipponAuto Team'}</span>
+          <span>${new Date(p.createdAt || p.date || Date.now()).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'})}</span>
+        </div>
+        <span class="blog-read-more">Read More →</span>
+      </div>
+    </a>
+  `).join('');
+}
 
-  grid.innerHTML = published.map(function(p){
-    var excerpt = (p.content || '').replace(/<[^>]*>/g, '').substring(0, 150);
-    if ((p.content || '').length > 150) excerpt += '…';
-    var date = p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-UG', {year:'numeric',month:'long',day:'numeric'}) : '';
-    return '<article class="blog-card">'
-      + '<div class="blog-card-body">'
-      + '<div class="blog-card-date">' + date + '</div>'
-      + '<h2 class="blog-card-title">' + escHtml(p.title || '') + '</h2>'
-      + '<p class="blog-card-excerpt">' + escHtml(excerpt) + '</p>'
-      + '<a href="blog-post.html?id=' + encodeURIComponent(p.id) + '" class="blog-read-more">Read More &rarr;</a>'
-      + '</div>'
-      + '</article>';
-  }).join('');
-
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-})();
+document.addEventListener('DOMContentLoaded', renderBlogList);
 </script>
 <script src="js/main.js"></script>
 </body>

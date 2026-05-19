@@ -545,6 +545,7 @@
   if(!published.length)return;
   var grid=document.getElementById('inventoryGrid');
   if(!grid)return;
+  var allReviews=[];try{allReviews=JSON.parse(localStorage.getItem('nau_reviews')||'[]');}catch(e){}
   grid.innerHTML=published.map(function(v){
     var mfr=manufacturers.find(function(m){return m.id===v.manufacturerId;})||{};
     var mfrName=mfr.name||'';
@@ -558,6 +559,8 @@
     var title=[mfrName,v.color,String(v.year||'')].filter(Boolean).join(' ');
     var badgeMap={'hot-deal':'🔥 Hot Deal','new-arrival':'⭐ New Arrival','price-drop':'💰 Price Drop','featured':'🏆 Featured'};
     var badgeHtml=v.badge&&badgeMap[v.badge]?'<span class="vehicle-badge badge-'+v.badge+'">'+badgeMap[v.badge]+'</span>':'';
+    var vReviews=allReviews.filter(function(r){return r.status==='Approved'&&String(r.vehicleId)===String(v.id);});
+    var ratingHtml=vReviews.length>0?'<span class="card-rating-badge">★ '+(vReviews.reduce(function(s,r){return s+(r.rating||5);},0)/vReviews.length).toFixed(1)+'</span>':'';
     return '<article class="vehicle-card" data-id="'+v.id+'"'
       +' data-make="'+mfrName.toLowerCase()+'"'
       +' data-name="'+title.toLowerCase()+'"'
@@ -572,7 +575,7 @@
       +'<button class="card-fav" title="Save" onclick="window.__toggleSave(\''+v.id+'\',this)">🤍</button>'
       +'</div>'
       +'<div class="card-body">'
-      +'<p class="card-make">'+mfrName+'</p>'
+      +'<p class="card-make">'+mfrName+(ratingHtml?' '+ratingHtml:'')+'</p>'
       +'<h3 class="card-name">'+title+'</h3>'
       +'<div class="card-specs">'
       +(v.engineCC?'<span class="card-spec">⚙️ '+v.engineCC+'cc</span>':'')
