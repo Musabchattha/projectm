@@ -315,7 +315,17 @@ function renderVehicles() {
     return matchQ && matchMfr;
   });
   document.getElementById('veh-count').textContent = `${data.length} vehicle${data.length!==1?'s':''}`;
-  document.getElementById('veh-tbody').innerHTML = data.length ? data.map(v => `
+  document.getElementById('veh-tbody').innerHTML = data.length ? data.map(v => {
+    const dol = (() => {
+      if (v.status === 'Sold' || v.status === 'sold') return null;
+      if (!v.publishedAt) return null;
+      return Math.floor((Date.now() - new Date(v.publishedAt)) / 86400000);
+    })();
+    const dolHtml = dol === null ? '<td>—</td>' :
+      dol > 60 ? `<td><span style="background:#fee2e2;color:#c0392b;padding:.2rem .5rem;border-radius:12px;font-size:.75rem;font-weight:700;">🔴 ${dol}d</span></td>` :
+      dol > 30 ? `<td><span style="background:#fef3c7;color:#d97706;padding:.2rem .5rem;border-radius:12px;font-size:.75rem;font-weight:700;">🟡 ${dol}d</span></td>` :
+      `<td><span style="background:#d1fae5;color:#059669;padding:.2rem .5rem;border-radius:12px;font-size:.75rem;font-weight:700;">🟢 ${dol}d</span></td>`;
+    return `
     <tr>
       <td>${v.imageUrl ? `<img src="${v.imageUrl}" class="table-img" alt="${v.make}" onerror="this.style.display='none'">` : '<div class="table-img-placeholder">🚗</div>'}</td>
       <td><strong style="font-size:.78rem">${v.sku}</strong></td>
@@ -331,13 +341,15 @@ function renderVehicles() {
         <span class="badge badge-${(v.status||'draft').toLowerCase()}">${v.status||'Draft'}</span>
         ${v.journey ? `<div style="font-size:.7rem;color:#8a9ab5;margin-top:.2rem">${v.journey.filter(s=>s.completed).length}/6 stages</div>` : ''}
       </td>
+      ${dolHtml}
       <td>${fmtDateShort(v.createdAt)}</td>
       <td><div class="row-actions">
         <button class="btn-row" title="Share">📤</button>
         <button class="btn-row" title="Edit" onclick="openModal('vehicle',${v.id})">✏️</button>
         <button class="btn-row btn-row-delete" title="Delete" onclick="deleteVehicle(${v.id})">🗑️</button>
       </div></td>
-    </tr>`).join('') : '<tr><td colspan="13" class="table-empty"><span class="empty-icon">🚗</span>No vehicles found.</td></tr>';
+    </tr>`;
+  }).join('') : '<tr><td colspan="14" class="table-empty"><span class="empty-icon">🚗</span>No vehicles found.</td></tr>';
 }
 
 function deleteVehicle(id) {
@@ -923,9 +935,15 @@ function showReportTab(tab, el) {
   if (el) el.classList.add('active');
   const overviewPanel = document.getElementById('rpt-overview-panel');
   const staffPanel = document.getElementById('rpt-staff-panel');
+  const funnelPanel = document.getElementById('rpt-funnel-panel');
+  const agingPanel = document.getElementById('rpt-aging-panel');
   if (overviewPanel) overviewPanel.style.display = tab === 'overview' ? '' : 'none';
   if (staffPanel) staffPanel.style.display = tab === 'staff' ? '' : 'none';
+  if (funnelPanel) funnelPanel.style.display = tab === 'funnel' ? '' : 'none';
+  if (agingPanel) agingPanel.style.display = tab === 'aging' ? '' : 'none';
   if (tab === 'staff') renderStaffPerformance();
+  if (tab === 'funnel') renderFunnelReport();
+  if (tab === 'aging') renderInventoryAging();
 }
 
 function renderReports() {
@@ -938,8 +956,12 @@ function renderReports() {
   document.querySelectorAll('#reportTabs .sub-tab').forEach((t,i) => t.classList.toggle('active', i===0));
   const overviewPanel = document.getElementById('rpt-overview-panel');
   const staffPanel = document.getElementById('rpt-staff-panel');
+  const funnelPanel = document.getElementById('rpt-funnel-panel');
+  const agingPanel = document.getElementById('rpt-aging-panel');
   if (overviewPanel) overviewPanel.style.display = '';
   if (staffPanel) staffPanel.style.display = 'none';
+  if (funnelPanel) funnelPanel.style.display = 'none';
+  if (agingPanel) agingPanel.style.display = 'none';
   document.getElementById('reports-stats').innerHTML = [
     {label:'Total Vehicles', value: vehs.length, trend:'neutral'},
     {label:'Published', value: published, trend:'up'},
@@ -1016,6 +1038,95 @@ function renderStaffPerformance() {
     </div>`;
 }
 
+// ===== FUNNEL REPORT =====
+function renderFunnelReport() {
+  const el = document.getElementById('rpt-funnel-panel');
+  if (!el) return;
+  const inqs = DB.load('nau_inquiries');
+  const qts = DB.load('nau_quotes');
+  const ords = DB.load('nau_orders');
+  const invs = DB.load('nau_invoices');
+  const stages = [
+    { label: '📩 Inquiries',   count: inqs.length,                                  color: '#3b82f6' },
+    { label: '💬 Quotes Sent', count: qts.length,                                   color: '#8b5cf6' },
+    { label: '✅ Accepted',    count: qts.filter(q=>q.status==='Accepted').length,  color: '#f59e0b' },
+    { label: '📦 Ordered',     count: ords.length,                                  color: '#f97316' },
+    { label: '🧾 Invoiced',    count: invs.length,                                  color: '#10b981' },
+    { label: '💰 Paid',        count: invs.filter(i=>i.status==='Paid').length,     color: '#059669' }
+  ];
+  const maxCount = Math.max(...stages.map(s=>s.count), 1);
+  el.innerHTML = `
+    <div class="report-card">
+      <h3 style="margin:0 0 1.25rem;font-size:1rem;font-weight:700">Sales Conversion Funnel</h3>
+      <div style="display:flex;flex-direction:column;gap:.75rem;max-width:600px;">
+        ${stages.map((s, i) => {
+          const pct = Math.round(s.count / maxCount * 100);
+          const convRate = i > 0 && stages[i-1].count > 0 ? Math.round(s.count / stages[i-1].count * 100) : 100;
+          return `<div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:.3rem;font-size:.85rem">
+              <span style="font-weight:600">${s.label}</span>
+              <span style="color:#9ca3af">${s.count}${i>0?' ('+convRate+'% of prev)':''}</span>
+            </div>
+            <div style="background:#f0f2f5;border-radius:6px;height:28px;overflow:hidden;">
+              <div style="height:100%;background:${s.color};width:${pct}%;border-radius:6px;display:flex;align-items:center;padding-left:.75rem;color:#fff;font-size:.8rem;font-weight:700;transition:width .4s ease;">${s.count > 0 ? s.count : ''}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+// ===== INVENTORY AGING REPORT =====
+function renderInventoryAging() {
+  const el = document.getElementById('rpt-aging-panel');
+  if (!el) return;
+  const vehs = getVehicles().filter(v => v.status === 'Published' || v.status === 'published');
+  const inqs = DB.load('nau_inquiries');
+  if (!vehs.length) {
+    el.innerHTML = '<div class="report-card"><p style="color:#9ca3af;text-align:center;padding:2rem">No published vehicles.</p></div>';
+    return;
+  }
+  const rows = vehs.map(v => {
+    const dol = v.publishedAt ? Math.floor((Date.now() - new Date(v.publishedAt)) / 86400000) : 0;
+    const inqCount = inqs.filter(i => {
+      const vi = (i.vehicleInterest||'').toLowerCase();
+      return vi.includes((v.make||'').toLowerCase()) || vi.includes((v.model||'').toLowerCase());
+    }).length;
+    return { v, dol, inqCount };
+  }).sort((a, b) => b.dol - a.dol);
+  const totalValue = rows.reduce((s, r) => s + Number(r.v.priceUSD||0), 0);
+  el.innerHTML = `<div class="report-card">
+    <h3 style="margin:0 0 1.25rem;font-size:1rem;font-weight:700">Inventory Aging Report</h3>
+    <div class="table-wrap"><table class="admin-table">
+      <thead><tr><th>Vehicle</th><th>Listed Date</th><th>Days on Lot</th><th>Price (USD)</th><th>Inquiries</th><th>Suggestion</th></tr></thead>
+      <tbody>
+        ${rows.map(r => {
+          const dolBadge = r.dol > 60
+            ? `<span style="background:#fee2e2;color:#c0392b;padding:.2rem .5rem;border-radius:12px;font-size:.75rem;font-weight:700;">🔴 ${r.dol}d stale</span>`
+            : r.dol > 30
+            ? `<span style="background:#fef3c7;color:#d97706;padding:.2rem .5rem;border-radius:12px;font-size:.75rem;font-weight:700;">🟡 ${r.dol}d</span>`
+            : `<span style="background:#d1fae5;color:#059669;padding:.2rem .5rem;border-radius:12px;font-size:.75rem;font-weight:700;">🟢 ${r.dol}d</span>`;
+          const suggestion = r.dol > 60 ? `<span style="color:#c0392b;font-size:.8rem">💰 Suggest $${Math.round(r.v.priceUSD * 0.95 / 100)*100} (-5%)</span>` : '—';
+          const listedDate = r.v.publishedAt ? new Date(r.v.publishedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : '—';
+          return `<tr>
+            <td><strong>${r.v.make} ${r.v.model||''} ${r.v.year||''}</strong></td>
+            <td>${listedDate}</td>
+            <td>${dolBadge}</td>
+            <td>$${Number(r.v.priceUSD||0).toLocaleString()}</td>
+            <td>${r.inqCount}</td>
+            <td>${suggestion}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+      <tfoot><tr style="font-weight:700;background:#f8fafc">
+        <td colspan="3">Total Inventory Value</td>
+        <td>$${totalValue.toLocaleString()}</td>
+        <td colspan="2"></td>
+      </tr></tfoot>
+    </table></div>
+  </div>`;
+}
+
 // ===== DASHBOARD =====
 function renderDash(tab) {
   document.querySelectorAll('.sub-tab[data-dash]').forEach(t => t.classList.toggle('active', t.dataset.dash===tab));
@@ -1069,27 +1180,119 @@ function renderDash(tab) {
       </div>
     `;
 
+    // KPI calculations
+    const now = new Date();
+    const mtdStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const invoices = DB.load('nau_invoices');
+    const orders = DB.load('nau_orders');
+    const mtdRevenue = invoices.filter(i => i.status === 'Paid' && (i.createdAt||'') >= mtdStart)
+      .reduce((s,i) => s + Number(i.totalAmount||0), 0);
+    const mtdSold = invoices.filter(i => i.status === 'Paid' && (i.createdAt||'') >= mtdStart).length;
+    const pipelineValue = qts.filter(q => !['Declined','Accepted'].includes(q.status))
+      .reduce((s,q) => s + Number(q.quotedPrice||0), 0);
+    const closedOrders = orders.filter(o => o.quoteId);
+    const avgDaysToClose = closedOrders.length ? Math.round(
+      closedOrders.reduce((s,o) => {
+        const qt = DB.load('nau_quotes').find(q => q.id === o.quoteId);
+        if (!qt) return s;
+        const diff = (new Date(o.createdAt) - new Date(qt.reqDate||qt.createdAt)) / 86400000;
+        return s + Math.abs(diff);
+      }, 0) / closedOrders.length
+    ) : null;
+
+    const publishedVehs = vehs.filter(v => v.status === 'Published' || v.status === 'published');
+    const slowMoving = publishedVehs.filter(v => {
+      if (!v.publishedAt) return false;
+      return Math.floor((Date.now() - new Date(v.publishedAt)) / 86400000) > 60;
+    });
+
+    // Slow-moving alert HTML
+    const slowAlertHtml = slowMoving.length > 0 ? `
+      <div class="alert-card alert-amber">
+        <span>⚠️ ${slowMoving.length} vehicle${slowMoving.length>1?'s':''} listed for more than 60 days:
+        ${slowMoving.slice(0,3).map(v => {
+          const d = Math.floor((Date.now() - new Date(v.publishedAt)) / 86400000);
+          return `${v.make} ${v.model} (${d}d)`;
+        }).join(', ')}</span>
+        <button onclick="navigate('inv-vehicles')">View Inventory →</button>
+      </div>` : '';
+
+    // Conversion funnel
+    const funnelStages = [
+      { label: 'Inquiries', count: inqs.length, color: '#3b82f6' },
+      { label: 'Quotes',    count: qts.length, color: '#8b5cf6' },
+      { label: 'Orders',    count: orders.length, color: '#f97316' },
+      { label: 'Invoiced',  count: invoices.length, color: '#10b981' }
+    ];
+    const funnelMax = Math.max(...funnelStages.map(s=>s.count), 1);
+    const funnelHtml = funnelStages.map(s => `
+      <div class="bar-row">
+        <div class="bar-label">${s.label}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(s.count/funnelMax*100)}%;background:${s.color}"></div></div>
+        <div class="bar-value">${s.count}</div>
+      </div>`).join('');
+
+    // Monthly revenue trend (last 12 months)
+    const monthRevData = [];
+    for (let m = 11; m >= 0; m--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - m, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      const rev = invoices.filter(i => i.status === 'Paid' && (i.createdAt||'').startsWith(key))
+        .reduce((s,i) => s + Number(i.totalAmount||0), 0);
+      monthRevData.push({ label: d.toLocaleDateString('en-GB', {month:'short'}), rev, key });
+    }
+    const maxMonthRev = Math.max(...monthRevData.map(m=>m.rev), 1);
+    const monthlyChartHtml = monthRevData.map(m => {
+      const pct = Math.max(Math.round(m.rev / maxMonthRev * 100), m.rev > 0 ? 2 : 0);
+      return `<div class="mc-bar-col">
+        <div class="mc-bar-wrap"><div class="mc-bar-fill" style="height:${pct}%" title="$${Math.round(m.rev/1000)}K"></div></div>
+        <div class="mc-bar-label">${m.label}</div>
+      </div>`;
+    }).join('');
+
+    // Top 5 vehicles by inquiry
+    const vehInqCounts = vehs.map(v => {
+      const cnt = inqs.filter(i => {
+        const vi = (i.vehicleInterest||'').toLowerCase();
+        return vi.includes((v.make||'').toLowerCase()) || vi.includes((v.model||'').toLowerCase());
+      }).length;
+      return { label: `${v.make} ${v.model}`, cnt };
+    }).filter(x=>x.cnt>0).sort((a,b)=>b.cnt-a.cnt).slice(0,5);
+    const maxVehInq = Math.max(...vehInqCounts.map(x=>x.cnt), 1);
+    const vehInqHtml = vehInqCounts.length ? vehInqCounts.map(x => `
+      <div class="bar-row">
+        <div class="bar-label" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${x.label}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(x.cnt/maxVehInq*100)}%"></div></div>
+        <div class="bar-value">${x.cnt}</div>
+      </div>`).join('') : '<p style="color:#9ca3af;font-size:.82rem;padding:.5rem 0">No inquiry data yet.</p>';
+
     document.getElementById('dashContent').innerHTML = `
-      <div class="stats-grid-admin">
-        <div class="stat-card"><div class="stat-card-label">Total Vehicles in Stock</div><div class="stat-card-value">${vehs.length}</div><div class="stat-card-trend trend-neutral">&#8599; All inventory</div></div>
-        <div class="stat-card"><div class="stat-card-label">Total Sales (est.)</div><div class="stat-card-value">$${Math.round(totalVal/1000)}K</div><div class="stat-card-trend trend-up">&#8599; +0% vs last month</div></div>
-        <div class="stat-card"><div class="stat-card-label">Pending Inquiries</div><div class="stat-card-value">${inqs.filter(i=>i.status==='new').length}</div><div class="stat-card-trend trend-up">&#8599; New</div></div>
-        <div class="stat-card stat-card-orange"><div class="stat-card-label">&#128197; Pending Appointments</div><div class="stat-card-value">${pendingAppts}</div><div class="stat-card-trend trend-neutral" style="cursor:pointer;" onclick="navigate('appointments')">View Appointments &#8594;</div></div>
+      ${slowAlertHtml}
+      <div class="kpi-grid-2row">
+        <div class="stat-card"><div class="stat-card-label">MTD Revenue</div><div class="stat-card-value">$${Math.round(mtdRevenue/1000)}K</div><div class="stat-card-trend trend-up">↑ Paid invoices this month</div></div>
+        <div class="stat-card"><div class="stat-card-label">Vehicles Sold (MTD)</div><div class="stat-card-value">${mtdSold}</div><div class="stat-card-trend trend-up">↑ This month</div></div>
+        <div class="stat-card"><div class="stat-card-label">Pipeline Value</div><div class="stat-card-value">$${Math.round(pipelineValue/1000)}K</div><div class="stat-card-trend trend-neutral">Open quotes</div></div>
+        <div class="stat-card"><div class="stat-card-label">Avg Days to Close</div><div class="stat-card-value">${avgDaysToClose !== null ? avgDaysToClose + 'd' : '—'}</div><div class="stat-card-trend trend-neutral">Quote → Order</div></div>
+      </div>
+      <div class="kpi-grid-2row">
+        <div class="stat-card"><div class="stat-card-label">Inventory Available</div><div class="stat-card-value">${publishedVehs.length}</div><div class="stat-card-trend trend-neutral">Published vehicles</div></div>
+        <div class="stat-card"><div class="stat-card-label">Slow-Moving Stock (&gt;60d)</div><div class="stat-card-value">${slowMoving.length}</div><div class="stat-card-trend ${slowMoving.length>0?'trend-down':'trend-neutral'}">Listed &gt;60 days</div></div>
+        <div class="stat-card"><div class="stat-card-label">Pending Inquiries</div><div class="stat-card-value">${inqs.filter(i=>i.status==='new').length}</div><div class="stat-card-trend trend-up">↑ New</div></div>
+        <div class="stat-card stat-card-orange"><div class="stat-card-label">&#128197; Pending Appointments</div><div class="stat-card-value">${pendingAppts}</div><div class="stat-card-trend trend-neutral" style="cursor:pointer;" onclick="navigate('appointments')">View All →</div></div>
       </div>
       <div class="dash-grid">
-        <div class="dash-section"><h3>Recent Inquiries <a href="#" data-nav="inquiries">View All</a></h3>
-          ${inqs.slice(0,5).map(i=>`<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #f1f4f9;font-size:.82rem">
-            <div><strong>${i.name}</strong><div class="td-muted">${i.vehicleInterest||'General'}</div></div>
-            <span class="badge badge-${i.status||'new'}">${i.status||'new'}</span></div>`).join('') || '<p style="color:#8a9ab5;font-size:.82rem">No inquiries yet.</p>'}
+        <div class="dash-section">
+          <h3>Sales Conversion Funnel</h3>
+          <div class="bar-chart" style="margin-top:.75rem">${funnelHtml}</div>
         </div>
-        <div class="dash-section"><h3>Stock by Manufacturer</h3>
-          <div class="bar-chart">${(()=>{
-            const mc = {}; vehs.forEach(v=>{mc[v.make]=(mc[v.make]||0)+1;});
-            const mx = Math.max(...Object.values(mc),1);
-            return Object.entries(mc).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>`
-              <div class="bar-row"><div class="bar-label">${k}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/mx*100)}%"></div></div><div class="bar-value">${v}</div></div>`).join('');
-          })()}</div>
+        <div class="dash-section">
+          <h3>Top 5 Vehicles by Inquiry</h3>
+          <div class="bar-chart" style="margin-top:.75rem">${vehInqHtml}</div>
         </div>
+      </div>
+      <div class="dash-section" style="margin-top:1rem">
+        <h3>Monthly Revenue Trend (last 12 months)</h3>
+        <div class="monthly-chart" style="margin-top:.75rem">${monthlyChartHtml}</div>
       </div>
       ${apptTableHtml}`;
     document.querySelectorAll('#dashContent [data-nav]').forEach(a => a.addEventListener('click', e=>{e.preventDefault();navigate(a.dataset.nav);}));
@@ -1366,8 +1569,8 @@ const modalConfigs = {
       };
       return { manufacturerId: Number(document.getElementById('v-mfr').value), make: document.getElementById('v-make').value || getMFRName(Number(document.getElementById('v-mfr').value)), model, color: document.getElementById('v-color').value, year: Number(year), chassis: document.getElementById('v-chassis').value, engineCC: document.getElementById('v-engine').value, mileage: document.getElementById('v-mileage').value, bodyType: document.getElementById('v-body').value, fuelType: document.getElementById('v-fuel').value, transmission: document.getElementById('v-trans').value, steering: document.getElementById('v-steer').value, priceUSD: usd, priceUGX: document.getElementById('v-ugx').value || usd*3700, status: document.getElementById('v-status').value, showroom: document.getElementById('v-showroom').value, imageUrl: document.getElementById('v-img').value, description: document.getElementById('v-desc').value, videoUrl: (document.getElementById('v-video-url')||{}).value || '', badge: (document.getElementById('v-badge')||{}).value || '', documents, journey };
     },
-    create: d => { const all = getVehicles(); all.push({id:DB.nextId('nau_vehicles'), sku:genSKU(), ...d, createdAt:nowISO()}); saveVehicles(all); },
-    update: (id, d) => { const all = getVehicles(); const i = all.findIndex(v=>v.id===id); if(i>-1){all[i]={...all[i],...d};saveVehicles(all);} },
+    create: d => { const all = getVehicles(); const newV = {id:DB.nextId('nau_vehicles'), sku:genSKU(), ...d, createdAt:nowISO()}; if (d.status === 'Published' && !newV.publishedAt) newV.publishedAt = nowISO(); all.push(newV); saveVehicles(all); },
+    update: (id, d) => { const all = getVehicles(); const i = all.findIndex(v=>v.id===id); if(i>-1){ const updated = {...all[i],...d}; if ((d.status === 'Published') && !updated.publishedAt) updated.publishedAt = nowISO(); all[i] = updated; saveVehicles(all); } },
     refresh: renderVehicles
   },
   variable: {
@@ -3108,6 +3311,17 @@ function seedData() {
 
 // ===== SEED EXTRAS (blogs, appointments — guarded independently) =====
 function seedExtras() {
+  // Backfill publishedAt for existing Published vehicles
+  const vehs = DB.load('nau_vehicles');
+  let vehsUpdated = false;
+  vehs.forEach(v => {
+    if ((v.status === 'Published' || v.status === 'published') && !v.publishedAt) {
+      v.publishedAt = v.createdAt || new Date().toISOString();
+      vehsUpdated = true;
+    }
+  });
+  if (vehsUpdated) DB.save('nau_vehicles', vehs);
+
   // Backfill milestones for seeded orders
   const orders = DB.load('nau_orders');
   let ordersUpdated = false;

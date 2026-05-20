@@ -1460,3 +1460,22 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .receipt-doc .rec-total { display: flex; justify-content: space-between; padding: .75rem 0; font-size: 1.1rem; font-weight: 700; margin-top: .5rem; color: #0a1628; }
 .receipt-doc .rec-stamp { text-align: center; margin-top: 1.5rem; background: #d1fae5; color: #065f46; border-radius: 6px; padding: .6rem; font-weight: 700; font-size: 1rem; }
 .receipt-doc .rec-footer { text-align: center; margin-top: 1rem; color: #6b7280; font-size: .78rem; }
+
+/* ===== PHASE 13: ANALYTICS / INVENTORY AGING ===== */
+
+/* Monthly revenue chart */
+.monthly-chart { display:flex; align-items:flex-end; gap:.4rem; height:120px; padding:.5rem 0; }
+.mc-bar-col { display:flex; flex-direction:column; align-items:center; flex:1; height:100%; }
+.mc-bar-wrap { flex:1; width:100%; display:flex; align-items:flex-end; }
+.mc-bar-fill { width:100%; background:linear-gradient(180deg,#c0392b,#e74c3c); border-radius:4px 4px 0 0; min-height:2px; transition:height .3s ease; }
+.mc-bar-label { font-size:.65rem; color:#9ca3af; margin-top:.3rem; white-space:nowrap; }
+
+/* Alert cards */
+.alert-card { padding:.75rem 1rem; border-radius:8px; font-size:.85rem; margin-bottom:1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+.alert-amber { background:#fef3c7; border-left:4px solid #d97706; color:#92400e; }
+.alert-amber button { background:#d97706; color:#fff; border:none; border-radius:5px; padding:.3rem .75rem; font-size:.8rem; cursor:pointer; }
+
+/* KPI grid enhancement */
+.kpi-grid-2row { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1rem; }
+@media(max-width:900px){ .kpi-grid-2row { grid-template-columns:repeat(2,1fr); } }
+@media(max-width:500px){ .kpi-grid-2row { grid-template-columns:1fr 1fr; } }
