@@ -13,11 +13,12 @@
     if(t)t.classList.add('active');
     var btn=document.querySelector('[data-page="'+page+'"]');
     if(btn)btn.classList.add('active');
-    var titles={dashboard:'Dashboard',inquiries:'My Inquiries',quotes:'My Quotes',saved:'Saved Vehicles',profile:'My Profile',journey:'Vehicle Journey',alerts:'Stock Alerts','book-appointment':'Book Appointment','my-invoices':'My Invoices'};
+    var titles={dashboard:'Dashboard',inquiries:'My Inquiries',quotes:'My Quotes',orders:'My Orders',saved:'Saved Vehicles',profile:'My Profile',journey:'Vehicle Journey',alerts:'Stock Alerts','book-appointment':'Book Appointment','my-invoices':'My Invoices'};
     document.getElementById('cPageTitle').textContent=titles[page]||page;
     if(page==='dashboard')renderDash();
     if(page==='inquiries')renderInquiries();
     if(page==='quotes')renderQuotes();
+    if(page==='orders')renderMyOrders();
     if(page==='saved')renderSaved();
     if(page==='profile')renderProfile();
     if(page==='journey')renderJourney();
@@ -32,8 +33,21 @@
     var inqs=load('nau_inquiries').filter(function(i){return i.email&&i.email.toLowerCase()===session.email.toLowerCase();});
     var qts=load('nau_quotes').filter(function(q){return q.customerEmail&&q.customerEmail.toLowerCase()===session.email.toLowerCase();});
     var saved=load('nau_saved_'+session.id);
+    var orders=load('nau_orders').filter(function(o){return(o.customerEmail||'').toLowerCase()===session.email.toLowerCase();});
+    var activeOrders=orders.filter(function(o){return o.status!=='Completed';});
     document.getElementById('cWelcome').innerHTML='<h2>Welcome back, '+esc(session.name)+'! 👋</h2><p>Here\'s a summary of your account activity.</p>';
-    document.getElementById('cStatsGrid').innerHTML='<div class="c-stat-card"><div class="c-stat-label">My Inquiries</div><div class="c-stat-val">'+inqs.length+'</div></div><div class="c-stat-card"><div class="c-stat-label">My Quotes</div><div class="c-stat-val">'+qts.length+'</div></div><div class="c-stat-card"><div class="c-stat-label">Saved Vehicles</div><div class="c-stat-val">'+saved.length+'</div></div>';
+    document.getElementById('cStatsGrid').innerHTML='<div class="c-stat-card"><div class="c-stat-label">My Inquiries</div><div class="c-stat-val">'+inqs.length+'</div></div><div class="c-stat-card"><div class="c-stat-label">My Quotes</div><div class="c-stat-val">'+qts.length+'</div></div><div class="c-stat-card"><div class="c-stat-label">Active Orders</div><div class="c-stat-val">'+activeOrders.length+'</div></div><div class="c-stat-card"><div class="c-stat-label">Saved Vehicles</div><div class="c-stat-val">'+saved.length+'</div></div>';
+    var dashProgress=document.getElementById('cDashOrderProgress');
+    if(dashProgress){
+      if(activeOrders.length){
+        var latest=activeOrders.sort(function(a,b){return new Date(b.createdAt||0)-new Date(a.createdAt||0);})[0];
+        var completed=(latest.milestones||[]).filter(function(m){return m.completed;}).length;
+        var pct=Math.round(completed/8*100);
+        dashProgress.innerHTML='<div class="dash-order-progress"><div class="dop-header"><span>📦 Active Order: '+esc(latest.orderNo||('ORD-'+latest.id))+'</span><span onclick="navigate(\'orders\')" style="cursor:pointer;color:#0a1628;font-weight:600;font-size:.85rem;">View All →</span></div><div class="dop-bar-wrap"><div class="dop-bar-fill" style="width:'+pct+'%"></div></div><div class="dop-label">'+completed+'/8 milestones complete ('+pct+'%)</div></div>';
+      } else {
+        dashProgress.innerHTML='';
+      }
+    }
     var recent=inqs.slice(-3).reverse();
     if(!recent.length){document.getElementById('cRecentInq').innerHTML='<p style="color:#8a9ab5;font-size:.85rem">No inquiries yet.</p>';return;}
     var html='<div class="c-table-wrap"><table class="c-table"><thead><tr><th>Vehicle</th><th>Date</th><th>Status</th></tr></thead><tbody>';
@@ -285,6 +299,13 @@
     var alerts = load('nau_alerts');
     alerts.filter(function(al){return (al.email||al.customerEmail||'').toLowerCase()===email && al.status==='Matched';}).forEach(function(al){
       notifs.push({id:'al_'+al.id,type:'alert',text:'A vehicle matching your alert ('+(al.make||'')+' '+(al.model||'')+') is now available.',time:al.updatedAt||''});
+    });
+
+    // Order milestone notifications (written by admin when updating milestones)
+    var orderNotifs = [];
+    try { orderNotifs = JSON.parse(localStorage.getItem('nau_notif_' + email) || '[]'); } catch(e) {}
+    orderNotifs.filter(function(n){return !n.read;}).forEach(function(n){
+      notifs.push({id:n.id, type:'order', text:n.text, time:n.time});
     });
 
     return notifs;
@@ -581,6 +602,48 @@
   window.closeCustomerInvoice = function() {
     document.getElementById('customerInvoiceOverlay').style.display = 'none';
   };
+
+  // ===== MY ORDERS =====
+  function renderMyOrders() {
+    var el = document.getElementById('cpage-orders');
+    if (!el) return;
+    var orders = load('nau_orders').filter(function(o){return(o.customerEmail||'').toLowerCase()===session.email.toLowerCase();}).reverse();
+    if (!orders.length) {
+      el.innerHTML = '<div class="c-section"><h3>My Orders</h3><div class="c-empty" style="padding:3rem;text-align:center;"><div style="font-size:3rem;margin-bottom:1rem;">📦</div><p>No orders yet. Once you accept a quote, your order will appear here.</p><button onclick="navigate(\'vehicles\')" class="c-btn-primary" style="margin-top:1rem;">Browse Vehicles →</button></div></div>';
+      return;
+    }
+    var statusColors={'Pending':'#6b7280','Confirmed':'#1e40af','Shipped':'#d97706','In Showroom':'#8e44ad','Completed':'#059669'};
+    var waNum=(function(){try{return(JSON.parse(localStorage.getItem('nau_settings')||'{}').whatsapp||'256700123456').replace(/\D/g,'');}catch(e){return'256700123456';}})();
+    var html='<div class="c-section"><h3>My Orders</h3><div class="orders-list">';
+    orders.forEach(function(o){
+      var milestones=o.milestones||[];
+      var completedCount=milestones.filter(function(m){return m.completed;}).length;
+      var statusColor=statusColors[o.status]||'#6b7280';
+      var statusBadge='<span style="background:'+statusColor+';color:#fff;padding:.2rem .7rem;border-radius:20px;font-size:.78rem;font-weight:700;">'+esc(o.status||'Pending')+'</span>';
+      var foundCurrent=false;
+      var msHtml=milestones.length?milestones.map(function(m){
+        if(m.completed){
+          return'<div class="order-milestone ms-complete"><span class="ms-icon">✅</span><span class="ms-name">'+esc(m.stage)+'</span><span class="ms-date">'+esc(m.date||'')+'</span>'+(m.notes?'<span class="ms-notes">"'+esc(m.notes)+'"</span>':'')+'</div>';
+        } else if(!foundCurrent){
+          foundCurrent=true;
+          return'<div class="order-milestone ms-current"><span class="ms-icon ms-pulse">⏳</span><span class="ms-name">'+esc(m.stage)+'</span><span class="ms-date" style="color:#d97706;font-style:italic;">in progress</span></div>';
+        } else {
+          return'<div class="order-milestone ms-upcoming"><span class="ms-icon">○</span><span class="ms-name">'+esc(m.stage)+'</span><span class="ms-date">—</span></div>';
+        }
+      }).join(''):'<p style="color:#9ca3af;font-style:italic;padding:.5rem 0;">No milestone data yet.</p>';
+      var waMsg=encodeURIComponent('Hello NipponAuto Uganda, I have an enquiry about my order '+(o.orderNo||o.id)+'.');
+      var invoiceBtn=o.invoiceId?'<button class="c-btn-sm" onclick="openCustomerInvoice('+o.invoiceId+')">📄 View Invoice</button>':'';
+      html+='<div class="order-card">'
+        +'<div class="order-card-header"><div><span class="order-no">'+esc(o.orderNo||('ORD-'+o.id))+'</span>'+statusBadge+'</div><div class="order-amount">'+(o.currency||'$')+Number(o.amount||0).toLocaleString()+'</div></div>'
+        +'<div class="order-vehicle">'+esc(o.vehicleName||o.vehicle||'Vehicle')+(o.customerName?' | '+esc(o.customerName):'')+'</div>'
+        +'<div class="order-meta">Placed: '+(o.createdAt?new Date(o.createdAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):(o.date||'—'))+(o.quoteNo?' | From quote '+esc(o.quoteNo):'')+'</div>'
+        +'<div class="order-milestones"><div class="ms-heading">Import Progress</div>'+msHtml+'</div>'
+        +'<div class="order-actions">'+invoiceBtn+'<button class="c-btn-sm" onclick="navigate(\'book-appointment\')">📅 Book Appointment</button><a class="c-btn-sm" href="https://wa.me/'+waNum+'?text='+waMsg+'" target="_blank">💬 Enquire</a></div>'
+        +'</div>';
+    });
+    html+='</div></div>';
+    el.innerHTML=html;
+  }
 
   // ===== DECLINE QUOTE =====
   window.declineQuote = function(id) {
