@@ -59,6 +59,11 @@ function fmtMoney(n, curr) {
   return sym + num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
+// ===== HTML ESCAPE =====
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 // ===== NUMBER GENERATORS =====
 function genInvoiceNo() {
   const inv = DB.load('nau_invoices');
@@ -178,6 +183,8 @@ function navigate(page) {
     'customers-acc': renderCustomersAcc,
     vendors: renderVendors,
     'purchase-orders': renderPurchaseOrders,
+    employees: renderEmployees,
+    payruns: renderPayruns,
     reports: () => { showReportTab('pnl'); }
   };
   if (renders[page]) renders[page]();
@@ -1627,6 +1634,41 @@ function seedAccountingData() {
       { id:19, code:'6020', name:'Rent & Utilities', type:'expense', subtype:'operating_expense', parentId:17, active:true },
       { id:20, code:'6030', name:'Marketing & Advertising', type:'expense', subtype:'operating_expense', parentId:17, active:true }
     ]);
+  }
+
+  // New payroll GL accounts (add if missing)
+  var coa = DB.load('nau_coa');
+  var coaCodes = coa.map(function(c){ return c.code; });
+  if (coaCodes.indexOf('6011') === -1) {
+    coa.push({ id: DB.nextId('nau_coa'), code: '6011', name: 'NSSF Employer Contribution', type: 'expense', parentCode: '6000', balance: 'debit', description: 'Employer NSSF contributions', active: true });
+    DB.save('nau_coa', coa);
+  }
+  coa = DB.load('nau_coa');
+  coaCodes = coa.map(function(c){ return c.code; });
+  if (coaCodes.indexOf('2300') === -1) {
+    coa.push({ id: DB.nextId('nau_coa'), code: '2300', name: 'PAYE Payable', type: 'liability', parentCode: null, balance: 'credit', description: 'PAYE tax payable to URA', active: true });
+    DB.save('nau_coa', coa);
+  }
+  coa = DB.load('nau_coa');
+  coaCodes = coa.map(function(c){ return c.code; });
+  if (coaCodes.indexOf('2400') === -1) {
+    coa.push({ id: DB.nextId('nau_coa'), code: '2400', name: 'NSSF Payable', type: 'liability', parentCode: null, balance: 'credit', description: 'NSSF contributions payable', active: true });
+    DB.save('nau_coa', coa);
+  }
+
+  // Employees
+  if (!DB.load('nau_employees').length) {
+    DB.save('nau_employees', [
+      { id:1, name:'James Okello', email:'james@nipponauto.ug', phone:'+256 772 100 001', role:'Sales Manager', dept:'Sales', salary:800, allowances:100, payeRate:30, nssfEmp:5, nssfEmployer:10, bankName:'Stanbic', bankAccount:'001-234-567', status:'Active', createdAt:'2026-01-01T00:00:00.000Z' },
+      { id:2, name:'Sarah Nakayima', email:'sarah@nipponauto.ug', phone:'+256 772 100 002', role:'Accountant', dept:'Finance', salary:650, allowances:50, payeRate:30, nssfEmp:5, nssfEmployer:10, bankName:'Stanbic', bankAccount:'001-234-568', status:'Active', createdAt:'2026-01-01T00:00:00.000Z' },
+      { id:3, name:'Moses Kiggundu', email:'moses@nipponauto.ug', phone:'+256 772 100 003', role:'Mechanic', dept:'Workshop', salary:400, allowances:0, payeRate:10, nssfEmp:5, nssfEmployer:10, bankName:'Centenary', bankAccount:'002-345-678', status:'Active', createdAt:'2026-01-01T00:00:00.000Z' },
+      { id:4, name:'Annet Namukasa', email:'annet@nipponauto.ug', phone:'+256 772 100 004', role:'Receptionist', dept:'Admin', salary:300, allowances:0, payeRate:10, nssfEmp:5, nssfEmployer:10, bankName:'Centenary', bankAccount:'002-345-679', status:'Active', createdAt:'2026-01-01T00:00:00.000Z' }
+    ]);
+  }
+
+  // Payruns store init
+  if (!localStorage.getItem('nau_payruns')) {
+    DB.save('nau_payruns', []);
   }
 
   // Journals
@@ -3327,6 +3369,64 @@ Object.assign(modalConfigs, {
       // Apply field locking and chassis prefix if a model code is already selected
       onPOModelCodeChange();
     }
+  },
+
+  employee: {
+    label: 'Employee',
+    getData: function(id) { return DB.load('nau_employees').find(function(e){ return e.id === id; }); },
+    form: function(d) {
+      d = d || {};
+      return '<div class="form-grid">' +
+        '<div class="form-group"><label>Full Name *</label><input class="form-control" id="fName" value="' + esc(d.name||'') + '" required></div>' +
+        '<div class="form-group"><label>Email</label><input class="form-control" id="fEmail" type="email" value="' + esc(d.email||'') + '"></div>' +
+        '<div class="form-group"><label>Phone</label><input class="form-control" id="fPhone" value="' + esc(d.phone||'') + '"></div>' +
+        '<div class="form-group"><label>Department</label><input class="form-control" id="fDept" value="' + esc(d.dept||'') + '" placeholder="e.g. Sales, Finance"></div>' +
+        '<div class="form-group"><label>Job Title / Role *</label><input class="form-control" id="fRole" value="' + esc(d.role||'') + '" required></div>' +
+        '<div class="form-group"><label>Basic Salary (USD/month) *</label><input class="form-control" id="fSalary" type="number" min="0" step="0.01" value="' + (d.salary||'') + '" required></div>' +
+        '<div class="form-group"><label>Other Allowances (USD)</label><input class="form-control" id="fAllowances" type="number" min="0" step="0.01" value="' + (d.allowances||0) + '"></div>' +
+        '<div class="form-group"><label>PAYE Rate % (default 30)</label><input class="form-control" id="fPAYE" type="number" min="0" max="100" value="' + (d.payeRate||30) + '"></div>' +
+        '<div class="form-group"><label>NSSF Employee % (default 5)</label><input class="form-control" id="fNSSFEmp" type="number" min="0" max="100" value="' + (d.nssfEmp||5) + '"></div>' +
+        '<div class="form-group"><label>NSSF Employer % (default 10)</label><input class="form-control" id="fNSSFEmploer" type="number" min="0" max="100" value="' + (d.nssfEmployer||10) + '"></div>' +
+        '<div class="form-group"><label>Bank Name</label><input class="form-control" id="fBankName" value="' + esc(d.bankName||'') + '"></div>' +
+        '<div class="form-group"><label>Bank Account No.</label><input class="form-control" id="fBankAcc" value="' + esc(d.bankAccount||'') + '"></div>' +
+        '<div class="form-group"><label>Status</label><select class="form-control" id="fStatus"><option value="Active"' + (d.status==='Active'?' selected':'') + '>Active</option><option value="Inactive"' + (d.status==='Inactive'?' selected':'') + '>Inactive</option></select></div>' +
+        '</div>';
+    },
+    collect: function() {
+      var d = {};
+      d.name = document.getElementById('fName').value.trim();
+      d.email = document.getElementById('fEmail').value.trim();
+      d.phone = document.getElementById('fPhone').value.trim();
+      d.dept = document.getElementById('fDept').value.trim();
+      d.role = document.getElementById('fRole').value.trim();
+      d.salary = parseFloat(document.getElementById('fSalary').value) || 0;
+      d.allowances = parseFloat(document.getElementById('fAllowances').value) || 0;
+      d.payeRate = parseFloat(document.getElementById('fPAYE').value) || 30;
+      d.nssfEmp = parseFloat(document.getElementById('fNSSFEmp').value) || 5;
+      d.nssfEmployer = parseFloat(document.getElementById('fNSSFEmploer').value) || 10;
+      d.bankName = document.getElementById('fBankName').value.trim();
+      d.bankAccount = document.getElementById('fBankAcc').value.trim();
+      d.status = document.getElementById('fStatus').value;
+      if (!d.name || !d.role || !d.salary) { toast('Name, role and salary are required.'); return null; }
+      if (!d.createdAt) d.createdAt = nowISO();
+      return d;
+    },
+    create: function(d) {
+      var emps = DB.load('nau_employees');
+      d.id = DB.nextId('nau_employees');
+      emps.push(d);
+      DB.save('nau_employees', emps);
+      renderEmployees();
+      toast('Employee added.');
+    },
+    update: function(id, d) {
+      var emps = DB.load('nau_employees');
+      var idx = emps.findIndex(function(e){ return e.id === id; });
+      if (idx !== -1) { d.id = id; emps[idx] = d; DB.save('nau_employees', emps); }
+      renderEmployees();
+      toast('Employee updated.');
+    },
+    refresh: function() { renderEmployees(); }
   }
 });
 
@@ -4163,4 +4263,264 @@ function closeReconciliation() {
   const panel = document.getElementById('reconcile-panel');
   if (panel) panel.style.display = 'none';
   _matchSel = { pmt: null, stl: null, stlIdx: null, stmtId: null };
+}
+
+// ===== PAYROLL MODULE =====
+
+function renderEmployees() {
+  var el = document.getElementById('employees-content');
+  if (!el) return;
+  var emps = DB.load('nau_employees');
+  var html = '<div class="page-header"><h2 class="page-title">Employees</h2><button class="btn-create" onclick="openModal(\'employee\')">+ Add Employee</button></div>' +
+    '<div class="report-card"><div class="table-scroll"><table class="acc-table"><thead><tr>' +
+    '<th>Name</th><th>Department</th><th>Role</th><th>Basic Salary</th><th>PAYE %</th><th>Status</th><th>Actions</th>' +
+    '</tr></thead><tbody>';
+  if (!emps.length) {
+    html += '<tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:2rem">No employees yet. Click &quot;+ Add Employee&quot; to get started.</td></tr>';
+  } else {
+    emps.forEach(function(e) {
+      html += '<tr>' +
+        '<td><strong>' + esc(e.name) + '</strong><br><small style="color:#9ca3af">' + esc(e.email||'') + '</small></td>' +
+        '<td>' + esc(e.dept||'—') + '</td>' +
+        '<td>' + esc(e.role||'—') + '</td>' +
+        '<td>$' + Number(e.salary||0).toLocaleString() + (e.allowances ? ' + $' + Number(e.allowances).toLocaleString() + ' allowance' : '') + '</td>' +
+        '<td>' + (e.payeRate||30) + '%</td>' +
+        '<td><span class="badge ' + (e.status==='Active' ? 'badge-paid' : 'badge-draft') + '">' + esc(e.status||'Active') + '</span></td>' +
+        '<td><button class="btn-icon" onclick="openModal(\'employee\',' + e.id + ')" title="Edit">✏️</button>' +
+        '<button class="btn-icon btn-danger" onclick="deleteItem(\'nau_employees\',' + e.id + ',renderEmployees)" title="Delete">🗑️</button></td>' +
+        '</tr>';
+    });
+  }
+  html += '</tbody></table></div></div>';
+  el.innerHTML = html;
+}
+
+function genPayrunNo() {
+  var p = DB.load('nau_payruns');
+  return 'PR-' + new Date().getFullYear() + '-' + String(p.length + 1).padStart(2,'0');
+}
+
+function renderPayruns() {
+  var el = document.getElementById('payruns-content');
+  if (!el) return;
+  var payruns = DB.load('nau_payruns').slice().reverse();
+  var html = '<div class="page-header"><h2 class="page-title">Payruns</h2><button class="btn-create" onclick="openNewPayrun()">+ New Payrun</button></div>';
+  if (!payruns.length) {
+    html += '<div class="report-card"><p style="color:#9ca3af;text-align:center;padding:2rem">No payruns yet. Click &quot;+ New Payrun&quot; to process your first payroll.</p></div>';
+  } else {
+    html += '<div class="report-card"><div class="table-scroll"><table class="acc-table"><thead><tr><th>Payrun #</th><th>Period</th><th>Employees</th><th>Total Gross</th><th>Total PAYE</th><th>Total Net</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+    payruns.forEach(function(p) {
+      var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var period = (monthNames[p.month-1]||p.month) + ' ' + p.year;
+      html += '<tr>' +
+        '<td><strong>' + esc(p.payrunNo) + '</strong></td>' +
+        '<td>' + period + '</td>' +
+        '<td>' + (p.lines||[]).length + '</td>' +
+        '<td>' + fmtMoney(p.totalGross) + '</td>' +
+        '<td>' + fmtMoney(p.totalPAYE) + '</td>' +
+        '<td>' + fmtMoney(p.totalNet) + '</td>' +
+        '<td><span class="badge ' + (p.status==='Posted'?'badge-paid':'badge-pending') + '">' + esc(p.status) + '</span></td>' +
+        '<td><button class="btn-icon" onclick="viewPayrun(' + p.id + ')" title="View">👁️</button></td>' +
+        '</tr>';
+    });
+    html += '</tbody></table></div></div>';
+  }
+  el.innerHTML = html;
+}
+
+function openNewPayrun() {
+  var emps = DB.load('nau_employees').filter(function(e){ return e.status === 'Active'; });
+  if (!emps.length) { toast('No active employees. Add employees first.'); return; }
+  var today = new Date();
+  var month = today.getMonth() + 1;
+  var year = today.getFullYear();
+  var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  var rows = emps.map(function(e) {
+    var gross = (e.salary||0) + (e.allowances||0);
+    var paye = gross * ((e.payeRate||30)/100);
+    var nssfEmp = gross * ((e.nssfEmp||5)/100);
+    var nssfEmployer = gross * ((e.nssfEmployer||10)/100);
+    var net = gross - paye - nssfEmp;
+    return { empId: e.id, empName: e.name, role: e.role, gross: gross, paye: paye, nssfEmp: nssfEmp, nssfEmployer: nssfEmployer, net: net, otherDed: 0 };
+  });
+
+  var modalHtml = '<div style="margin-bottom:1rem;">' +
+    '<label style="font-weight:600;display:block;margin-bottom:.4rem;">Payroll Period</label>' +
+    '<div style="display:flex;gap:1rem;">' +
+    '<select id="prMonth" style="flex:1;padding:.5rem;border:1px solid #ddd;border-radius:6px;">' +
+    monthNames.map(function(m,i){ return '<option value="'+(i+1)+'"'+(i+1===month?' selected':'')+'>'+m+'</option>'; }).join('') +
+    '</select>' +
+    '<input type="number" id="prYear" value="'+year+'" style="width:90px;padding:.5rem;border:1px solid #ddd;border-radius:6px;">' +
+    '</div></div>' +
+    '<div class="table-scroll"><table class="acc-table" style="font-size:.85rem"><thead><tr><th>Employee</th><th>Gross</th><th>PAYE</th><th>NSSF(Emp)</th><th>NSSF(Emplyr)</th><th>Other Ded.</th><th>Net Pay</th></tr></thead><tbody id="prRows">';
+  rows.forEach(function(r, i) {
+    modalHtml += '<tr>' +
+      '<td>' + esc(r.empName) + '<br><small style="color:#9ca3af">'+esc(r.role||'')+'</small></td>' +
+      '<td>$' + r.gross.toFixed(2) + '</td>' +
+      '<td>$' + r.paye.toFixed(2) + '</td>' +
+      '<td>$' + r.nssfEmp.toFixed(2) + '</td>' +
+      '<td>$' + r.nssfEmployer.toFixed(2) + '</td>' +
+      '<td><input type="number" min="0" step="0.01" value="0" id="prOtherDed'+i+'" onchange="recalcPayrunRow('+i+')" style="width:70px;padding:.25rem .4rem;border:1px solid #ddd;border-radius:4px;font-size:.82rem"></td>' +
+      '<td id="prNet'+i+'">$' + r.net.toFixed(2) + '</td>' +
+      '</tr>';
+  });
+  var totalGross = rows.reduce(function(s,r){return s+r.gross;},0);
+  var totalPAYE = rows.reduce(function(s,r){return s+r.paye;},0);
+  var totalNSSFEmp = rows.reduce(function(s,r){return s+r.nssfEmp;},0);
+  var totalNSSFEmployer = rows.reduce(function(s,r){return s+r.nssfEmployer;},0);
+  var totalNet = rows.reduce(function(s,r){return s+r.net;},0);
+  modalHtml += '</tbody><tfoot><tr style="font-weight:700;background:#f8fafc"><td>TOTALS</td><td>$'+totalGross.toFixed(2)+'</td><td>$'+totalPAYE.toFixed(2)+'</td><td>$'+totalNSSFEmp.toFixed(2)+'</td><td>$'+totalNSSFEmployer.toFixed(2)+'</td><td></td><td id="prTotalNet">$'+totalNet.toFixed(2)+'</td></tr></tfoot></table></div>';
+
+  // Store rows on window for posting
+  window._payrunRows = rows;
+  window._payrunEmps = emps;
+
+  _modalType = null;
+  _editId = null;
+  document.getElementById('modalTitle').textContent = 'New Payrun';
+  document.getElementById('modalBody').innerHTML = modalHtml;
+  var saveBtn = document.getElementById('modalSaveBtn');
+  saveBtn.textContent = 'Post Payrun';
+  saveBtn.style.display = '';
+  saveBtn.onclick = postPayrun;
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+function recalcPayrunRow(i) {
+  if (!window._payrunRows) return;
+  var r = window._payrunRows[i];
+  var otherDed = parseFloat(document.getElementById('prOtherDed'+i).value) || 0;
+  r.otherDed = otherDed;
+  var newNet = r.gross - r.paye - r.nssfEmp - otherDed;
+  r.net = newNet;
+  document.getElementById('prNet'+i).textContent = '$' + newNet.toFixed(2);
+  var totalNet = window._payrunRows.reduce(function(s,row){return s+row.net;},0);
+  var tnEl = document.getElementById('prTotalNet');
+  if (tnEl) tnEl.textContent = '$' + totalNet.toFixed(2);
+}
+
+function postPayrun() {
+  var rows = window._payrunRows;
+  if (!rows || !rows.length) return;
+  var month = parseInt(document.getElementById('prMonth').value);
+  var year = parseInt(document.getElementById('prYear').value);
+
+  var totalGross = rows.reduce(function(s,r){return s+r.gross;},0);
+  var totalPAYE = rows.reduce(function(s,r){return s+r.paye;},0);
+  var totalNSSFEmp = rows.reduce(function(s,r){return s+r.nssfEmp;},0);
+  var totalNSSFEmployer = rows.reduce(function(s,r){return s+r.nssfEmployer;},0);
+  var totalNet = rows.reduce(function(s,r){return s+r.net;},0);
+  var totalNSSFPayable = totalNSSFEmp + totalNSSFEmployer;
+
+  var payrunNo = genPayrunNo();
+  var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var periodLabel = (monthNames[month-1]||month) + ' ' + year;
+
+  var accts = DB.load('nau_payment_accounts');
+  var cashAcct = accts.find(function(a){ return a.currency === 'USD' && a.status === 'Active'; }) || {};
+  var cashCode = cashAcct.glAccountCode || '1001';
+  var cashName = cashAcct.name || 'Cash USD';
+
+  var coaAll = DB.load('nau_coa');
+  function coaName(code) { var a = coaAll.find(function(c){return c.code===code;}); return a ? a.name : code; }
+
+  postJE([
+    { accountCode: '6010', accountName: coaName('6010'), debit: totalGross, credit: 0, description: 'Gross salaries — ' + periodLabel },
+    { accountCode: '6011', accountName: coaName('6011'), debit: totalNSSFEmployer, credit: 0, description: 'NSSF employer — ' + periodLabel },
+    { accountCode: cashCode, accountName: cashName, debit: 0, credit: totalNet, description: 'Net pay — ' + periodLabel },
+    { accountCode: '2300', accountName: coaName('2300'), debit: 0, credit: totalPAYE, description: 'PAYE payable — ' + periodLabel },
+    { accountCode: '2400', accountName: coaName('2400'), debit: 0, credit: totalNSSFPayable, description: 'NSSF payable — ' + periodLabel }
+  ], payrunNo, 'Payroll — ' + periodLabel, 'general');
+
+  var payruns = DB.load('nau_payruns');
+  var payrunRecord = { id: DB.nextId('nau_payruns'), payrunNo: payrunNo, month: month, year: year, status: 'Posted', lines: rows, totalGross: totalGross, totalPAYE: totalPAYE, totalNSSFEmp: totalNSSFEmp, totalNSSFEmployer: totalNSSFEmployer, totalNet: totalNet, postedAt: nowISO() };
+  payruns.push(payrunRecord);
+  DB.save('nau_payruns', payruns);
+
+  closeModal();
+  renderPayruns();
+  toast('Payrun ' + payrunNo + ' posted successfully.');
+}
+
+function viewPayrun(id) {
+  var payruns = DB.load('nau_payruns');
+  var p = payruns.find(function(x){ return x.id === id; });
+  if (!p) return;
+  var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var period = (monthNames[p.month-1]||p.month) + ' ' + p.year;
+
+  var html = '<div style="margin-bottom:1rem;"><strong>' + esc(p.payrunNo) + '</strong> — ' + period + ' &nbsp;<span class="badge badge-paid">Posted</span></div>' +
+    '<div class="table-scroll"><table class="acc-table" style="font-size:.85rem"><thead><tr><th>Employee</th><th>Gross</th><th>PAYE</th><th>NSSF(Emp)</th><th>NSSF(Emplyr)</th><th>Net Pay</th><th>Payslip</th></tr></thead><tbody>';
+  (p.lines||[]).forEach(function(r) {
+    html += '<tr>' +
+      '<td>' + esc(r.empName) + '<br><small style="color:#9ca3af">'+esc(r.role||'')+'</small></td>' +
+      '<td>$' + Number(r.gross||0).toFixed(2) + '</td>' +
+      '<td>$' + Number(r.paye||0).toFixed(2) + '</td>' +
+      '<td>$' + Number(r.nssfEmp||0).toFixed(2) + '</td>' +
+      '<td>$' + Number(r.nssfEmployer||0).toFixed(2) + '</td>' +
+      '<td><strong>$' + Number(r.net||0).toFixed(2) + '</strong></td>' +
+      '<td><button class="btn-icon" onclick="printPayslip(' + id + ',' + r.empId + ')" title="Print Payslip">📄</button></td>' +
+      '</tr>';
+  });
+  html += '</tbody></table></div>';
+
+  _modalType = null;
+  _editId = null;
+  document.getElementById('modalTitle').textContent = 'Payrun — ' + period;
+  document.getElementById('modalBody').innerHTML = html;
+  var saveBtn = document.getElementById('modalSaveBtn');
+  saveBtn.style.display = 'none';
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+
+function printPayslip(payrunId, empId) {
+  var payruns = DB.load('nau_payruns');
+  var p = payruns.find(function(x){ return x.id === payrunId; });
+  if (!p) return;
+  var line = (p.lines||[]).find(function(l){ return l.empId === empId; });
+  if (!line) return;
+  var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var period = (monthNames[p.month-1]||p.month) + ' ' + p.year;
+  var settings = DB.loadObj('nau_settings', {});
+  var companyName = settings.companyName || 'NipponAuto Uganda';
+
+  var emps = DB.load('nau_employees');
+  var emp = emps.find(function(e){ return e.id === empId; }) || {};
+  var basicSalary = emp.salary || line.gross;
+  var allowances = emp.allowances || (line.gross - basicSalary);
+
+  var html = '<div id="payslipContent" style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:2rem;border:1px solid #ddd;border-radius:8px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid #0a1628;">' +
+    '<div><div style="font-size:1.3rem;font-weight:800;color:#0a1628">' + esc(companyName) + '</div><div style="color:#666;font-size:.85rem">Payslip</div></div>' +
+    '<div style="text-align:right"><div style="font-weight:700">Month: ' + period + '</div><div style="color:#666;font-size:.85rem">Payrun: ' + esc(p.payrunNo) + '</div></div>' +
+    '</div>' +
+    '<div style="margin-bottom:1.5rem;"><strong>Employee:</strong> ' + esc(line.empName) + ' &nbsp;&nbsp; <strong>Role:</strong> ' + esc(line.role||'—') + '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:1.5rem;">' +
+    '<div><div style="font-weight:700;margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:1px solid #eee">EARNINGS</div>' +
+    '<div style="display:flex;justify-content:space-between;margin-bottom:.4rem"><span>Basic Salary</span><span>$' + Number(basicSalary).toFixed(2) + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;margin-bottom:.4rem"><span>Allowances</span><span>$' + Number(allowances).toFixed(2) + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;font-weight:700;margin-top:.5rem;padding-top:.4rem;border-top:1px solid #eee"><span>Gross Pay</span><span>$' + Number(line.gross||0).toFixed(2) + '</span></div>' +
+    '</div>' +
+    '<div><div style="font-weight:700;margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:1px solid #eee">DEDUCTIONS</div>' +
+    '<div style="display:flex;justify-content:space-between;margin-bottom:.4rem"><span>PAYE</span><span>$' + Number(line.paye||0).toFixed(2) + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;margin-bottom:.4rem"><span>NSSF (Employee)</span><span>$' + Number(line.nssfEmp||0).toFixed(2) + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;margin-bottom:.4rem"><span>Other Deductions</span><span>$' + Number(line.otherDed||0).toFixed(2) + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;font-weight:700;margin-top:.5rem;padding-top:.4rem;border-top:1px solid #eee"><span>Total Deductions</span><span>$' + (Number(line.paye||0)+Number(line.nssfEmp||0)+Number(line.otherDed||0)).toFixed(2) + '</span></div>' +
+    '</div></div>' +
+    '<div style="background:#0a1628;color:#fff;padding:1rem 1.5rem;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">' +
+    '<span style="font-size:1.1rem;font-weight:700">NET PAY</span>' +
+    '<span style="font-size:1.4rem;font-weight:800;color:#f0a500">$' + Number(line.net||0).toFixed(2) + '</span>' +
+    '</div></div>';
+
+  document.getElementById('payslipBody').innerHTML = html;
+  document.getElementById('payslipModal').style.display = 'flex';
+}
+
+function closePayslipModal() {
+  document.getElementById('payslipModal').style.display = 'none';
+}
+
+function printPayslipDoc() {
+  window.print();
 }

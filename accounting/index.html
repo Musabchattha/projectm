@@ -113,6 +113,14 @@
         <span class="nav-icon">💰</span><span>Payment Accounts</span>
       </div>
 
+      <div class="nav-group-label">Payroll</div>
+      <div class="nav-item" data-page="employees">
+        <span class="nav-icon">👥</span><span>Employees</span>
+      </div>
+      <div class="nav-item" data-page="payruns">
+        <span class="nav-icon">📋</span><span>Payruns</span>
+      </div>
+
       <div class="nav-group-label">Reporting</div>
       <div class="nav-item" data-page="reports">
         <span class="nav-icon">📈</span><span>Reports</span>
@@ -919,6 +927,16 @@
         </div>
       </div>
 
+      <!-- ===== EMPLOYEES ===== -->
+      <div class="page-section" id="page-employees">
+        <div id="employees-content"></div>
+      </div>
+
+      <!-- ===== PAYRUNS ===== -->
+      <div class="page-section" id="page-payruns">
+        <div id="payruns-content"></div>
+      </div>
+
     </div><!-- /acc-content -->
   </main><!-- /acc-main -->
 
@@ -1097,6 +1115,29 @@ function closeBSDetail() {
     <div id="statementContent"></div>
   </div>
 </div>
+
+<!-- ===== PAYSLIP MODAL ===== -->
+<div id="payslipModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:4000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:2rem;width:min(650px,96vw);max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.25);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+      <h3 style="margin:0;color:#0a1628;">Employee Payslip</h3>
+      <div style="display:flex;gap:.75rem;">
+        <button onclick="printPayslipDoc()" style="padding:.5rem 1rem;background:#0a1628;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">🖨️ Print</button>
+        <button onclick="closePayslipModal()" style="padding:.5rem 1rem;background:#f0f0f0;border:none;border-radius:6px;cursor:pointer;">✕ Close</button>
+      </div>
+    </div>
+    <div id="payslipBody"></div>
+  </div>
+</div>
+
+<style>
+@media print {
+  body > *:not(#payslipModal) { display: none !important; }
+  #payslipModal { display: block !important; position: static; background: none; }
+  #payslipModal > div { box-shadow: none; padding: 0; }
+  #payslipModal button { display: none !important; }
+}
+</style>
 
 </body>
 </html>

@@ -946,6 +946,11 @@ textarea.form-control { resize: vertical; min-height: 72px; }
   gap: .85rem;
 }
 .form-row.full { grid-template-columns: 1fr; }
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .85rem;
+}
 
 .btn-save {
   padding: .62rem 1.6rem;
@@ -1658,4 +1663,16 @@ textarea.form-control { resize: vertical; min-height: 72px; }
 /* P&L Drill-down */
 .pnl-clickable { cursor: pointer; }
 .pnl-clickable:hover { background: #f0f4ff; }
+
+/* btn-icon alias for payroll tables */
+.btn-icon { display: inline-flex; align-items: center; justify-content: center; padding: .25rem .5rem; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; cursor: pointer; font-size: .9rem; transition: background .15s, border-color .15s; }
+.btn-icon:hover { background: #f3f4f6; border-color: #9ca3af; }
+.btn-icon.btn-danger { border-color: #fecaca; color: #dc2626; }
+.btn-icon.btn-danger:hover { background: #fee2e2; border-color: #dc2626; }
+
+/* Payroll module */
+.payrun-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.payrun-stat { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: .75rem 1rem; }
+.payrun-stat-label { font-size: .78rem; color: #6b7280; margin-bottom: .2rem; }
+.payrun-stat-val { font-size: 1.1rem; font-weight: 700; color: #0a1628; }
 .pnl-detail-row td { background: #fafafa; }
