@@ -85,6 +85,7 @@ function navigate(page) {
     'auctions': renderAuctions,
     'quotes': renderQuotes,
     'orders': renderOrders,
+    'crm-pipeline': renderCRMPipeline,
     'inquiries': renderInquiries,
     'inquiries-new': renderInquiries,
     'content-slider': renderSlides,
@@ -125,6 +126,7 @@ function updateBreadcrumb(page) {
     'auctions': ['Auctions'],
     'quotes': ['Quotes', 'Standard Quotes'],
     'orders': ['Orders'],
+    'crm-pipeline': ['CRM Pipeline'],
     'inquiries': ['Inquiries'],
     'inquiries-new': ['Inquiries', 'New'],
     'appointments': ['Appointments'],
@@ -571,7 +573,16 @@ function renderQuotes() {
   let data = DB.load('nau_quotes').filter(qt => !q || (qt.vehicleName+qt.customerName+qt.sku).toLowerCase().includes(q.toLowerCase()));
   const mfrSel = document.getElementById('qt-mfr');
   if (mfrSel && mfrSel.options.length < 2) getMFRs().forEach(m => { const o = new Option(m.name, m.id); mfrSel.add(o); });
-  document.getElementById('qt-tbody').innerHTML = data.length ? data.map(q => `
+  const _qtToday = new Date().toISOString().split('T')[0];
+  document.getElementById('qt-tbody').innerHTML = data.length ? data.map(q => {
+    const followUpBadge = q.followUpDate
+      ? (q.followUpDate < _qtToday
+        ? `<span style="background:#fee2e2;color:#c0392b;padding:.15rem .5rem;border-radius:12px;font-size:.72rem;font-weight:700;">🔴 Overdue</span>`
+        : q.followUpDate === _qtToday
+        ? `<span style="background:#fef3c7;color:#d97706;padding:.15rem .5rem;border-radius:12px;font-size:.72rem;font-weight:700;">🟡 Today</span>`
+        : `<span style="background:#eff6ff;color:#1e40af;padding:.15rem .5rem;border-radius:12px;font-size:.72rem;font-weight:700;">📅 ${q.followUpDate}</span>`)
+      : '—';
+    return `
     <tr>
       <td><strong>${q.quoteNo}</strong></td>
       <td><span style="font-size:.75rem">${q.sku||'-'}</span></td>
@@ -584,13 +595,16 @@ function renderQuotes() {
       <td>${q.downPayment||70}%</td>
       <td><div class="td-two-line"><span class="line2">Req: ${q.reqDate||'-'}</span><span class="line2">Iss: ${q.issDate||'-'}</span></div></td>
       <td><span class="badge badge-${(q.status||'quoted').toLowerCase()}">${q.status||'Quoted'}</span></td>
+      <td>${followUpBadge}</td>
+      <td>${q.assignedTo?`<span style="font-size:.78rem;color:#555;">${q.assignedTo}</span>`:'—'}</td>
       <td>${q.orderId ? `<span style="font-size:.75rem;background:#e8f5e9;color:#27ae60;padding:.2rem .5rem;border-radius:4px;font-weight:600;">✅ ${q.orderNo||'Order'}</span>` : '—'}</td>
       <td><div class="row-actions">
         <button class="btn-row" title="Edit" onclick="openModal('quote',${q.id})">✏️</button>
         <button class="btn-row" title="WhatsApp" onclick="openWhatsAppModal('quote',${q.id})" style="background:#25d366;color:#fff">📱</button>
         ${(q.status==='Quoted'||q.status==='Accepted'||q.status==='Pending')&&!q.orderId?`<button class="btn-row" title="Convert to Order" onclick="convertQuoteToOrder(${q.id})" style="background:#27ae60;color:#fff;font-size:.75rem;padding:.2rem .5rem;">🛒 Order</button>`:''}
       </div></td>
-    </tr>`).join('') : '<tr><td colspan="13" class="table-empty"><span class="empty-icon">📋</span>No quotes found.</td></tr>';
+    </tr>`;
+  }).join('') : '<tr><td colspan="15" class="table-empty"><span class="empty-icon">📋</span>No quotes found.</td></tr>';
 }
 
 function showQuoteTab(tab, el) {
@@ -730,7 +744,16 @@ function renderInquiries() {
     const matchNew = isNewOnly ? i.status==='new' : true;
     return matchQ && matchSt && matchNew;
   });
-  document.getElementById('inq-tbody').innerHTML = data.length ? data.map(i => `
+  const _inqToday = new Date().toISOString().split('T')[0];
+  document.getElementById('inq-tbody').innerHTML = data.length ? data.map(i => {
+    const followUpBadge = i.followUpDate
+      ? (i.followUpDate < _inqToday
+        ? `<span style="background:#fee2e2;color:#c0392b;padding:.15rem .5rem;border-radius:12px;font-size:.72rem;font-weight:700;">🔴 Overdue</span>`
+        : i.followUpDate === _inqToday
+        ? `<span style="background:#fef3c7;color:#d97706;padding:.15rem .5rem;border-radius:12px;font-size:.72rem;font-weight:700;">🟡 Today</span>`
+        : `<span style="background:#eff6ff;color:#1e40af;padding:.15rem .5rem;border-radius:12px;font-size:.72rem;font-weight:700;">📅 ${i.followUpDate}</span>`)
+      : '—';
+    return `
     <tr>
       <td><strong>${i.name}</strong></td>
       <td><span class="td-muted">${i.email}</span></td>
@@ -739,12 +762,15 @@ function renderInquiries() {
       <td><span class="td-muted" style="font-size:.75rem">${(i.message||'').substring(0,60)}${i.message&&i.message.length>60?'...':''}</span></td>
       <td>${fmtDateShort(i.date)}</td>
       <td><span class="badge badge-${i.status||'new'}">${(i.status||'new').charAt(0).toUpperCase()+(i.status||'new').slice(1)}</span></td>
+      <td>${followUpBadge}</td>
       <td><div class="row-actions">
+        <button class="btn-row" title="Edit" onclick="openModal('inquiry',${i.id})">✏️</button>
         <button class="btn-row" title="Next Status" onclick="cycleInqStatus(${i.id})">🔄</button>
         <button class="btn-row" title="WhatsApp" onclick="openWhatsAppModal('inquiry',${i.id})" style="background:#25d366;color:#fff">📱</button>
         <button class="btn-row btn-row-delete" onclick="deleteInquiry(${i.id})">🗑️</button>
       </div></td>
-    </tr>`).join('') : '<tr><td colspan="8" class="table-empty"><span class="empty-icon">💬</span>No inquiries found.</td></tr>';
+    </tr>`;
+  }).join('') : '<tr><td colspan="9" class="table-empty"><span class="empty-icon">💬</span>No inquiries found.</td></tr>';
 }
 
 function cycleInqStatus(id) {
@@ -1009,6 +1035,15 @@ function renderStaffPerformance() {
   const maxRev = Math.max(...rows.map(r => r[1].revenue), 1);
   const contentEl = document.getElementById('rpt-staff-content');
   if (!contentEl) return;
+  // Quote attribution
+  const quotesMap = {};
+  DB.load('nau_quotes').forEach(q => {
+    const rep = q.assignedTo || 'Unassigned';
+    if (!quotesMap[rep]) quotesMap[rep] = { quotes: 0, accepted: 0 };
+    quotesMap[rep].quotes++;
+    if (q.status === 'Accepted') quotesMap[rep].accepted++;
+  });
+
   contentEl.innerHTML = `
     <div class="dash-section" style="margin-bottom:1.5rem">
       <h3>Staff Revenue Performance</h3>
@@ -1032,6 +1067,21 @@ function renderStaffPerformance() {
               <td><strong>$${Number(s.revenue).toLocaleString()}</strong></td>
               <td>$${s.count ? Math.round(s.revenue / s.count).toLocaleString() : '0'}</td>
               <td>$${Number(s.thisMonth).toLocaleString()}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="dash-section" style="margin-top:1.5rem">
+      <h3>Quote Conversion by Rep</h3>
+      <table class="admin-table">
+        <thead><tr><th>Rep</th><th>Quotes Sent</th><th>Accepted</th><th>Conversion Rate</th></tr></thead>
+        <tbody>
+          ${Object.entries(quotesMap).sort((a,b)=>b[1].quotes-a[1].quotes).map(([rep,data]) => `
+            <tr>
+              <td><strong>${rep}</strong></td>
+              <td>${data.quotes}</td>
+              <td>${data.accepted}</td>
+              <td>${data.quotes>0?(data.accepted/data.quotes*100).toFixed(1)+'%':'—'}</td>
             </tr>`).join('')}
         </tbody>
       </table>
@@ -1294,6 +1344,42 @@ function renderDash(tab) {
         <h3>Monthly Revenue Trend (last 12 months)</h3>
         <div class="monthly-chart" style="margin-top:.75rem">${monthlyChartHtml}</div>
       </div>
+      ${(()=>{
+        const todayStr = new Date().toISOString().split('T')[0];
+        const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+        const _fuInqs = DB.load('nau_inquiries');
+        const _fuQts = DB.load('nau_quotes');
+        const followUpItems = [
+          ..._fuInqs.filter(i => i.followUpDate && i.followUpDate <= tomorrowStr).map(i => ({
+            type: 'Inquiry', ref: `INQ #${i.id}`, customer: i.name, notes: i.followUpNotes||'', date: i.followUpDate,
+            overdue: i.followUpDate < todayStr, id: i.id, source: 'nau_inquiries'
+          })),
+          ..._fuQts.filter(q => q.followUpDate && q.followUpDate <= tomorrowStr).map(q => ({
+            type: 'Quote', ref: q.quoteNo||`QT-${q.id}`, customer: q.customerName||q.customer||'', notes: q.followUpNotes||'', date: q.followUpDate,
+            overdue: q.followUpDate < todayStr, id: q.id, source: 'nau_quotes'
+          }))
+        ].sort((a,b) => a.date.localeCompare(b.date));
+        return `<div class="dash-widget" style="margin-bottom:1rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;">
+            <h3 style="margin:0;font-size:1rem;color:#0a1628;">📋 Follow-ups Due</h3>
+            <span style="font-size:.8rem;color:#9ca3af;">${followUpItems.length} item${followUpItems.length!==1?'s':''}</span>
+          </div>
+          ${followUpItems.length === 0
+            ? '<p style="color:#9ca3af;font-size:.85rem;text-align:center;padding:.5rem">No follow-ups due. 🎉</p>'
+            : followUpItems.map(item => `
+              <div style="display:flex;align-items:center;gap:.75rem;padding:.5rem 0;border-bottom:1px solid #f0f2f5;font-size:.83rem;">
+                <span style="background:${item.overdue?'#fee2e2':'#fef3c7'};color:${item.overdue?'#c0392b':'#d97706'};padding:.15rem .5rem;border-radius:12px;font-size:.72rem;font-weight:700;white-space:nowrap;">${item.overdue?'🔴 Overdue':'🟡 Today'}</span>
+                <div style="flex:1">
+                  <strong>${item.customer||'—'}</strong> — ${item.type} ${item.ref}
+                  ${item.notes ? `<div style="color:#9ca3af;font-size:.78rem">"${item.notes}"</div>` : ''}
+                </div>
+                <div style="display:flex;gap:.4rem;flex-shrink:0;">
+                  <button onclick="markFollowUpDone('${item.source}',${item.id})" style="background:#27ae60;color:#fff;border:none;border-radius:4px;padding:.2rem .5rem;font-size:.72rem;cursor:pointer;">✓ Done</button>
+                  <button onclick="snoozeFollowUp('${item.source}',${item.id})" style="background:#f0f2f8;color:#0a1628;border:none;border-radius:4px;padding:.2rem .5rem;font-size:.72rem;cursor:pointer;">+1d</button>
+                </div>
+              </div>`).join('')}
+        </div>`;
+      })()}
       ${apptTableHtml}`;
     document.querySelectorAll('#dashContent [data-nav]').forEach(a => a.addEventListener('click', e=>{e.preventDefault();navigate(a.dataset.nav);}));
   } else if (tab==='vehicles') {
@@ -1322,6 +1408,27 @@ function renderDash(tab) {
   }
 }
 
+function markFollowUpDone(storageKey, id) {
+  const items = DB.load(storageKey);
+  const idx = items.findIndex(i => i.id === id);
+  if (idx !== -1) { items[idx].followUpDate = null; items[idx].followUpNotes = ''; DB.save(storageKey, items); }
+  renderDash('overview');
+  toast('Follow-up marked done.');
+}
+
+function snoozeFollowUp(storageKey, id) {
+  const items = DB.load(storageKey);
+  const idx = items.findIndex(i => i.id === id);
+  if (idx !== -1) {
+    const d = new Date(items[idx].followUpDate || new Date());
+    d.setDate(d.getDate() + 1);
+    items[idx].followUpDate = d.toISOString().split('T')[0];
+    DB.save(storageKey, items);
+  }
+  renderDash('overview');
+  toast('Snoozed 1 day.');
+}
+
 function dashConfirmAppt(id) {
   const appts = DB.load('nau_appointments');
   const idx = appts.findIndex(a => a.id === id);
@@ -1340,6 +1447,101 @@ function dashCancelAppt(id) {
   DB.save('nau_appointments', appts);
   renderDash('overview');
   toast('Appointment cancelled.');
+}
+
+// ===== CRM PIPELINE =====
+function renderCRMPipeline() {
+  const el = document.getElementById('page-crm-pipeline');
+  if (!el) return;
+
+  const inqs = DB.load('nau_inquiries');
+  const qts = DB.load('nau_quotes');
+  const ords = DB.load('nau_orders');
+  const invs = DB.load('nau_invoices');
+  const now = new Date();
+  const mtdStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+
+  const columns = [
+    {
+      id: 'new-leads', label: '📩 New Leads', color: '#3b82f6',
+      items: inqs.filter(i => i.status === 'new' || i.status === 'contacted').map(i => ({
+        title: i.name || '—', sub: i.vehicleInterest || 'General inquiry', amount: null,
+        followUpDate: i.followUpDate, badge: i.status, onClick: `openModal('inquiry',${i.id})`
+      }))
+    },
+    {
+      id: 'quoted', label: '💬 Quoted', color: '#8b5cf6',
+      items: qts.filter(q => q.status === 'Quoted').map(q => ({
+        title: q.customerName || q.customer || '—', sub: q.vehicleName || q.sku || '—',
+        amount: q.quotedPrice, followUpDate: q.followUpDate, badge: 'Quoted',
+        onClick: `openModal('quote',${q.id})`
+      }))
+    },
+    {
+      id: 'negotiating', label: '🤝 Negotiating', color: '#f59e0b',
+      items: qts.filter(q => q.status === 'Pending').map(q => ({
+        title: q.customerName || q.customer || '—', sub: q.vehicleName || q.sku || '—',
+        amount: q.quotedPrice, followUpDate: q.followUpDate, badge: 'Pending',
+        onClick: `openModal('quote',${q.id})`
+      }))
+    },
+    {
+      id: 'ordered', label: '📦 Ordered', color: '#f97316',
+      items: ords.filter(o => o.status !== 'Completed').map(o => ({
+        title: o.customerName || '—', sub: o.vehicleName || o.vehicle || '—',
+        amount: o.amount, followUpDate: null, badge: o.status,
+        onClick: `openModal('order',${o.id})`
+      }))
+    },
+    {
+      id: 'won', label: '✅ Won (MTD)', color: '#059669',
+      items: invs.filter(i => i.status === 'Paid' && (i.createdAt||'') >= mtdStart).map(i => ({
+        title: i.customerName || '—', sub: i.vehicleName || (i.lineItems&&i.lineItems[0]&&i.lineItems[0].description) || '—',
+        amount: i.totalAmount, followUpDate: null, badge: 'Paid',
+        onClick: ''
+      }))
+    }
+  ];
+
+  const today = new Date().toISOString().split('T')[0];
+
+  el.innerHTML = `
+    <div class="page-header">
+      <h2 class="page-title">CRM Pipeline</h2>
+      <div style="font-size:.85rem;color:#9ca3af">Live view of your sales pipeline</div>
+    </div>
+    <div class="kanban-board">
+      ${columns.map(col => {
+        const colValue = col.items.reduce((s,i)=>s+Number(i.amount||0),0);
+        return `
+        <div class="kanban-col">
+          <div class="kanban-col-header" style="border-top:3px solid ${col.color}">
+            <span class="kanban-col-title">${col.label}</span>
+            <span class="kanban-col-count">${col.items.length}</span>
+          </div>
+          ${colValue > 0 ? `<div style="font-size:.75rem;color:#9ca3af;padding:.25rem .75rem;font-weight:600;">$${Number(colValue).toLocaleString()} pipeline</div>` : ''}
+          <div class="kanban-cards">
+            ${col.items.length === 0
+              ? '<div style="text-align:center;padding:1.5rem;color:#d1d5db;font-size:.82rem">No items</div>'
+              : col.items.map(item => {
+                  const fuBadge = item.followUpDate
+                    ? (item.followUpDate < today
+                      ? '<span style="background:#fee2e2;color:#c0392b;font-size:.68rem;font-weight:700;padding:.1rem .4rem;border-radius:10px;margin-top:.35rem;display:inline-block;">🔴 Overdue</span>'
+                      : item.followUpDate === today
+                      ? '<span style="background:#fef3c7;color:#d97706;font-size:.68rem;font-weight:700;padding:.1rem .4rem;border-radius:10px;margin-top:.35rem;display:inline-block;">🟡 Today</span>'
+                      : `<span style="background:#eff6ff;color:#1e40af;font-size:.68rem;padding:.1rem .4rem;border-radius:10px;margin-top:.35rem;display:inline-block;">📅 ${item.followUpDate}</span>`)
+                    : '';
+                  return `<div class="kanban-card" ${item.onClick ? `onclick="${item.onClick}"` : ''} style="${item.onClick?'cursor:pointer':''}">
+                    <div class="kc-title">${item.title}</div>
+                    <div class="kc-sub">${item.sub}</div>
+                    ${item.amount ? `<div class="kc-amount">$${Number(item.amount).toLocaleString()}</div>` : ''}
+                    ${fuBadge}
+                  </div>`;
+                }).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
 }
 
 // ===== SETTINGS =====
@@ -1462,7 +1664,15 @@ const modalConfigs = {
       <div class="form-row"><div class="form-group"><label>Quoted Price (USD)</label><input class="form-control" type="number" id="q-quoted-price" value="${d?d.quotedPrice:''}" /></div>
       <div class="form-group"><label>Down Payment (%)</label><input class="form-control" type="number" id="q-down-pct" value="${d?d.downPayment:70}" /></div></div>
       <div class="form-group"><label>Expiry Date</label><input class="form-control" type="date" id="q-expires" value="${d&&d.expiresAt?d.expiresAt:''}" /></div>
-      <div class="form-row full"><div class="form-group"><label>Notes</label><textarea class="form-control" id="q-notes">${d?d.notes||'':''}</textarea></div></div>`,
+      <div class="form-row full"><div class="form-group"><label>Notes</label><textarea class="form-control" id="q-notes">${d?d.notes||'':''}</textarea></div></div>
+      <div class="form-group"><label>Assigned To</label>
+        <select class="form-control" id="fAssignedTo">
+          <option value="">— Unassigned —</option>
+          ${DB.load('nau_users').map(u => `<option value="${u.name||u.email}" ${(d&&(d.assignedTo===u.name||d.assignedTo===u.email))?'selected':''}>${u.name||u.email}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>Follow-up Date</label><input class="form-control" id="fFollowUpDate" type="date" value="${d&&d.followUpDate?d.followUpDate:''}"></div>
+      <div class="form-group"><label>Follow-up Notes</label><input class="form-control" id="fFollowUpNotes" value="${d&&d.followUpNotes?d.followUpNotes.replace(/"/g,'&quot;'):''}" placeholder="e.g. Call back about financing"></div>`,
     collect: () => {
       return {
         vehicleName: document.getElementById('q-vehicle').value,
@@ -1471,7 +1681,10 @@ const modalConfigs = {
         downPayment: Number(document.getElementById('q-down-pct').value) || 70,
         status: document.getElementById('q-status').value,
         expiresAt: document.getElementById('q-expires').value || '',
-        notes: document.getElementById('q-notes').value
+        notes: document.getElementById('q-notes').value,
+        assignedTo: document.getElementById('fAssignedTo')?.value || '',
+        followUpDate: document.getElementById('fFollowUpDate').value || null,
+        followUpNotes: document.getElementById('fFollowUpNotes').value.trim()
       };
     },
     create: d => { const all = DB.load('nau_quotes'); const no = 'QT-' + new Date().getFullYear() + '-' + String(DB.nextId('nau_quotes')).padStart(2,'0'); all.push({id:DB.nextId('nau_quotes'),...d,quoteNo:no,reqDate:nowISO().split('T')[0],createdAt:nowISO()}); DB.save('nau_quotes',all); },
@@ -1748,8 +1961,14 @@ const modalConfigs = {
       <div class="form-group"><label>Vehicle</label><input class="form-control" id="od-veh" value="${d?d.vehicleName:''}" placeholder="e.g. Toyota Hilux 2025" /></div></div>
       <div class="form-row"><div class="form-group"><label>Amount (USD)<span class="required">*</span></label><input class="form-control" type="number" id="od-amt" value="${d?d.amount:''}" /></div>
       <div class="form-group"><label>Date</label><input class="form-control" type="date" id="od-date" value="${d?d.date:new Date().toISOString().split('T')[0]}" /></div></div>
-      <div class="form-group"><label>Status</label><select class="form-control" id="od-status"><option>Pending</option><option>Confirmed</option><option>Shipped</option><option>In Showroom</option><option>Completed</option></select></div>`,
-    collect:()=>{const c=document.getElementById('od-cust').value.trim();const a=document.getElementById('od-amt').value;if(!c||!a){toast('⚠️ Customer and Amount required');return null;}const all=DB.load('nau_orders');const num=all.length+1;return{orderNo:'ORD-2026-'+String(num).padStart(2,'0'),customerName:c,vehicleName:document.getElementById('od-veh').value,amount:Number(a),date:document.getElementById('od-date').value,status:document.getElementById('od-status').value};},
+      <div class="form-group"><label>Status</label><select class="form-control" id="od-status"><option>Pending</option><option>Confirmed</option><option>Shipped</option><option>In Showroom</option><option>Completed</option></select></div>
+      <div class="form-group"><label>Assigned To</label>
+        <select class="form-control" id="od-assignedTo">
+          <option value="">— Unassigned —</option>
+          ${DB.load('nau_users').map(u => `<option value="${u.name||u.email}" ${(d&&(d.assignedTo===u.name||d.assignedTo===u.email))?'selected':''}>${u.name||u.email}</option>`).join('')}
+        </select>
+      </div>`,
+    collect:()=>{const c=document.getElementById('od-cust').value.trim();const a=document.getElementById('od-amt').value;if(!c||!a){toast('⚠️ Customer and Amount required');return null;}const all=DB.load('nau_orders');const num=all.length+1;return{orderNo:'ORD-2026-'+String(num).padStart(2,'0'),customerName:c,vehicleName:document.getElementById('od-veh').value,amount:Number(a),date:document.getElementById('od-date').value,status:document.getElementById('od-status').value,assignedTo:document.getElementById('od-assignedTo')?.value||''};},
     create:d=>{const all=DB.load('nau_orders');const newOrder={id:DB.nextId('nau_orders'),...d,milestones:DEFAULT_MILESTONES.map(m=>({...m})),createdAt:nowISO()};all.push(newOrder);DB.save('nau_orders',all);},
     update:(id,d)=>{const all=DB.load('nau_orders');const i=all.findIndex(o=>o.id===id);if(i>-1){all[i]={...all[i],...d};DB.save('nau_orders',all);}},
     refresh:renderOrders
@@ -2108,6 +2327,36 @@ const modalConfigs = {
       if (i > -1) { all[i] = { ...all[i], ...d }; DB.save('nau_payment_accounts', all); }
     },
     refresh: renderPaymentAccounts
+  },
+  inquiry: {
+    label: 'Inquiry',
+    getData: id => DB.load('nau_inquiries').find(i => i.id === id),
+    form: d => `
+      <div class="form-row"><div class="form-group"><label>Name</label><input class="form-control" id="iq-name" value="${d?d.name||'':''}" /></div>
+      <div class="form-group"><label>Email</label><input class="form-control" id="iq-email" value="${d?d.email||'':''}" /></div></div>
+      <div class="form-row"><div class="form-group"><label>Phone</label><input class="form-control" id="iq-phone" value="${d?d.phone||'':''}" /></div>
+      <div class="form-group"><label>Status</label><select class="form-control" id="iq-status">
+        ${['new','contacted','closed'].map(s=>`<option value="${s}" ${d&&d.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+      </select></div></div>
+      <div class="form-group"><label>Vehicle Interest</label><input class="form-control" id="iq-vehicle" value="${d?d.vehicleInterest||'':''}" /></div>
+      <div class="form-group"><label>Message</label><textarea class="form-control" id="iq-message">${d?d.message||'':''}</textarea></div>
+      <div class="form-group"><label>Follow-up Date</label><input class="form-control" id="fFollowUpDate" type="date" value="${d&&d.followUpDate?d.followUpDate:''}"></div>
+      <div class="form-group"><label>Follow-up Notes</label><input class="form-control" id="fFollowUpNotes" value="${d&&d.followUpNotes?d.followUpNotes.replace(/"/g,'&quot;'):''}" placeholder="e.g. Call back about financing"></div>`,
+    collect: () => {
+      return {
+        name: document.getElementById('iq-name').value.trim(),
+        email: document.getElementById('iq-email').value.trim(),
+        phone: document.getElementById('iq-phone').value.trim(),
+        status: document.getElementById('iq-status').value,
+        vehicleInterest: document.getElementById('iq-vehicle').value.trim(),
+        message: document.getElementById('iq-message').value.trim(),
+        followUpDate: document.getElementById('fFollowUpDate').value || null,
+        followUpNotes: document.getElementById('fFollowUpNotes').value.trim()
+      };
+    },
+    create: d => { const all = DB.load('nau_inquiries'); all.push({id:DB.nextId('nau_inquiries'),...d,date:nowISO()}); DB.save('nau_inquiries',all); },
+    update: (id,d) => { const all = DB.load('nau_inquiries'); const i = all.findIndex(x=>x.id===id); if(i>-1){all[i]={...all[i],...d};DB.save('nau_inquiries',all);} },
+    refresh: renderInquiries
   }
 };
 
