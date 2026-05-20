@@ -493,6 +493,9 @@
           </table>
         </div>
 
+        <!-- Reconciliation panel -->
+        <div id="reconcile-panel" style="display:none;margin-top:1.5rem;"></div>
+
         <!-- Statement detail panel -->
         <div id="bs-detail-panel" style="display:none">
           <div class="bs-detail-header">
@@ -857,6 +860,7 @@
           <button class="sub-tab report-tab" data-tab="tax-report">Tax Report</button>
           <button class="sub-tab report-tab" data-tab="expenses">Expenses</button>
           <button class="sub-tab report-tab" data-tab="vehicle-pl">Vehicle P&L</button>
+          <button class="sub-tab report-tab" data-tab="cashflow">Cash Flow</button>
         </div>
 
         <div id="rpt-pnl" class="report-section">
@@ -908,6 +912,10 @@
 
         <div id="rpt-vehicle-pl" class="report-section" style="display:none">
           <div id="vehicle-pl-content"></div>
+        </div>
+
+        <div id="rpt-cashflow" class="report-section" style="display:none">
+          <div id="cashflow-content"></div>
         </div>
       </div>
 
@@ -1075,5 +1083,20 @@ function closeBSDetail() {
 </script>
 
 <script src="js/accounting.js"></script>
+
+<!-- Statement of Account Modal -->
+<div id="statementModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;width:90%;max-width:760px;max-height:90vh;overflow-y:auto;padding:2rem;position:relative;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <span></span>
+      <div style="display:flex;gap:.75rem;">
+        <button onclick="window.print()" class="btn-create" style="background:#6c757d;font-size:.8rem;padding:.4rem .9rem;">🖨️ Print</button>
+        <button onclick="document.getElementById('statementModal').style.display='none'" class="btn-create" style="background:#c0392b;font-size:.8rem;padding:.4rem .9rem;">✕ Close</button>
+      </div>
+    </div>
+    <div id="statementContent"></div>
+  </div>
+</div>
+
 </body>
 </html>

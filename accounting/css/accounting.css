@@ -1619,6 +1619,43 @@ textarea.form-control { resize: vertical; min-height: 72px; }
 .inv-print-footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd; text-align: center; color: #555; font-size: .85rem; }
 
 @media print {
-  body > *:not(#invoicePrintModal) { display: none !important; }
+  body > *:not(#invoicePrintModal):not(#statementModal) { display: none !important; }
   #invoicePrintModal { display: block !important; }
+  #statementModal { display: block !important; position: static !important; background: none !important; }
+  #statementModal > div { box-shadow: none !important; max-height: none !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; }
+  #statementModal button { display: none !important; }
 }
+
+/* Bank Reconciliation */
+.reconcile-wrap { background: #fff; border-radius: 10px; padding: 1.5rem; box-shadow: 0 2px 16px rgba(10,22,40,.1); }
+.reconcile-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+.reconcile-summary { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.reconcile-bal-card { flex: 1; min-width: 160px; background: #f4f6fa; border-radius: 8px; padding: 1rem; text-align: center; }
+.rbc-label { font-size: .78rem; color: #888; margin-bottom: .3rem; font-weight: 600; text-transform: uppercase; }
+.rbc-value { font-size: 1.1rem; font-weight: 800; color: #0a1628; }
+.rbc-ok { background: #e8f5e9; }
+.rbc-ok .rbc-value { color: #27ae60; }
+.rbc-warn { background: #fef3cd; }
+.rbc-warn .rbc-value { color: #c0392b; }
+.reconcile-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.reconcile-col h4 { margin: 0 0 .75rem; font-size: .9rem; color: #0a1628; }
+@media (max-width: 768px) { .reconcile-columns { grid-template-columns: 1fr; } }
+
+/* Cash Flow Statement */
+.cf-section { margin-bottom: 1.5rem; }
+.cf-section-title { font-weight: 800; color: #0a1628; font-size: .9rem; text-transform: uppercase; letter-spacing: .5px; padding: .5rem 0; border-bottom: 2px solid #0a1628; margin-bottom: .75rem; }
+.cf-row { display: flex; justify-content: space-between; padding: .4rem 0; font-size: .9rem; }
+.cf-adj { padding-left: 1.5rem; color: #555; }
+.cf-subtotal { border-top: 1px solid #ddd; font-weight: 700; padding-top: .5rem; margin-top: .25rem; }
+.cf-summary { background: #f4f6fa; border-radius: 8px; padding: 1rem; margin-top: 1.5rem; }
+.cf-grand { border-top: 2px solid #0a1628; padding-top: .5rem; margin-top: .25rem; font-size: 1rem; }
+.cf-pos { color: #27ae60; font-weight: 700; }
+.cf-neg { color: #c0392b; font-weight: 700; }
+
+/* Statement of Account */
+.stmt-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1rem; border-bottom: 2px solid #0a1628; margin-bottom: 1rem; }
+
+/* P&L Drill-down */
+.pnl-clickable { cursor: pointer; }
+.pnl-clickable:hover { background: #f0f4ff; }
+.pnl-detail-row td { background: #fafafa; }

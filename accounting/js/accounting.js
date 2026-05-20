@@ -1261,7 +1261,8 @@ function showReportTab(tab) {
     'aged-payables': renderAgedPayables,
     'tax-report': renderTaxReport,
     expenses: renderExpenseBreakdown,
-    'vehicle-pl': renderVehiclePL
+    'vehicle-pl': renderVehiclePL,
+    cashflow: renderCashFlow
   };
   if (renders[tab]) renders[tab]();
 }
@@ -1296,37 +1297,51 @@ function renderPNL() {
   const el = document.getElementById('pnl-content');
   if (!el) return;
 
+  const revenueDetail = paidInv.map(i =>
+    `<tr class="pnl-detail-row">
+      <td style="padding:.3rem 1rem .3rem 2rem;color:#555;font-size:.82rem;">${i.invoiceNo}</td>
+      <td style="color:#555;font-size:.82rem;">${i.customerName||''} — ${i.vehicleName||''}</td>
+      <td style="text-align:right;font-size:.82rem;">${fmtMoney(i.totalAmount)}</td>
+    </tr>`
+  ).join('');
+
+  const expenseDetail = paidBills.map(b =>
+    `<tr class="pnl-detail-row">
+      <td style="padding:.3rem 1rem .3rem 2rem;color:#555;font-size:.82rem;">${b.billNo}</td>
+      <td style="color:#555;font-size:.82rem;">${b.vendor||''} — ${b.category||''}</td>
+      <td style="text-align:right;font-size:.82rem;">${fmtMoney(b.amount)}</td>
+    </tr>`
+  ).join('');
+
   el.innerHTML = `
     <div class="report-card">
       <h3 style="margin-bottom:1.25rem;font-size:1rem;font-weight:700">Profit & Loss Statement</h3>
-      <div class="pnl-row">
-        <span>Revenue (Paid Invoices)</span>
-        <span class="amount-green">${fmtMoney(revenue)}</span>
-      </div>
-      <div class="pnl-row" style="padding-left:1.5rem;font-size:.85rem">
-        <span>Number of Paid Invoices</span>
-        <span>${paidInv.length}</span>
-      </div>
-      <div class="pnl-row">
-        <span>Total Expenses (Paid Bills)</span>
-        <span class="amount-red">(${fmtMoney(expenses)})</span>
-      </div>
-      <div class="pnl-row" style="padding-left:1.5rem;font-size:.85rem">
-        <span>Number of Paid Bills</span>
-        <span>${paidBills.length}</span>
-      </div>
-      <div class="pnl-row sub-total">
-        <span>Gross Profit</span>
-        <span class="${grossProfit >= 0 ? 'amount-green' : 'amount-red'}">${grossProfit >= 0 ? fmtMoney(grossProfit) : '(' + fmtMoney(Math.abs(grossProfit)) + ')'}</span>
-      </div>
-      <div class="pnl-row">
-        <span>Outstanding Receivables</span>
-        <span class="amount-blue">${fmtMoney(outstandingAmt)}</span>
-      </div>
-      <div class="pnl-row total">
-        <span>Net Position (Profit + Outstanding)</span>
-        <span class="amount-mono">${fmtMoney(grossProfit + outstandingAmt)}</span>
-      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        <tbody>
+          <tr class="pnl-row pnl-clickable" onclick="togglePNLDetail('pnl-revenue-detail')" style="cursor:pointer;">
+            <td><span class="amount-green" style="font-weight:600;">Revenue (Paid Invoices)</span> <span style="font-size:.75rem;color:#aaa;">▼ ${paidInv.length} invoice${paidInv.length!==1?'s':''}</span></td>
+            <td style="text-align:right;"><span class="amount-green">${fmtMoney(revenue)}</span></td>
+          </tr>
+          ${revenueDetail ? `<tr id="pnl-revenue-detail" style="display:none;"><td colspan="2" style="padding:0;"><table style="width:100%;border-collapse:collapse;">${revenueDetail}</table></td></tr>` : ''}
+          <tr class="pnl-row pnl-clickable" onclick="togglePNLDetail('pnl-expense-detail')" style="cursor:pointer;">
+            <td><span class="amount-red" style="font-weight:600;">Total Expenses (Paid Bills)</span> <span style="font-size:.75rem;color:#aaa;">▼ ${paidBills.length} bill${paidBills.length!==1?'s':''}</span></td>
+            <td style="text-align:right;"><span class="amount-red">(${fmtMoney(expenses)})</span></td>
+          </tr>
+          ${expenseDetail ? `<tr id="pnl-expense-detail" style="display:none;"><td colspan="2" style="padding:0;"><table style="width:100%;border-collapse:collapse;">${expenseDetail}</table></td></tr>` : ''}
+          <tr class="pnl-row sub-total">
+            <td>Gross Profit</td>
+            <td style="text-align:right;"><span class="${grossProfit >= 0 ? 'amount-green' : 'amount-red'}">${grossProfit >= 0 ? fmtMoney(grossProfit) : '(' + fmtMoney(Math.abs(grossProfit)) + ')'}</span></td>
+          </tr>
+          <tr class="pnl-row">
+            <td>Outstanding Receivables</td>
+            <td style="text-align:right;"><span class="amount-blue">${fmtMoney(outstandingAmt)}</span></td>
+          </tr>
+          <tr class="pnl-row total">
+            <td>Net Position (Profit + Outstanding)</td>
+            <td style="text-align:right;"><span class="amount-mono">${fmtMoney(grossProfit + outstandingAmt)}</span></td>
+          </tr>
+        </tbody>
+      </table>
     </div>`;
 
   // Monthly breakdown
@@ -1851,6 +1866,7 @@ function renderCustomersAcc() {
       <td class="amount-mono" style="color:${outstanding>0?'#f59e0b':'#6b7280'}">${outstanding>0?fmtMoney(outstanding):'-'}</td>
       <td>
         <div class="row-actions">
+          <button class="btn-row" title="Statement of Account" onclick="openCustomerStatement('${c.email||c.name}')">📄</button>
           <button class="btn-row" onclick="openModal('customerAcc',${c.id})">✏️</button>
           <button class="btn-row btn-row-delete" onclick="deleteItem('nau_customers_acc',${c.id},renderCustomersAcc)">🗑️</button>
         </div>
@@ -1889,6 +1905,7 @@ function renderVendors() {
       <td class="amount-mono" style="color:${outstanding>0?'#c0392b':'#6b7280'}">${outstanding>0?fmtMoney(outstanding):'-'}</td>
       <td>
         <div class="row-actions">
+          <button class="btn-row" title="Statement" onclick="openVendorStatement('${v.name}')">📄</button>
           <button class="btn-row" onclick="openModal('vendor',${v.id})">✏️</button>
           <button class="btn-row btn-row-delete" onclick="deleteItem('nau_vendors',${v.id},renderVendors)">🗑️</button>
         </div>
@@ -2029,6 +2046,7 @@ function renderBankStatements() {
       <td>
         <div class="row-actions">
           <button class="btn-row" onclick="openBSDetail(${s.id})" title="View Lines">👁️</button>
+          <button class="btn-row" onclick="openReconciliation(${s.id})" title="Reconcile" style="background:#6c757d;color:#fff;">🔗</button>
           <button class="btn-row btn-row-delete" onclick="deleteItem('nau_bank_statements',${s.id},renderBankStatements)">🗑️</button>
         </div>
       </td>
@@ -3739,4 +3757,410 @@ function renderVehiclePL() {
       </table>
     </div>
   </div>`;
+}
+
+// ===== P&L DRILL-DOWN TOGGLE =====
+function togglePNLDetail(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
+}
+
+// ===== CASH FLOW STATEMENT =====
+function renderCashFlow() {
+  const invoices = DB.load('nau_invoices');
+  const bills = DB.load('nau_bills');
+  const payments = DB.load('nau_payments');
+  const pos = DB.load('nau_purchase_orders');
+
+  // Operating Activities
+  const totalRevenue = invoices.filter(i => i.status === 'Paid').reduce((s, i) => s + Number(i.totalAmount||0), 0);
+  const totalExpenses = bills.filter(b => b.status === 'Paid' && b.category !== 'Vehicle Purchase').reduce((s, b) => s + Number(b.amount||0), 0);
+  const netProfit = totalRevenue - totalExpenses;
+
+  // Changes in working capital
+  const outstandingAR = invoices.filter(i => !['Paid','Cancelled'].includes(i.status)).reduce((s, i) => s + (Number(i.totalAmount||0) - Number(i.paidAmount||0)), 0);
+  const outstandingAP = bills.filter(b => !['Paid','Cancelled'].includes(b.status)).reduce((s, b) => s + Number(b.amount||0), 0);
+
+  // Investing Activities
+  const vehiclePurchases = bills.filter(b => b.category === 'Vehicle Purchase' && b.status === 'Paid').reduce((s, b) => s + Number(b.amount||0), 0);
+  const poReceived = pos.filter(p => p.status === 'Received').reduce((s, p) => s + Number(p.purchasePrice||0), 0);
+  const totalInvesting = -(vehiclePurchases || poReceived);
+
+  const netCashOps = netProfit - outstandingAR + outstandingAP;
+
+  // Cash positions from GL
+  const glBal = getGLBalances();
+  const cashAccts = DB.load('nau_accounts');
+  const closingCash = cashAccts.reduce((s, a) => {
+    const code = a.glAccountCode || '1001';
+    const b = glBal[code] || { debit: 0, credit: 0 };
+    return s + (b.debit - b.credit);
+  }, 0);
+  const openingCash = closingCash - netCashOps - totalInvesting;
+
+  const el = document.getElementById('cashflow-content');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="report-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+        <h3 style="margin:0;color:#0a1628;">Cash Flow Statement</h3>
+        <button onclick="window.print()" class="btn-create" style="background:#6c757d;font-size:.8rem;padding:.4rem .9rem;">🖨️ Print</button>
+      </div>
+
+      <div class="cf-section">
+        <div class="cf-section-title">Operating Activities</div>
+        <div class="cf-row"><span>Net Profit</span><span class="${netProfit>=0?'cf-pos':'cf-neg'}">${fmtMoney(netProfit)}</span></div>
+        <div class="cf-row cf-adj"><span>Increase in Accounts Receivable</span><span class="cf-neg">(${fmtMoney(outstandingAR)})</span></div>
+        <div class="cf-row cf-adj"><span>Increase in Accounts Payable</span><span class="cf-pos">${fmtMoney(outstandingAP)}</span></div>
+        <div class="cf-row cf-subtotal"><span>Net Cash from Operating Activities</span><span class="${netCashOps>=0?'cf-pos':'cf-neg'}">${fmtMoney(netCashOps)}</span></div>
+      </div>
+
+      <div class="cf-section">
+        <div class="cf-section-title">Investing Activities</div>
+        <div class="cf-row"><span>Vehicle Purchases (POs + Bills)</span><span class="cf-neg">(${fmtMoney(Math.abs(totalInvesting))})</span></div>
+        <div class="cf-row cf-subtotal"><span>Net Cash from Investing Activities</span><span class="${totalInvesting>=0?'cf-pos':'cf-neg'}">${fmtMoney(totalInvesting)}</span></div>
+      </div>
+
+      <div class="cf-section">
+        <div class="cf-section-title">Financing Activities</div>
+        <div class="cf-row cf-adj"><span>Owner contributions / withdrawals</span><span>$0.00</span></div>
+        <div class="cf-row cf-subtotal"><span>Net Cash from Financing Activities</span><span>$0.00</span></div>
+      </div>
+
+      <div class="cf-summary">
+        <div class="cf-row"><span>Net Change in Cash</span><span class="${(netCashOps+totalInvesting)>=0?'cf-pos':'cf-neg'}">${fmtMoney(netCashOps + totalInvesting)}</span></div>
+        <div class="cf-row"><span>Opening Cash Balance (derived)</span><span>${fmtMoney(Math.max(0, openingCash))}</span></div>
+        <div class="cf-row cf-grand"><span><strong>Closing Cash Balance</strong></span><span><strong>${fmtMoney(closingCash)}</strong></span></div>
+      </div>
+    </div>
+  `;
+}
+
+// ===== CUSTOMER STATEMENT OF ACCOUNT =====
+function openCustomerStatement(identifier) {
+  const allInvoices = DB.load('nau_invoices').filter(i =>
+    (i.customerEmail || '').toLowerCase() === identifier.toLowerCase() ||
+    (i.customerName || '').toLowerCase() === identifier.toLowerCase()
+  ).sort((a, b) => (a.createdAt||'').localeCompare(b.createdAt||''));
+
+  let balance = 0;
+  const rows = [];
+  allInvoices.forEach(inv => {
+    balance += Number(inv.totalAmount || 0);
+    rows.push({ date: (inv.createdAt||'').split('T')[0]||'', ref: inv.invoiceNo, desc: 'Invoice — ' + (inv.vehicleName||''), charge: Number(inv.totalAmount||0), payment: 0, balance });
+    // Payments for this invoice
+    const invPayments = DB.load('nau_payments').filter(p => p.invoiceId === inv.id);
+    invPayments.forEach(p => {
+      balance -= Number(p.amount || 0);
+      rows.push({ date: p.date||(p.createdAt||'').split('T')[0]||'', ref: p.paymentNo, desc: 'Payment received', charge: 0, payment: Number(p.amount||0), balance });
+    });
+  });
+
+  const customerName = allInvoices[0]?.customerName || identifier;
+  const modal = document.getElementById('statementModal');
+  document.getElementById('statementContent').innerHTML = `
+    <div class="stmt-header">
+      <div>
+        <div style="font-size:1.4rem;font-weight:900;color:#0a1628;">🚗 NipponAuto Uganda</div>
+        <div style="color:#666;font-size:.85rem;">Plot 45, Nakawa Industrial Road, Kampala</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:1.1rem;font-weight:700;">STATEMENT OF ACCOUNT</div>
+        <div style="color:#666;font-size:.85rem;">As at ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+      </div>
+    </div>
+    <div style="margin:1rem 0;padding:.75rem;background:#f4f6fa;border-radius:6px;">
+      <div style="font-weight:700;">Customer: ${customerName}</div>
+      <div style="color:#666;font-size:.85rem;">${identifier.includes('@') ? identifier : ''}</div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:.85rem;margin-top:1rem;">
+      <thead><tr style="background:#0a1628;color:#fff;">
+        <th style="padding:.5rem .75rem;text-align:left;">Date</th>
+        <th style="padding:.5rem .75rem;text-align:left;">Reference</th>
+        <th style="padding:.5rem .75rem;text-align:left;">Description</th>
+        <th style="padding:.5rem .75rem;text-align:right;">Charges</th>
+        <th style="padding:.5rem .75rem;text-align:right;">Payments</th>
+        <th style="padding:.5rem .75rem;text-align:right;">Balance</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(r => `<tr style="border-bottom:1px solid #eee;">
+          <td style="padding:.45rem .75rem;">${r.date}</td>
+          <td style="padding:.45rem .75rem;">${r.ref||''}</td>
+          <td style="padding:.45rem .75rem;">${r.desc}</td>
+          <td style="padding:.45rem .75rem;text-align:right;">${r.charge ? fmtMoney(r.charge) : ''}</td>
+          <td style="padding:.45rem .75rem;text-align:right;color:#27ae60;">${r.payment ? fmtMoney(r.payment) : ''}</td>
+          <td style="padding:.45rem .75rem;text-align:right;font-weight:600;">${fmtMoney(r.balance)}</td>
+        </tr>`).join('')}
+      </tbody>
+      <tfoot><tr style="background:#f4f6fa;border-top:2px solid #0a1628;">
+        <td colspan="5" style="padding:.65rem .75rem;font-weight:800;text-align:right;">BALANCE DUE</td>
+        <td style="padding:.65rem .75rem;font-weight:800;text-align:right;color:${balance>0?'#c0392b':'#27ae60'};">${fmtMoney(balance)}</td>
+      </tr></tfoot>
+    </table>
+    ${rows.length === 0 ? '<div style="text-align:center;padding:2rem;color:#999;">No transactions found.</div>' : ''}
+    <div style="margin-top:2rem;padding-top:1rem;border-top:1px solid #ddd;text-align:center;color:#888;font-size:.78rem;">
+      NipponAuto Uganda | info@nipponauto.ug | +256 700 123 456
+    </div>
+  `;
+  if (modal) modal.style.display = 'flex';
+}
+
+// ===== VENDOR STATEMENT OF ACCOUNT =====
+function openVendorStatement(vendorName) {
+  const bills = DB.load('nau_bills').filter(b => (b.vendor||'').toLowerCase() === vendorName.toLowerCase())
+    .sort((a, b) => (a.createdAt||'').localeCompare(b.createdAt||''));
+
+  let balance = 0;
+  const rows = [];
+  bills.forEach(bill => {
+    balance += Number(bill.amount || 0);
+    rows.push({ date: (bill.createdAt||'').split('T')[0]||'', ref: bill.billNo, desc: (bill.category||'Bill') + (bill.description?' — '+bill.description:''), charge: Number(bill.amount||0), payment: 0, balance });
+    DB.load('nau_payments').filter(p => p.billId === bill.id).forEach(p => {
+      balance -= Number(p.amount || 0);
+      rows.push({ date: p.date||(p.createdAt||'').split('T')[0]||'', ref: p.paymentNo, desc: 'Payment made', charge: 0, payment: Number(p.amount||0), balance });
+    });
+  });
+
+  document.getElementById('statementContent').innerHTML = `
+    <div class="stmt-header">
+      <div>
+        <div style="font-size:1.4rem;font-weight:900;color:#0a1628;">🚗 NipponAuto Uganda</div>
+        <div style="color:#666;font-size:.85rem;">Plot 45, Nakawa Industrial Road, Kampala</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:1.1rem;font-weight:700;">VENDOR STATEMENT</div>
+        <div style="color:#666;font-size:.85rem;">As at ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+      </div>
+    </div>
+    <div style="margin:1rem 0;padding:.75rem;background:#f4f6fa;border-radius:6px;"><div style="font-weight:700;">Vendor: ${vendorName}</div></div>
+    <table style="width:100%;border-collapse:collapse;font-size:.85rem;margin-top:1rem;">
+      <thead><tr style="background:#0a1628;color:#fff;">
+        <th style="padding:.5rem .75rem;text-align:left;">Date</th>
+        <th style="padding:.5rem .75rem;text-align:left;">Ref</th>
+        <th style="padding:.5rem .75rem;text-align:left;">Description</th>
+        <th style="padding:.5rem .75rem;text-align:right;">Bills</th>
+        <th style="padding:.5rem .75rem;text-align:right;">Payments</th>
+        <th style="padding:.5rem .75rem;text-align:right;">Balance</th>
+      </tr></thead>
+      <tbody>${rows.map(r => `<tr style="border-bottom:1px solid #eee;">
+        <td style="padding:.45rem .75rem;">${r.date}</td>
+        <td style="padding:.45rem .75rem;">${r.ref||''}</td>
+        <td style="padding:.45rem .75rem;">${r.desc}</td>
+        <td style="padding:.45rem .75rem;text-align:right;">${r.charge?fmtMoney(r.charge):''}</td>
+        <td style="padding:.45rem .75rem;text-align:right;color:#27ae60;">${r.payment?fmtMoney(r.payment):''}</td>
+        <td style="padding:.45rem .75rem;text-align:right;font-weight:600;">${fmtMoney(r.balance)}</td>
+      </tr>`).join('')}</tbody>
+      <tfoot><tr style="background:#f4f6fa;border-top:2px solid #0a1628;">
+        <td colspan="5" style="padding:.65rem .75rem;font-weight:800;text-align:right;">AMOUNT OWED</td>
+        <td style="padding:.65rem .75rem;font-weight:800;text-align:right;">${fmtMoney(balance)}</td>
+      </tr></tfoot>
+    </table>
+    ${rows.length === 0 ? '<div style="text-align:center;padding:2rem;color:#999;">No transactions found.</div>' : ''}
+    <div style="margin-top:2rem;padding-top:1rem;border-top:1px solid #ddd;text-align:center;color:#888;font-size:.78rem;">NipponAuto Uganda | info@nipponauto.ug</div>
+  `;
+  const modal = document.getElementById('statementModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+// ===== BANK RECONCILIATION =====
+let _matchSel = { pmt: null, stl: null, stlIdx: null, stmtId: null };
+
+function openReconciliation(stmtId) {
+  const stmts = DB.load('nau_bank_statements');
+  const stmt = stmts.find(s => s.id === stmtId);
+  if (!stmt) return;
+
+  // Close detail panel if open
+  const detailPanel = document.getElementById('bs-detail-panel');
+  if (detailPanel) detailPanel.style.display = 'none';
+
+  // Get the payment account linked to this statement
+  const acct = DB.load('nau_payment_accounts').find(a => a.id === stmt.accountId || a.name === stmt.accountId) || {};
+  const glCode = acct.glAccountCode || '1001';
+
+  // GL book balance for this account
+  const glBal = getGLBalances();
+  const acctBal = glBal[glCode] || { debit: 0, credit: 0 };
+  const bookBalance = acctBal.debit - acctBal.credit;
+  const stmtBalance = Number(stmt.closingBalance || stmt.balance || 0);
+  const diff = stmtBalance - bookBalance;
+
+  // Unreconciled payments (those with no reconciled flag)
+  const payments = DB.load('nau_payments').filter(p =>
+    !p.reconciled && (p.accountId === acct.id || p.method === acct.name || p.method === stmt.accountId)
+  );
+
+  // Statement lines that are not yet reconciled
+  const lines = (stmt.lines || []).filter(l => !l.reconciled);
+
+  const panel = document.getElementById('reconcile-panel');
+  if (!panel) return;
+
+  _matchSel = { pmt: null, stl: null, stlIdx: null, stmtId: null };
+
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div class="reconcile-wrap">
+      <div class="reconcile-header">
+        <div>
+          <h3 style="margin:0;color:#0a1628;">🔗 Bank Reconciliation — ${stmt.accountId || 'Account'}</h3>
+          <div style="font-size:.85rem;color:#666;margin-top:.25rem;">Statement date: ${stmt.statementDate||''}</div>
+        </div>
+        <button onclick="closeReconciliation()" class="btn-create" style="background:#6c757d;">✕ Close</button>
+      </div>
+
+      <div class="reconcile-summary">
+        <div class="reconcile-bal-card">
+          <div class="rbc-label">Statement Balance</div>
+          <div class="rbc-value">${fmtMoney(stmtBalance)}</div>
+        </div>
+        <div class="reconcile-bal-card">
+          <div class="rbc-label">GL Book Balance</div>
+          <div class="rbc-value">${fmtMoney(bookBalance)}</div>
+        </div>
+        <div class="reconcile-bal-card ${Math.abs(diff) < 0.01 ? 'rbc-ok' : 'rbc-warn'}">
+          <div class="rbc-label">Difference</div>
+          <div class="rbc-value">${Math.abs(diff) < 0.01 ? '✓ Balanced' : fmtMoney(diff)}</div>
+        </div>
+      </div>
+
+      <div class="reconcile-columns">
+        <div class="reconcile-col">
+          <h4>Unmatched System Payments</h4>
+          <table class="acc-table" style="font-size:.82rem;">
+            <thead><tr><th>Ref</th><th>Date</th><th>Amount</th><th>Match</th></tr></thead>
+            <tbody>
+              ${payments.length ? payments.map(p => `
+                <tr id="pmt-row-${p.id}">
+                  <td>${p.paymentNo||p.receiptNo||p.id}</td>
+                  <td>${p.date||(p.createdAt||'').split('T')[0]||''}</td>
+                  <td>${fmtMoney(p.amount)}</td>
+                  <td><button class="btn-row" onclick="selectForMatch('pmt',${p.id})" title="Select to match">↔</button></td>
+                </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;color:#999;padding:1rem;">All matched ✓</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+        <div class="reconcile-col">
+          <h4>Unmatched Statement Lines</h4>
+          <table class="acc-table" style="font-size:.82rem;">
+            <thead><tr><th>Date</th><th>Ref</th><th>Description</th><th>Amount</th><th>Match</th></tr></thead>
+            <tbody>
+              ${lines.length ? lines.map((l, i) => {
+                const origIdx = (stmt.lines||[]).indexOf(l);
+                return `<tr id="stl-row-${stmtId}-${origIdx}">
+                  <td>${l.date||''}</td>
+                  <td>${l.ref||''}</td>
+                  <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;">${l.description||''}</td>
+                  <td>${fmtMoney(l.debit||l.credit||0)}</td>
+                  <td><button class="btn-row" onclick="selectForMatch('stl',${stmtId},${origIdx})" title="Select to match">↔</button></td>
+                </tr>`;
+              }).join('') : '<tr><td colspan="5" style="text-align:center;color:#999;padding:1rem;">All matched ✓</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="reconcile-match-bar" style="display:none;background:#e8f5e9;border:1px solid #27ae60;border-radius:8px;padding:.75rem 1rem;margin-top:1rem;align-items:center;justify-content:space-between;">
+        <span id="reconcile-match-text">Select a payment and a statement line to match them.</span>
+        <button id="reconcile-match-btn" onclick="confirmMatch(${stmtId})" style="display:none;" class="btn-create">✓ Confirm Match</button>
+      </div>
+
+      <div style="margin-top:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;">
+        <button onclick="autoMatch(${stmtId})" class="btn-create">⚡ Auto-Match by Amount</button>
+        <button onclick="saveReconciliation(${stmtId})" class="btn-create" style="background:#27ae60;">✅ Save & Close</button>
+      </div>
+    </div>
+  `;
+
+  panel.scrollIntoView({ behavior: 'smooth' });
+}
+
+function selectForMatch(type, idOrStmtId, idx) {
+  if (type === 'pmt') {
+    _matchSel.pmt = idOrStmtId;
+    document.querySelectorAll('[id^="pmt-row-"]').forEach(r => r.style.background = '');
+    const row = document.getElementById('pmt-row-' + idOrStmtId);
+    if (row) row.style.background = '#e8f5e9';
+  } else {
+    _matchSel.stmtId = idOrStmtId;
+    _matchSel.stlIdx = idx;
+    document.querySelectorAll('[id^="stl-row-"]').forEach(r => r.style.background = '');
+    const row = document.getElementById('stl-row-' + idOrStmtId + '-' + idx);
+    if (row) row.style.background = '#e8f5e9';
+  }
+  const bar = document.getElementById('reconcile-match-bar');
+  const btn = document.getElementById('reconcile-match-btn');
+  if (bar) bar.style.display = 'flex';
+  if (_matchSel.pmt !== null && _matchSel.stlIdx !== null) {
+    if (btn) btn.style.display = 'inline-block';
+    const matchText = document.getElementById('reconcile-match-text');
+    if (matchText) matchText.textContent = 'Ready to match — click Confirm Match.';
+  }
+}
+
+function confirmMatch(stmtId) {
+  if (_matchSel.pmt === null || _matchSel.stlIdx === null) return;
+  // Mark payment as reconciled
+  const payments = DB.load('nau_payments');
+  const pmtIdx = payments.findIndex(p => p.id === _matchSel.pmt);
+  if (pmtIdx !== -1) { payments[pmtIdx].reconciled = true; DB.save('nau_payments', payments); }
+  // Mark statement line as reconciled
+  const stmts = DB.load('nau_bank_statements');
+  const sIdx = stmts.findIndex(s => s.id === stmtId);
+  if (sIdx !== -1 && stmts[sIdx].lines && stmts[sIdx].lines[_matchSel.stlIdx] !== undefined) {
+    stmts[sIdx].lines[_matchSel.stlIdx].reconciled = true;
+    DB.save('nau_bank_statements', stmts);
+  }
+  _matchSel = { pmt: null, stl: null, stlIdx: null, stmtId: null };
+  toast('✓ Match confirmed.');
+  openReconciliation(stmtId); // re-render
+}
+
+function autoMatch(stmtId) {
+  const stmts = DB.load('nau_bank_statements');
+  const sIdx = stmts.findIndex(s => s.id === stmtId);
+  if (sIdx === -1) return;
+  const stmt = stmts[sIdx];
+  const payments = DB.load('nau_payments');
+  let matchCount = 0;
+
+  (stmt.lines || []).forEach((line, li) => {
+    if (line.reconciled) return;
+    const lineAmt = Number(line.debit || line.credit || 0);
+    const lineDate = line.date || '';
+    // Find unreconciled payment with matching amount (±1) and date within 2 days
+    const pmtIdx = payments.findIndex(p => {
+      if (p.reconciled) return false;
+      const amtMatch = Math.abs(Number(p.amount) - lineAmt) <= 1;
+      const dateMatch = !lineDate || !p.date || Math.abs(new Date(p.date) - new Date(lineDate)) <= 2 * 86400000;
+      return amtMatch && dateMatch;
+    });
+    if (pmtIdx !== -1) {
+      payments[pmtIdx].reconciled = true;
+      stmt.lines[li].reconciled = true;
+      matchCount++;
+    }
+  });
+
+  DB.save('nau_payments', payments);
+  DB.save('nau_bank_statements', stmts);
+  toast(`⚡ Auto-matched ${matchCount} transaction${matchCount !== 1 ? 's' : ''}.`);
+  openReconciliation(stmtId);
+}
+
+function saveReconciliation(stmtId) {
+  const stmts = DB.load('nau_bank_statements');
+  const sIdx = stmts.findIndex(s => s.id === stmtId);
+  if (sIdx !== -1) {
+    stmts[sIdx].lastReconciledAt = nowISO();
+    DB.save('nau_bank_statements', stmts);
+  }
+  closeReconciliation();
+  toast('Reconciliation saved.');
+}
+
+function closeReconciliation() {
+  const panel = document.getElementById('reconcile-panel');
+  if (panel) panel.style.display = 'none';
+  _matchSel = { pmt: null, stl: null, stlIdx: null, stmtId: null };
 }
