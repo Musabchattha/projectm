@@ -461,8 +461,13 @@ function renderQuotes() {
       <td>${q.downPayment||70}%</td>
       <td><div class="td-two-line"><span class="line2">Req: ${q.reqDate||'-'}</span><span class="line2">Iss: ${q.issDate||'-'}</span></div></td>
       <td><span class="badge badge-${(q.status||'quoted').toLowerCase()}">${q.status||'Quoted'}</span></td>
-      <td><div class="row-actions"><button class="btn-row" title="Edit" onclick="openModal('quote',${q.id})">✏️</button><button class="btn-row" title="WhatsApp" onclick="openWhatsAppModal('quote',${q.id})" style="background:#25d366;color:#fff">📱</button></div></td>
-    </tr>`).join('') : '<tr><td colspan="12" class="table-empty"><span class="empty-icon">📋</span>No quotes found.</td></tr>';
+      <td>${q.orderId ? `<span style="font-size:.75rem;background:#e8f5e9;color:#27ae60;padding:.2rem .5rem;border-radius:4px;font-weight:600;">✅ ${q.orderNo||'Order'}</span>` : '—'}</td>
+      <td><div class="row-actions">
+        <button class="btn-row" title="Edit" onclick="openModal('quote',${q.id})">✏️</button>
+        <button class="btn-row" title="WhatsApp" onclick="openWhatsAppModal('quote',${q.id})" style="background:#25d366;color:#fff">📱</button>
+        ${(q.status==='Quoted'||q.status==='Accepted'||q.status==='Pending')&&!q.orderId?`<button class="btn-row" title="Convert to Order" onclick="convertQuoteToOrder(${q.id})" style="background:#27ae60;color:#fff;font-size:.75rem;padding:.2rem .5rem;">🛒 Order</button>`:''}
+      </div></td>
+    </tr>`).join('') : '<tr><td colspan="13" class="table-empty"><span class="empty-icon">📋</span>No quotes found.</td></tr>';
 }
 
 function showQuoteTab(tab, el) {
@@ -482,8 +487,107 @@ function renderOrders() {
       <td>$${Number(o.amount||0).toLocaleString()}</td>
       <td>${fmtDateShort(o.date)}</td>
       <td><span class="badge badge-${(o.status||'pending').toLowerCase()}">${o.status||'Pending'}</span></td>
-      <td><div class="row-actions"><button class="btn-row" onclick="openModal('order',${o.id})">✏️</button><button class="btn-row btn-row-delete" onclick="deletePage('nau_orders',${o.id},renderOrders)">🗑️</button></div></td>
-    </tr>`).join('') : '<tr><td colspan="7" class="table-empty"><span class="empty-icon">📦</span>No orders yet.</td></tr>';
+      <td>${o.quoteNo?`<span style="font-size:.75rem;color:#555;">${o.quoteNo}</span>`:'—'}</td>
+      <td>${o.invoiceId?`<span style="font-size:.75rem;background:#e3f2fd;color:#0a1628;padding:.2rem .5rem;border-radius:4px;font-weight:600;">📄 ${o.invoiceNo||'INV'}</span>`:'—'}</td>
+      <td><div class="row-actions">
+        <button class="btn-row" onclick="openModal('order',${o.id})">✏️</button>
+        ${!o.invoiceId?`<button class="btn-row" title="Generate Invoice" onclick="createInvoiceFromOrder(${o.id})" style="background:#0a1628;color:#fff;font-size:.75rem;padding:.2rem .5rem;">📄 Invoice</button>`:''}
+        <button class="btn-row btn-row-delete" onclick="deletePage('nau_orders',${o.id},renderOrders)">🗑️</button>
+      </div></td>
+    </tr>`).join('') : '<tr><td colspan="9" class="table-empty"><span class="empty-icon">📦</span>No orders yet.</td></tr>';
+}
+
+// ===== QUOTE → ORDER → INVOICE CONVERSIONS =====
+function convertQuoteToOrder(quoteId) {
+  const quotes = DB.load('nau_quotes');
+  const q = quotes.find(x => x.id === quoteId);
+  if (!q) return;
+  if (q.orderId) {
+    const existing = DB.load('nau_orders').find(o => o.id === q.orderId);
+    if (existing) { toast('Already converted → ' + existing.orderNo); navigate('orders'); return; }
+  }
+  const orders = DB.load('nau_orders');
+  const year = new Date().getFullYear();
+  const seq = String(DB.nextId('nau_orders')).padStart(3, '0');
+  const newOrder = {
+    id: DB.nextId('nau_orders'),
+    orderNo: 'ORD-' + year + '-' + seq,
+    quoteId: q.id,
+    quoteNo: q.quoteNo,
+    customerName: q.customerName,
+    customerEmail: q.customerEmail || '',
+    vehicleName: q.vehicleName || q.sku || '',
+    vehicleId: q.vehicleId || null,
+    amount: q.quotedPrice || q.webPrice || 0,
+    currency: 'USD',
+    date: new Date().toISOString().split('T')[0],
+    status: 'Pending',
+    notes: 'Converted from ' + q.quoteNo,
+    invoiceId: null,
+    invoiceNo: null,
+    createdAt: new Date().toISOString()
+  };
+  orders.push(newOrder);
+  DB.save('nau_orders', orders);
+  const qi = quotes.findIndex(x => x.id === quoteId);
+  if (qi !== -1) {
+    quotes[qi].status = 'Accepted';
+    quotes[qi].orderId = newOrder.id;
+    quotes[qi].orderNo = newOrder.orderNo;
+    DB.save('nau_quotes', quotes);
+  }
+  toast('✅ ' + newOrder.orderNo + ' created from ' + q.quoteNo);
+  navigate('orders');
+}
+
+function createInvoiceFromOrder(orderId) {
+  const orders = DB.load('nau_orders');
+  const order = orders.find(x => x.id === orderId);
+  if (!order) return;
+  if (order.invoiceId) {
+    const existing = DB.load('nau_invoices').find(i => i.id === order.invoiceId);
+    if (existing) { toast('Invoice ' + existing.invoiceNo + ' already exists.'); return; }
+  }
+  const invoices = DB.load('nau_invoices');
+  const year = new Date().getFullYear();
+  const seq = String(DB.nextId('nau_invoices')).padStart(3, '0');
+  const newInv = {
+    id: DB.nextId('nau_invoices'),
+    invoiceNo: 'INV-' + year + '-' + seq,
+    orderId: order.id,
+    orderNo: order.orderNo,
+    quoteId: order.quoteId || null,
+    quoteNo: order.quoteNo || null,
+    vehicleId: order.vehicleId || null,
+    vehicleName: order.vehicleName || '',
+    vehicleSKU: order.vehicleSKU || '',
+    customerName: order.customerName || '',
+    customerEmail: order.customerEmail || '',
+    customerPhone: order.customerPhone || '',
+    customerAddress: '',
+    salePrice: order.amount || 0,
+    discount: 0,
+    taxRate: 0,
+    taxAmount: 0,
+    totalAmount: order.amount || 0,
+    paidAmount: 0,
+    currency: order.currency || 'USD',
+    paymentMethod: '',
+    status: 'Draft',
+    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    notes: 'Generated from ' + order.orderNo,
+    createdAt: new Date().toISOString()
+  };
+  invoices.push(newInv);
+  DB.save('nau_invoices', invoices);
+  const oi = orders.findIndex(x => x.id === orderId);
+  if (oi !== -1) {
+    orders[oi].invoiceId = newInv.id;
+    orders[oi].invoiceNo = newInv.invoiceNo;
+    DB.save('nau_orders', orders);
+  }
+  toast('📄 ' + newInv.invoiceNo + ' created. Open Accounting → Invoices to send it.');
+  renderOrders();
 }
 
 // ===== INQUIRIES =====

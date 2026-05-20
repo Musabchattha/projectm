@@ -58,9 +58,15 @@
         var expired=new Date(q.expiresAt)<new Date();
         expiryHtml='<div style="font-size:.78rem;color:'+(expired?'#c0392b':'#888')+';margin-top:.2rem;">⏳ Expires: '+new Date(q.expiresAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+'</div>';
       }
+      var canAct=(q.status==='Quoted');
       var canDecline=(q.status==='Pending'||q.status==='Quoted');
-      var declineBtn=canDecline?'<td><button onclick="declineQuote('+q.id+')" style="background:none;border:1px solid #c0392b;color:#c0392b;border-radius:6px;padding:.3rem .75rem;font-size:.8rem;cursor:pointer;">❌ Decline</button></td>':'<td></td>';
-      return'<tr><td><strong>'+esc(q.quoteNo||('QT-'+q.id))+'</strong></td><td>'+esc(q.vehicleName||'')+'</td><td>$'+Number(q.webPrice||0).toLocaleString()+'</td><td>$'+Number(q.quotedPrice||0).toLocaleString()+'</td><td>'+esc(q.issDate||q.reqDate||'')+expiryHtml+'</td><td><span class="c-badge c-badge-'+s+'">'+esc(q.status||'Quoted')+'</span></td>'+declineBtn+'</tr>';
+      var actionCell=canAct
+        ?'<td style="display:flex;gap:.4rem;flex-wrap:wrap;">'
+          +'<button onclick="acceptQuote('+q.id+')" style="background:#27ae60;border:none;color:#fff;border-radius:6px;padding:.3rem .75rem;font-size:.8rem;cursor:pointer;">✅ Accept</button>'
+          +(canDecline?'<button onclick="declineQuote('+q.id+')" style="background:none;border:1px solid #c0392b;color:#c0392b;border-radius:6px;padding:.3rem .75rem;font-size:.8rem;cursor:pointer;">❌ Decline</button>':'')
+          +'</td>'
+        :(canDecline?'<td><button onclick="declineQuote('+q.id+')" style="background:none;border:1px solid #c0392b;color:#c0392b;border-radius:6px;padding:.3rem .75rem;font-size:.8rem;cursor:pointer;">❌ Decline</button></td>':'<td></td>');
+      return'<tr><td><strong>'+esc(q.quoteNo||('QT-'+q.id))+'</strong></td><td>'+esc(q.vehicleName||'')+'</td><td>$'+Number(q.webPrice||0).toLocaleString()+'</td><td>$'+Number(q.quotedPrice||0).toLocaleString()+'</td><td>'+esc(q.issDate||q.reqDate||'')+expiryHtml+'</td><td><span class="c-badge c-badge-'+s+'">'+esc(q.status||'Quoted')+'</span></td>'+actionCell+'</tr>';
     }).join('');
   }
   function renderSaved(){
@@ -586,6 +592,19 @@
     try { localStorage.setItem('nau_quotes', JSON.stringify(quotes)); } catch(e) {}
     renderQuotes();
     showCToast('Quote declined.');
+  };
+
+  // ===== ACCEPT QUOTE =====
+  window.acceptQuote = function(id) {
+    if (!confirm('Accept this quote? The dealership will be notified to prepare your order.')) return;
+    var quotes = load('nau_quotes');
+    var idx = quotes.findIndex(function(q){ return q.id === id; });
+    if (idx === -1) return;
+    quotes[idx].status = 'Accepted';
+    quotes[idx].acceptedAt = new Date().toISOString();
+    try { localStorage.setItem('nau_quotes', JSON.stringify(quotes)); } catch(e) {}
+    renderQuotes();
+    showCToast('✅ Quote accepted! Our team will contact you shortly to confirm your order.');
   };
 
   navigate('dashboard');
