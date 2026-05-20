@@ -1388,8 +1388,36 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   .page-header-left h1 { font-size: 1.4rem; }
 }
 
+/* ===== MILESTONE MODAL ===== */
+.milestone-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto 1fr;
+  gap: .75rem;
+  align-items: center;
+  padding: .75rem 0;
+  border-bottom: 1px solid #f0f2f5;
+}
+.ms-stage { font-weight: 600; color: #0a1628; font-size: .9rem; }
+.ms-toggle {
+  padding: .35rem .75rem;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: .82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ms-done { background: #d4edda; color: #155724; }
+.ms-pending { background: #f0f0f0; color: #666; }
+.ms-date { padding: .3rem .5rem; border: 1px solid #ddd; border-radius: 5px; font-size: .82rem; width: 130px; }
+.ms-notes { padding: .3rem .5rem; border: 1px solid #ddd; border-radius: 5px; font-size: .82rem; width: 100%; }
+@media (max-width: 600px) {
+  .milestone-row { grid-template-columns: 1fr; gap: .4rem; }
+}
+
 /* ===== ACCOUNTING MODULE ===== */
 .badge-overdue { background: #7d1c1c; color: #fff; }
+.badge-in-showroom { background: #8e44ad; color: #fff; }
 
 /* Invoice print styles */
 @media print {

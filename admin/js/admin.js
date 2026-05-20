@@ -442,6 +442,117 @@ function deleteVar(id) {
   toast('🗑️ Deleted');
 }
 
+// ===== DEFAULT MILESTONES =====
+const DEFAULT_MILESTONES = [
+  { stage: 'Order Confirmed',      completed: false, date: null, notes: '' },
+  { stage: 'Vehicle Located',      completed: false, date: null, notes: '' },
+  { stage: 'Shipped from Japan',   completed: false, date: null, notes: '' },
+  { stage: 'Arrived at Mombasa',   completed: false, date: null, notes: '' },
+  { stage: 'Customs Cleared',      completed: false, date: null, notes: '' },
+  { stage: 'In Transit to Uganda', completed: false, date: null, notes: '' },
+  { stage: 'In Showroom',          completed: false, date: null, notes: '' },
+  { stage: 'Handed Over',          completed: false, date: null, notes: '' }
+];
+
+function syncOrderStatus(order) {
+  const m = order.milestones || [];
+  const done = name => m.find(x => x.stage === name)?.completed;
+  if (done('Handed Over'))             order.status = 'Completed';
+  else if (done('In Showroom'))        order.status = 'In Showroom';
+  else if (done('Shipped from Japan')) order.status = 'Shipped';
+  else if (done('Order Confirmed'))    order.status = 'Confirmed';
+  else                                 order.status = 'Pending';
+}
+
+function openMilestoneModal(orderId) {
+  const orders = DB.load('nau_orders');
+  const order = orders.find(o => o.id === orderId);
+  if (!order) return;
+  if (!order.milestones || order.milestones.length !== 8) {
+    order.milestones = DEFAULT_MILESTONES.map(m => ({...m}));
+  }
+  const today = new Date().toISOString().split('T')[0];
+
+  const modal = document.getElementById('milestoneModal');
+  document.getElementById('milestoneModalTitle').textContent = 'Order Milestones — ' + (order.orderNo || order.id);
+  document.getElementById('milestoneModalBody').innerHTML = order.milestones.map((m, i) => `
+    <div class="milestone-row" id="ms-row-${i}">
+      <div class="ms-stage">${m.stage}</div>
+      <button class="ms-toggle ${m.completed ? 'ms-done' : 'ms-pending'}" onclick="toggleMilestone(${i})">
+        ${m.completed ? '✅ Completed' : '○ Mark Complete'}
+      </button>
+      <input type="date" class="ms-date" id="ms-date-${i}" value="${m.date || ''}" ${m.completed ? '' : 'style="display:none"'} max="${today}">
+      <input type="text" class="ms-notes" id="ms-notes-${i}" value="${m.notes || ''}" placeholder="Notes (optional)">
+    </div>
+  `).join('');
+
+  // Store current orderId for save
+  modal.dataset.orderId = orderId;
+  modal.style.display = 'flex';
+}
+
+function toggleMilestone(idx) {
+  const dateInput = document.getElementById('ms-date-' + idx);
+  const btn = document.querySelector('#ms-row-' + idx + ' .ms-toggle');
+  const isNowComplete = !btn.classList.contains('ms-done');
+  if (isNowComplete) {
+    btn.classList.add('ms-done');
+    btn.classList.remove('ms-pending');
+    btn.textContent = '✅ Completed';
+    dateInput.style.display = '';
+    if (!dateInput.value) dateInput.value = new Date().toISOString().split('T')[0];
+  } else {
+    btn.classList.remove('ms-done');
+    btn.classList.add('ms-pending');
+    btn.textContent = '○ Mark Complete';
+    dateInput.style.display = 'none';
+  }
+}
+
+function saveMilestones() {
+  const modal = document.getElementById('milestoneModal');
+  const orderId = parseInt(modal.dataset.orderId);
+  const orders = DB.load('nau_orders');
+  const oIdx = orders.findIndex(o => o.id === orderId);
+  if (oIdx === -1) return;
+
+  const order = orders[oIdx];
+  order.milestones = DEFAULT_MILESTONES.map((m, i) => {
+    const btn = document.querySelector('#ms-row-' + i + ' .ms-toggle');
+    const completed = btn && btn.classList.contains('ms-done');
+    const date = document.getElementById('ms-date-' + i)?.value || null;
+    const notes = document.getElementById('ms-notes-' + i)?.value || '';
+    return { stage: m.stage, completed, date: completed ? date : null, notes };
+  });
+
+  syncOrderStatus(order);
+  DB.save('nau_orders', orders);
+
+  // Push notification to customer
+  const email = order.customerEmail;
+  if (email) {
+    const lastCompleted = order.milestones.filter(m => m.completed).slice(-1)[0];
+    if (lastCompleted) {
+      const notifs = JSON.parse(localStorage.getItem('nau_notif_' + email) || '[]');
+      const notifId = 'ord_' + order.id + '_' + lastCompleted.stage.replace(/\s/g,'_');
+      if (!notifs.find(n => n.id === notifId)) {
+        notifs.unshift({ id: notifId, type: 'order',
+          text: 'Your order ' + (order.orderNo || order.id) + ' update: ' + lastCompleted.stage + ' ✓',
+          time: lastCompleted.date || new Date().toISOString().split('T')[0], read: false });
+        localStorage.setItem('nau_notif_' + email, JSON.stringify(notifs));
+      }
+    }
+  }
+
+  closeMilestoneModal();
+  renderOrders();
+  toast('Milestones saved successfully.');
+}
+
+function closeMilestoneModal() {
+  document.getElementById('milestoneModal').style.display = 'none';
+}
+
 // ===== QUOTES =====
 function renderQuotes() {
   const q = (document.getElementById('qt-search')||{}).value||'';
@@ -479,22 +590,28 @@ function showQuoteTab(tab, el) {
 // ===== ORDERS =====
 function renderOrders() {
   const data = DB.load('nau_orders');
-  document.getElementById('ord-tbody').innerHTML = data.length ? data.map(o => `
+  document.getElementById('ord-tbody').innerHTML = data.length ? data.map(o => {
+    const completed = (o.milestones || []).filter(m => m.completed).length;
+    const statusSlug = (o.status || 'pending').toLowerCase().replace(/\s+/g, '-');
+    return `
     <tr>
       <td><strong>${o.orderNo}</strong></td>
       <td>${o.customerName}</td>
       <td>${o.vehicleName||'-'}</td>
       <td>$${Number(o.amount||0).toLocaleString()}</td>
       <td>${fmtDateShort(o.date)}</td>
-      <td><span class="badge badge-${(o.status||'pending').toLowerCase()}">${o.status||'Pending'}</span></td>
+      <td><span class="badge badge-${statusSlug}">${o.status||'Pending'}</span></td>
+      <td><span style="font-size:.82rem;color:#555;">📍 ${completed}/8</span></td>
       <td>${o.quoteNo?`<span style="font-size:.75rem;color:#555;">${o.quoteNo}</span>`:'—'}</td>
       <td>${o.invoiceId?`<span style="font-size:.75rem;background:#e3f2fd;color:#0a1628;padding:.2rem .5rem;border-radius:4px;font-weight:600;">📄 ${o.invoiceNo||'INV'}</span>`:'—'}</td>
       <td><div class="row-actions">
         <button class="btn-row" onclick="openModal('order',${o.id})">✏️</button>
+        <button class="btn-row" onclick="openMilestoneModal(${o.id})" title="Milestones">📍</button>
         ${!o.invoiceId?`<button class="btn-row" title="Generate Invoice" onclick="createInvoiceFromOrder(${o.id})" style="background:#0a1628;color:#fff;font-size:.75rem;padding:.2rem .5rem;">📄 Invoice</button>`:''}
         <button class="btn-row btn-row-delete" onclick="deletePage('nau_orders',${o.id},renderOrders)">🗑️</button>
       </div></td>
-    </tr>`).join('') : '<tr><td colspan="9" class="table-empty"><span class="empty-icon">📦</span>No orders yet.</td></tr>';
+    </tr>`;
+  }).join('') : '<tr><td colspan="10" class="table-empty"><span class="empty-icon">📦</span>No orders yet.</td></tr>';
 }
 
 // ===== QUOTE → ORDER → INVOICE CONVERSIONS =====
@@ -1428,9 +1545,9 @@ const modalConfigs = {
       <div class="form-group"><label>Vehicle</label><input class="form-control" id="od-veh" value="${d?d.vehicleName:''}" placeholder="e.g. Toyota Hilux 2025" /></div></div>
       <div class="form-row"><div class="form-group"><label>Amount (USD)<span class="required">*</span></label><input class="form-control" type="number" id="od-amt" value="${d?d.amount:''}" /></div>
       <div class="form-group"><label>Date</label><input class="form-control" type="date" id="od-date" value="${d?d.date:new Date().toISOString().split('T')[0]}" /></div></div>
-      <div class="form-group"><label>Status</label><select class="form-control" id="od-status"><option>Pending</option><option>Confirmed</option><option>Shipped</option><option>Completed</option></select></div>`,
+      <div class="form-group"><label>Status</label><select class="form-control" id="od-status"><option>Pending</option><option>Confirmed</option><option>Shipped</option><option>In Showroom</option><option>Completed</option></select></div>`,
     collect:()=>{const c=document.getElementById('od-cust').value.trim();const a=document.getElementById('od-amt').value;if(!c||!a){toast('⚠️ Customer and Amount required');return null;}const all=DB.load('nau_orders');const num=all.length+1;return{orderNo:'ORD-2026-'+String(num).padStart(2,'0'),customerName:c,vehicleName:document.getElementById('od-veh').value,amount:Number(a),date:document.getElementById('od-date').value,status:document.getElementById('od-status').value};},
-    create:d=>{const all=DB.load('nau_orders');all.push({id:DB.nextId('nau_orders'),...d,createdAt:nowISO()});DB.save('nau_orders',all);},
+    create:d=>{const all=DB.load('nau_orders');const newOrder={id:DB.nextId('nau_orders'),...d,milestones:DEFAULT_MILESTONES.map(m=>({...m})),createdAt:nowISO()};all.push(newOrder);DB.save('nau_orders',all);},
     update:(id,d)=>{const all=DB.load('nau_orders');const i=all.findIndex(o=>o.id===id);if(i>-1){all[i]={...all[i],...d};DB.save('nau_orders',all);}},
     refresh:renderOrders
   },
@@ -2991,6 +3108,29 @@ function seedData() {
 
 // ===== SEED EXTRAS (blogs, appointments — guarded independently) =====
 function seedExtras() {
+  // Backfill milestones for seeded orders
+  const orders = DB.load('nau_orders');
+  let ordersUpdated = false;
+  orders.forEach(o => {
+    if (!o.milestones) {
+      o.milestones = DEFAULT_MILESTONES.map(m => ({...m}));
+      // Seed specific orders with some milestones completed
+      if (o.orderNo === 'ORD-2026-01' || (o.customerName && o.customerName.includes('Nakato'))) {
+        o.milestones[0] = { ...o.milestones[0], completed: true, date: '2026-05-20', notes: 'Payment verified' };
+        o.milestones[1] = { ...o.milestones[1], completed: true, date: '2026-05-21', notes: 'Sourced from Tokyo' };
+        syncOrderStatus(o);
+      } else if (o.orderNo === 'ORD-2026-02' || (o.customerName && o.customerName.includes('Ssekandi'))) {
+        o.milestones[0] = { ...o.milestones[0], completed: true, date: '2026-05-15', notes: '' };
+        o.milestones[1] = { ...o.milestones[1], completed: true, date: '2026-05-16', notes: '' };
+        o.milestones[2] = { ...o.milestones[2], completed: true, date: '2026-05-20', notes: '' };
+        o.milestones[3] = { ...o.milestones[3], completed: true, date: '2026-05-22', notes: '' };
+        syncOrderStatus(o);
+      }
+      ordersUpdated = true;
+    }
+  });
+  if (ordersUpdated) DB.save('nau_orders', orders);
+
   if (!DB.load('nau_blogs').length) {
     DB.save('nau_blogs', [
       {

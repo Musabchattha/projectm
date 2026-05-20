@@ -508,7 +508,7 @@
       </div>
       <div class="table-wrap">
         <table class="admin-table">
-          <thead><tr><th>Order#</th><th>Customer</th><th>Vehicle</th><th>Amount</th><th>Date</th><th>Status</th><th>Quote</th><th>Invoice</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Order#</th><th>Customer</th><th>Vehicle</th><th>Amount</th><th>Date</th><th>Status</th><th>Progress</th><th>Quote</th><th>Invoice</th><th>Actions</th></tr></thead>
           <tbody id="ord-tbody"></tbody>
         </table>
       </div>
@@ -1192,6 +1192,21 @@ Disallow: /admin/</textarea></div></div>
 
 <!-- Toast Notification -->
 <div id="toast" style="position:fixed;bottom:1.5rem;right:1.5rem;background:#0a1628;color:#fff;padding:.75rem 1.25rem;border-radius:8px;font-size:.85rem;z-index:9999;display:none;box-shadow:0 4px 16px rgba(0,0,0,.2);"></div>
+
+<!-- ===== MILESTONE MODAL ===== -->
+<div id="milestoneModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:2rem;width:min(600px,95vw);max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.2);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+      <h3 id="milestoneModalTitle" style="margin:0;font-size:1.1rem;color:#0a1628;"></h3>
+      <button onclick="closeMilestoneModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;">✕</button>
+    </div>
+    <div id="milestoneModalBody"></div>
+    <div style="display:flex;gap:1rem;margin-top:1.5rem;justify-content:flex-end;">
+      <button onclick="closeMilestoneModal()" style="padding:.6rem 1.25rem;background:#f0f0f0;border:none;border-radius:6px;cursor:pointer;">Close</button>
+      <button onclick="saveMilestones()" style="padding:.6rem 1.25rem;background:#c0392b;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;">Save All</button>
+    </div>
+  </div>
+</div>
 
 <script src="js/admin.js"></script>
 </body>
