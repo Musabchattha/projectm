@@ -185,6 +185,8 @@ function navigate(page) {
     'purchase-orders': renderPurchaseOrders,
     employees: renderEmployees,
     payruns: renderPayruns,
+    assets: renderAssets,
+    budgets: renderBudgets,
     reports: () => { showReportTab('pnl'); }
   };
   if (renders[page]) renders[page]();
@@ -664,8 +666,47 @@ function renderDashboard() {
       ${cashRows || '<div style="color:#999;font-size:.85rem;">No accounts configured.</div>'}
     </div>`;
 
+  // Budget alerts for current month
+  var budgetAlertHtml = '';
+  var budgetsData = DB.load('nau_budgets');
+  var now = new Date();
+  var curYear = now.getFullYear();
+  var curMonth = now.getMonth(); // 0-indexed
+  var monthKey = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'][curMonth];
+  var yearBud = budgetsData.find(function(b){ return b.year === curYear; });
+  if (yearBud && Object.keys(yearBud.accounts).length) {
+    var glBalBudget = getGLBalances();
+    var budgetAlerts = [];
+    var coaBudget = DB.load('nau_coa');
+    Object.keys(yearBud.accounts).forEach(function(code) {
+      var acct = coaBudget.find(function(a){ return a.code === code; });
+      if (!acct || acct.type !== 'expense') return;
+      var budgetAmt = yearBud.accounts[code][monthKey] || 0;
+      if (!budgetAmt) return;
+      var monthJEs = DB.load('nau_journal_entries').filter(function(j) {
+        return j.status === 'Posted' && j.date && j.date.startsWith(curYear + '-' + String(curMonth + 1).padStart(2, '0'));
+      });
+      var actualSpend = monthJEs.reduce(function(s, j) {
+        return s + (j.lines || []).filter(function(l){ return l.accountCode === code; }).reduce(function(ls, l){ return ls + (l.debit || 0); }, 0);
+      }, 0);
+      var overPct = budgetAmt > 0 ? ((actualSpend - budgetAmt) / budgetAmt * 100) : 0;
+      if (overPct > 10) budgetAlerts.push({ name: acct.name, code: code, budgetAmt: budgetAmt, actualSpend: actualSpend, overPct: overPct });
+    });
+    if (budgetAlerts.length) {
+      budgetAlertHtml = '<div style="background:#fff;border-radius:10px;padding:1.25rem;box-shadow:0 2px 12px rgba(10,22,40,.08);margin-bottom:1.5rem;border-left:4px solid #d97706;">' +
+        '<div style="font-weight:700;color:#0a1628;margin-bottom:.75rem;font-size:.95rem;">⚠️ Budget Alerts (' + now.toLocaleDateString('en-GB', {month:'long', year:'numeric'}) + ')</div>';
+      budgetAlerts.forEach(function(al) {
+        budgetAlertHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid #f0f2f5;font-size:.85rem">' +
+          '<span>' + esc(al.name) + ' (' + al.code + ')</span>' +
+          '<span style="color:#c0392b;font-weight:700">' + fmtMoney(al.actualSpend) + ' vs ' + fmtMoney(al.budgetAmt) + ' budget (+' + al.overPct.toFixed(0) + '% over)</span>' +
+          '</div>';
+      });
+      budgetAlertHtml += '</div>';
+    }
+  }
+
   const alertsEl = document.getElementById('dash-alerts-widgets');
-  if (alertsEl) alertsEl.innerHTML = alertsHtml + cashWidget;
+  if (alertsEl) alertsEl.innerHTML = alertsHtml + cashWidget + budgetAlertHtml;
 
   // Recent Invoices table
   const recentInv = [...invoices].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 8);
@@ -1269,7 +1310,8 @@ function showReportTab(tab) {
     'tax-report': renderTaxReport,
     expenses: renderExpenseBreakdown,
     'vehicle-pl': renderVehiclePL,
-    cashflow: renderCashFlow
+    cashflow: renderCashFlow,
+    depreciation: renderDepreciation
   };
   if (renders[tab]) renders[tab]();
 }
@@ -1654,6 +1696,41 @@ function seedAccountingData() {
   if (coaCodes.indexOf('2400') === -1) {
     coa.push({ id: DB.nextId('nau_coa'), code: '2400', name: 'NSSF Payable', type: 'liability', parentCode: null, balance: 'credit', description: 'NSSF contributions payable', active: true });
     DB.save('nau_coa', coa);
+  }
+
+  // Fixed asset GL accounts (add if missing)
+  coa = DB.load('nau_coa');
+  coaCodes = coa.map(function(c){ return c.code; });
+  if (coaCodes.indexOf('1310') === -1) {
+    coa.push({ id: DB.nextId('nau_coa'), code: '1310', name: 'Accumulated Depreciation', type: 'asset', subtype: 'fixed_asset', parentCode: null, balance: 'credit', description: 'Contra-asset: accumulated depreciation on fixed assets', active: true });
+    DB.save('nau_coa', coa);
+  }
+  coa = DB.load('nau_coa');
+  coaCodes = coa.map(function(c){ return c.code; });
+  if (coaCodes.indexOf('6040') === -1) {
+    coa.push({ id: DB.nextId('nau_coa'), code: '6040', name: 'Depreciation Expense', type: 'expense', subtype: 'operating_expense', parentCode: '6000', balance: 'debit', description: 'Monthly depreciation on fixed assets', active: true });
+    DB.save('nau_coa', coa);
+  }
+
+  // Fixed Assets
+  if (!DB.load('nau_assets').length) {
+    DB.save('nau_assets', [
+      { id:1, assetNo:'AST-001', name:'Showroom Display System', category:'IT Equipment', purchaseDate:'2024-01-01', cost:3500, usefulLife:5, salvageValue:200, glCode:'1300', status:'Active', createdAt:'2024-01-01T00:00:00.000Z' },
+      { id:2, assetNo:'AST-002', name:'Office Furniture Set', category:'Furniture', purchaseDate:'2024-03-01', cost:2200, usefulLife:7, salvageValue:0, glCode:'1300', status:'Active', createdAt:'2024-03-01T00:00:00.000Z' },
+      { id:3, assetNo:'AST-003', name:'Forklift / Vehicle Mover', category:'Machinery', purchaseDate:'2025-01-01', cost:8000, usefulLife:10, salvageValue:500, glCode:'1300', status:'Active', createdAt:'2025-01-01T00:00:00.000Z' }
+    ]);
+  }
+
+  // Budgets store init
+  if (!DB.load('nau_budgets').length) {
+    var budgetAccounts = {};
+    budgetAccounts['4000'] = { jan:50000,feb:50000,mar:55000,apr:55000,may:60000,jun:60000,jul:65000,aug:65000,sep:70000,oct:70000,nov:75000,dec:80000 };
+    budgetAccounts['4100'] = { jan:1000,feb:1000,mar:1000,apr:1000,may:1000,jun:1000,jul:1000,aug:1000,sep:1000,oct:1000,nov:1000,dec:1000 };
+    budgetAccounts['5000'] = { jan:30000,feb:30000,mar:33000,apr:33000,may:36000,jun:36000,jul:39000,aug:39000,sep:42000,oct:42000,nov:45000,dec:48000 };
+    budgetAccounts['6010'] = { jan:2150,feb:2150,mar:2150,apr:2150,may:2150,jun:2150,jul:2150,aug:2150,sep:2150,oct:2150,nov:2150,dec:2150 };
+    budgetAccounts['6020'] = { jan:800,feb:800,mar:800,apr:800,may:800,jun:800,jul:800,aug:800,sep:800,oct:800,nov:800,dec:800 };
+    budgetAccounts['6030'] = { jan:1500,feb:1500,mar:1500,apr:1500,may:1500,jun:1500,jul:1500,aug:1500,sep:1500,oct:1500,nov:1500,dec:1500 };
+    DB.save('nau_budgets', [{ id:1, year:2026, accounts: budgetAccounts, createdAt: nowISO() }]);
   }
 
   // Employees
@@ -4523,4 +4600,354 @@ function closePayslipModal() {
 
 function printPayslipDoc() {
   window.print();
+}
+
+// ===== FIXED ASSETS =====
+
+Object.assign(modalConfigs, {
+  asset: {
+    label: 'Fixed Asset',
+    createLabel: 'Add ',
+    getData: function(id) { return DB.load('nau_assets').find(function(a){ return a.id === id; }); },
+    form: function(d) {
+      d = d || {};
+      var categories = ['IT Equipment','Furniture','Machinery','Office Equipment','Vehicles/Showroom'];
+      return '<div class="form-grid">' +
+        '<div class="form-group"><label>Asset Name *</label><input class="form-control" id="fAssetName" value="' + esc(d.name||'') + '" required></div>' +
+        '<div class="form-group"><label>Category</label><select class="form-control" id="fAssetCat">' + categories.map(function(c){ return '<option' + (d.category===c?' selected':'') + '>' + c + '</option>'; }).join('') + '</select></div>' +
+        '<div class="form-group"><label>Purchase Date *</label><input class="form-control" id="fAssetDate" type="date" value="' + (d.purchaseDate||'') + '" required></div>' +
+        '<div class="form-group"><label>Purchase Cost (USD) *</label><input class="form-control" id="fAssetCost" type="number" min="0" step="0.01" value="' + (d.cost||'') + '" required></div>' +
+        '<div class="form-group"><label>Useful Life (years) *</label><input class="form-control" id="fAssetLife" type="number" min="1" value="' + (d.usefulLife||5) + '" required></div>' +
+        '<div class="form-group"><label>Salvage Value (USD)</label><input class="form-control" id="fAssetSalvage" type="number" min="0" step="0.01" value="' + (d.salvageValue||0) + '"></div>' +
+        '<div class="form-group"><label>GL Asset Account Code</label><input class="form-control" id="fAssetGL" value="' + (d.glCode||'1300') + '"></div>' +
+        '<div class="form-group"><label>Status</label><select class="form-control" id="fAssetStatus"><option' + (d.status!=='Disposed'?' selected':'') + '>Active</option><option' + (d.status==='Disposed'?' selected':'') + '>Disposed</option></select></div>' +
+        '</div>';
+    },
+    collect: function() {
+      var d = {};
+      d.name = document.getElementById('fAssetName').value.trim();
+      d.category = document.getElementById('fAssetCat').value;
+      d.purchaseDate = document.getElementById('fAssetDate').value;
+      d.cost = parseFloat(document.getElementById('fAssetCost').value) || 0;
+      d.usefulLife = parseFloat(document.getElementById('fAssetLife').value) || 5;
+      d.salvageValue = parseFloat(document.getElementById('fAssetSalvage').value) || 0;
+      d.glCode = document.getElementById('fAssetGL').value.trim() || '1300';
+      d.status = document.getElementById('fAssetStatus').value;
+      if (!d.name || !d.purchaseDate || !d.cost) { toast('Name, purchase date and cost are required.'); return null; }
+      if (!d.createdAt) d.createdAt = nowISO();
+      return d;
+    },
+    create: function(d) {
+      var assets = DB.load('nau_assets');
+      d.id = DB.nextId('nau_assets');
+      d.assetNo = 'AST-' + String(d.id).padStart(3, '0');
+      assets.push(d);
+      DB.save('nau_assets', assets);
+      renderAssets();
+      toast('Asset added.');
+    },
+    update: function(id, d) {
+      var assets = DB.load('nau_assets');
+      var idx = assets.findIndex(function(a){ return a.id === id; });
+      if (idx !== -1) {
+        d.id = id;
+        d.assetNo = assets[idx].assetNo;
+        assets[idx] = d;
+        DB.save('nau_assets', assets);
+      }
+      renderAssets();
+      toast('Asset updated.');
+    },
+    refresh: function() { renderAssets(); }
+  }
+});
+
+function calcAssetDepreciation(asset) {
+  var cost = asset.cost || 0;
+  var salvage = asset.salvageValue || 0;
+  var lifeMonths = (asset.usefulLife || 5) * 12;
+  var monthlyDep = lifeMonths > 0 ? (cost - salvage) / lifeMonths : 0;
+
+  var purchaseDate = new Date(asset.purchaseDate || asset.createdAt);
+  var now = new Date();
+  var monthsElapsed = (now.getFullYear() - purchaseDate.getFullYear()) * 12 + (now.getMonth() - purchaseDate.getMonth());
+  monthsElapsed = Math.max(0, Math.min(monthsElapsed, lifeMonths));
+
+  var accDep = monthlyDep * monthsElapsed;
+  var bookValue = Math.max(salvage, cost - accDep);
+  var endOfLifeDate = new Date(purchaseDate);
+  endOfLifeDate.setMonth(endOfLifeDate.getMonth() + lifeMonths);
+
+  return { monthlyDep: monthlyDep, monthsElapsed: monthsElapsed, accDep: accDep, bookValue: bookValue, endOfLifeDate: endOfLifeDate };
+}
+
+function renderAssets() {
+  var el = document.getElementById('assets-content');
+  if (!el) return;
+  var assets = DB.load('nau_assets');
+  var activeAssets = assets.filter(function(a){ return a.status === 'Active'; });
+  var totalCost = activeAssets.reduce(function(s, a){ return s + a.cost; }, 0);
+  var totalBookValue = activeAssets.reduce(function(s, a){ return s + calcAssetDepreciation(a).bookValue; }, 0);
+
+  var html = '<div class="page-header"><h2 class="page-title">Fixed Assets</h2><button class="btn btn-primary" onclick="openModal(\'asset\')">+ Add Asset</button></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem;">' +
+    '<div class="kpi-card"><div class="kpi-label">Total Assets</div><div class="kpi-value">' + activeAssets.length + '</div></div>' +
+    '<div class="kpi-card"><div class="kpi-label">Total Cost</div><div class="kpi-value">' + fmtMoney(totalCost) + '</div></div>' +
+    '<div class="kpi-card"><div class="kpi-label">Net Book Value</div><div class="kpi-value">' + fmtMoney(totalBookValue) + '</div></div>' +
+    '</div>' +
+    '<div class="report-card"><div class="table-scroll"><table class="acc-table"><thead><tr>' +
+    '<th>Asset No</th><th>Name</th><th>Category</th><th>Cost</th><th>Monthly Dep.</th><th>Acc. Dep.</th><th>Book Value</th><th>End of Life</th><th>Status</th><th>Actions</th>' +
+    '</tr></thead><tbody>';
+
+  if (!assets.length) {
+    html += '<tr><td colspan="10" style="text-align:center;color:#9ca3af;padding:2rem">No assets registered. Click "+ Add Asset" to start tracking.</td></tr>';
+  } else {
+    assets.forEach(function(a) {
+      var dep = calcAssetDepreciation(a);
+      var eolStr = dep.endOfLifeDate.toLocaleDateString('en-GB', {month:'short', year:'numeric'});
+      html += '<tr>' +
+        '<td><strong>' + esc(a.assetNo||'—') + '</strong></td>' +
+        '<td>' + esc(a.name) + '</td>' +
+        '<td>' + esc(a.category||'—') + '</td>' +
+        '<td>' + fmtMoney(a.cost) + '</td>' +
+        '<td>' + fmtMoney(dep.monthlyDep) + '/mo</td>' +
+        '<td>' + fmtMoney(dep.accDep) + '</td>' +
+        '<td><strong>' + fmtMoney(dep.bookValue) + '</strong></td>' +
+        '<td>' + eolStr + '</td>' +
+        '<td><span class="badge ' + (a.status==='Active'?'badge-paid':'badge-cancelled') + '">' + esc(a.status) + '</span></td>' +
+        '<td>' +
+        (a.status==='Active' ? '<button class="btn-icon" onclick="openModal(\'asset\',' + a.id + ')" title="Edit">✏️</button>' +
+        ' <button class="btn-icon" onclick="disposeAsset(' + a.id + ')" title="Dispose" style="color:#d97706">📤</button>' : '') +
+        '</td>' +
+        '</tr>';
+    });
+  }
+  html += '</tbody></table></div></div>';
+  el.innerHTML = html;
+}
+
+function renderDepreciation() {
+  var el = document.getElementById('rpt-depreciation');
+  if (!el) return;
+  var assets = DB.load('nau_assets').filter(function(a){ return a.status === 'Active'; });
+
+  if (!assets.length) {
+    el.innerHTML = '<div class="report-card"><p style="color:#9ca3af;text-align:center;padding:2rem">No active assets. Add assets in the Fixed Assets section.</p></div>';
+    return;
+  }
+
+  var totalMonthly = assets.reduce(function(s, a){ return s + calcAssetDepreciation(a).monthlyDep; }, 0);
+  var totalAccDep = assets.reduce(function(s, a){ return s + calcAssetDepreciation(a).accDep; }, 0);
+  var totalBookValue = assets.reduce(function(s, a){ return s + calcAssetDepreciation(a).bookValue; }, 0);
+
+  var now = new Date();
+  var depRef = 'DEP-' + now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2, '0');
+  var jes = DB.load('nau_journal_entries');
+  var alreadyPosted = jes.some(function(j){ return j.reference === depRef; });
+
+  var html = '<div class="report-card">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">' +
+    '<h3 style="margin:0;font-size:1rem;font-weight:700">Depreciation Schedule</h3>' +
+    '<button class="btn btn-primary" onclick="postDepreciationJE()" ' + (alreadyPosted ? 'disabled style="opacity:.5;cursor:not-allowed"' : '') + '>' +
+    (alreadyPosted ? '✅ Posted for ' + now.toLocaleDateString('en-GB', {month:'long', year:'numeric'}) : '⬇️ Post Monthly Depreciation') +
+    '</button>' +
+    '</div>' +
+    '<div class="table-scroll"><table class="acc-table"><thead><tr>' +
+    '<th>Asset</th><th>Category</th><th>Cost</th><th>Monthly Dep.</th><th>Months</th><th>Acc. Dep.</th><th>Book Value</th><th>End of Life</th>' +
+    '</tr></thead><tbody>';
+
+  assets.forEach(function(a) {
+    var dep = calcAssetDepreciation(a);
+    html += '<tr>' +
+      '<td><strong>' + esc(a.assetNo) + '</strong><br><small>' + esc(a.name) + '</small></td>' +
+      '<td>' + esc(a.category||'—') + '</td>' +
+      '<td>' + fmtMoney(a.cost) + '</td>' +
+      '<td>' + fmtMoney(dep.monthlyDep) + '</td>' +
+      '<td>' + dep.monthsElapsed + ' / ' + (a.usefulLife*12) + '</td>' +
+      '<td>' + fmtMoney(dep.accDep) + '</td>' +
+      '<td><strong>' + fmtMoney(dep.bookValue) + '</strong></td>' +
+      '<td>' + dep.endOfLifeDate.toLocaleDateString('en-GB', {month:'short', year:'numeric'}) + '</td>' +
+      '</tr>';
+  });
+
+  html += '</tbody><tfoot><tr style="font-weight:700;background:#f8fafc">' +
+    '<td colspan="3">Totals</td>' +
+    '<td>' + fmtMoney(totalMonthly) + '/mo</td>' +
+    '<td></td>' +
+    '<td>' + fmtMoney(totalAccDep) + '</td>' +
+    '<td>' + fmtMoney(totalBookValue) + '</td>' +
+    '<td></td>' +
+    '</tr></tfoot></table></div></div>';
+
+  el.innerHTML = html;
+}
+
+function postDepreciationJE() {
+  var now = new Date();
+  var depRef = 'DEP-' + now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2, '0');
+  var monthLabel = now.toLocaleDateString('en-GB', {month:'long', year:'numeric'});
+
+  var jes = DB.load('nau_journal_entries');
+  if (jes.some(function(j){ return j.reference === depRef; })) {
+    toast('Depreciation already posted for ' + monthLabel + '.');
+    return;
+  }
+
+  var assets = DB.load('nau_assets').filter(function(a){ return a.status === 'Active'; });
+  if (!assets.length) { toast('No active assets to depreciate.'); return; }
+
+  var totalMonthly = assets.reduce(function(s, a){ return s + calcAssetDepreciation(a).monthlyDep; }, 0);
+  if (totalMonthly <= 0) { toast('Monthly depreciation is zero.'); return; }
+
+  var coa = DB.load('nau_coa');
+  function coaName(code) { var a = coa.find(function(c){ return c.code === code; }); return a ? a.name : code; }
+
+  postJE([
+    { accountCode:'6040', accountName:coaName('6040'), debit:totalMonthly, credit:0, description:'Monthly depreciation — ' + monthLabel },
+    { accountCode:'1310', accountName:coaName('1310'), debit:0, credit:totalMonthly, description:'Accumulated depreciation — ' + monthLabel }
+  ], depRef, 'Monthly depreciation — ' + monthLabel, 'general');
+
+  renderDepreciation();
+  toast('Depreciation posted for ' + monthLabel + ': ' + fmtMoney(totalMonthly));
+}
+
+function disposeAsset(id) {
+  var assets = DB.load('nau_assets');
+  var a = assets.find(function(x){ return x.id === id; });
+  if (!a) return;
+  var dep = calcAssetDepreciation(a);
+  var proceedsStr = prompt('Enter disposal proceeds (USD):', dep.bookValue.toFixed(2));
+  if (proceedsStr === null) return;
+  var proceeds = parseFloat(proceedsStr);
+  if (isNaN(proceeds) || proceeds < 0) return;
+  if (!confirm('Dispose ' + a.name + '?\nBook Value: ' + fmtMoney(dep.bookValue) + '\nProceeds: ' + fmtMoney(proceeds))) return;
+
+  var gainLoss = proceeds - dep.bookValue;
+  var coa = DB.load('nau_coa');
+  function coaName(code) { var x = coa.find(function(c){ return c.code === code; }); return x ? x.name : code; }
+
+  var accts = DB.load('nau_payment_accounts');
+  var cashAcctObj = accts.find(function(x){ return x.currency === 'USD' && x.status === 'active'; }) || {};
+  var cashCode = cashAcctObj.glAccountCode || '1001';
+  var cashName = cashAcctObj.name || 'Cash USD';
+
+  var lines = [
+    { accountCode:'1310', accountName:coaName('1310'), debit:dep.accDep, credit:0, description:'Clear acc. dep. — ' + a.name },
+    { accountCode:a.glCode||'1300', accountName:coaName(a.glCode||'1300'), debit:0, credit:a.cost, description:'Remove asset — ' + a.name }
+  ];
+  if (proceeds > 0) lines.push({ accountCode:cashCode, accountName:cashName, debit:proceeds, credit:0, description:'Disposal proceeds — ' + a.name });
+  if (gainLoss > 0) {
+    lines.push({ accountCode:'4100', accountName:coaName('4100'), debit:0, credit:gainLoss, description:'Gain on disposal — ' + a.name });
+  } else if (gainLoss < 0) {
+    lines.push({ accountCode:'6030', accountName:coaName('6030'), debit:Math.abs(gainLoss), credit:0, description:'Loss on disposal — ' + a.name });
+  }
+
+  postJE(lines, 'DISP-' + id, 'Asset disposal — ' + a.name, 'general');
+
+  var idx = assets.findIndex(function(x){ return x.id === id; });
+  assets[idx].status = 'Disposed';
+  assets[idx].disposedAt = nowISO();
+  assets[idx].disposalProceeds = proceeds;
+  DB.save('nau_assets', assets);
+  renderAssets();
+  toast('Asset disposed. ' + (gainLoss >= 0 ? 'Gain: ' + fmtMoney(gainLoss) : 'Loss: ' + fmtMoney(Math.abs(gainLoss))));
+}
+
+// ===== BUDGET TRACKING =====
+
+function renderBudgets() {
+  var el = document.getElementById('budgets-content');
+  if (!el) return;
+  var yearSelEl = document.getElementById('budgetYear');
+  var yearSel = yearSelEl ? parseInt(yearSelEl.value) : new Date().getFullYear();
+  var budgets = DB.load('nau_budgets');
+  var budget = budgets.find(function(b){ return b.year === yearSel; });
+  var budgetAccounts = budget ? budget.accounts : {};
+
+  var coa = DB.load('nau_coa');
+  var plAccounts = coa.filter(function(a){ return (a.type === 'revenue' || a.type === 'expense') && a.active !== false; });
+  var months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  var monthLabels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  var html = '<div class="page-header"><h2 class="page-title">Budget ' + yearSel + '</h2>' +
+    '<div style="display:flex;gap:.75rem;align-items:center;">' +
+    '<select id="budgetYear" onchange="renderBudgets()" style="padding:.4rem .8rem;border:1px solid #ddd;border-radius:6px;">' +
+    [yearSel-1, yearSel, yearSel+1].map(function(y){ return '<option value="' + y + '"' + (y===yearSel?' selected':'') + '>' + y + '</option>'; }).join('') +
+    '</select>' +
+    '<button class="btn btn-secondary" onclick="copyBudgetFromLastYear(' + yearSel + ')">📋 Copy from Last Year</button>' +
+    '<button class="btn btn-primary" onclick="saveBudget(' + yearSel + ')">💾 Save Budget</button>' +
+    '</div></div>' +
+    '<div class="report-card"><div style="overflow-x:auto"><table class="acc-table budget-table" style="min-width:1000px;">' +
+    '<thead><tr><th style="min-width:180px">Account</th>' +
+    monthLabels.map(function(m){ return '<th style="min-width:80px">' + m + '</th>'; }).join('') +
+    '<th style="min-width:100px">Annual</th></tr></thead><tbody>';
+
+  var revenues = plAccounts.filter(function(a){ return a.type === 'revenue'; });
+  var expenses = plAccounts.filter(function(a){ return a.type === 'expense'; });
+
+  function renderBudgetSection(accounts, sectionLabel) {
+    html += '<tr style="background:#f8fafc"><td colspan="14" style="font-weight:700;color:#0a1628;font-size:.85rem;padding:.5rem 1rem;">' + sectionLabel + '</td></tr>';
+    accounts.forEach(function(a) {
+      var acctBudget = budgetAccounts[a.code] || {};
+      var annual = months.reduce(function(s, m){ return s + (acctBudget[m]||0); }, 0);
+      html += '<tr><td>' + esc(a.code) + ' — ' + esc(a.name) + '</td>';
+      months.forEach(function(m) {
+        html += '<td><input type="number" class="budget-input" data-code="' + esc(a.code) + '" data-month="' + m + '" value="' + (acctBudget[m]||0) + '" min="0" step="100"></td>';
+      });
+      html += '<td class="budget-annual" id="bann-' + a.code + '">' + Number(annual).toLocaleString() + '</td></tr>';
+    });
+  }
+
+  renderBudgetSection(revenues, 'REVENUE');
+  renderBudgetSection(expenses, 'EXPENSES');
+
+  html += '</tbody></table></div>' +
+    '<div style="margin-top:1rem;font-size:.82rem;color:#9ca3af">Values are in USD. Changes are not saved until you click "Save Budget".</div>' +
+    '</div>';
+  el.innerHTML = html;
+
+  el.querySelectorAll('.budget-input').forEach(function(inp) {
+    inp.addEventListener('input', function() {
+      var code = this.dataset.code;
+      var total = 0;
+      el.querySelectorAll('.budget-input[data-code="' + code + '"]').forEach(function(i){ total += parseFloat(i.value) || 0; });
+      var annEl = document.getElementById('bann-' + code);
+      if (annEl) annEl.textContent = Number(total).toLocaleString();
+    });
+  });
+}
+
+function saveBudget(year) {
+  var el = document.getElementById('budgets-content');
+  if (!el) return;
+  var accounts = {};
+  el.querySelectorAll('.budget-input').forEach(function(inp) {
+    var code = inp.dataset.code;
+    var month = inp.dataset.month;
+    if (!accounts[code]) accounts[code] = {};
+    accounts[code][month] = parseFloat(inp.value) || 0;
+  });
+  var budgets = DB.load('nau_budgets');
+  var idx = budgets.findIndex(function(b){ return b.year === year; });
+  if (idx !== -1) {
+    budgets[idx].accounts = accounts;
+    budgets[idx].updatedAt = nowISO();
+  } else {
+    budgets.push({ id: DB.nextId('nau_budgets'), year: year, accounts: accounts, createdAt: nowISO() });
+  }
+  DB.save('nau_budgets', budgets);
+  toast('Budget saved for ' + year + '.');
+}
+
+function copyBudgetFromLastYear(year) {
+  if (!confirm('Copy budget from ' + (year-1) + ' to ' + year + '? This will overwrite any existing ' + year + ' budget.')) return;
+  var budgets = DB.load('nau_budgets');
+  var lastYear = budgets.find(function(b){ return b.year === year-1; });
+  if (!lastYear) { toast('No budget found for ' + (year-1) + '.'); return; }
+  var idx = budgets.findIndex(function(b){ return b.year === year; });
+  var newBudget = { id: idx !== -1 ? budgets[idx].id : DB.nextId('nau_budgets'), year: year, accounts: JSON.parse(JSON.stringify(lastYear.accounts)), createdAt: nowISO() };
+  if (idx !== -1) budgets[idx] = newBudget; else budgets.push(newBudget);
+  DB.save('nau_budgets', budgets);
+  renderBudgets();
+  toast('Budget copied from ' + (year-1) + '.');
 }

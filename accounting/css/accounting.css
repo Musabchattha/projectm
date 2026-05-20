@@ -1664,6 +1664,26 @@ textarea.form-control { resize: vertical; min-height: 72px; }
 .pnl-clickable { cursor: pointer; }
 .pnl-clickable:hover { background: #f0f4ff; }
 
+/* Generic btn utility (used in assets/budgets) */
+.btn { display: inline-flex; align-items: center; gap: .35rem; padding: .45rem 1rem; border-radius: 7px; border: none; font-size: .875rem; font-weight: 600; cursor: pointer; transition: background .15s, opacity .15s; }
+.btn-primary { background: #0a1628; color: #fff; }
+.btn-primary:hover { background: #162034; }
+.btn-secondary { background: #f1f5f9; color: #0a1628; border: 1px solid #e2e8f0; }
+.btn-secondary:hover { background: #e2e8f0; }
+
+/* KPI cards (used in assets page) */
+.kpi-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 1rem 1.25rem; box-shadow: 0 1px 4px rgba(10,22,40,.06); }
+.kpi-label { font-size: .78rem; color: #6b7280; margin-bottom: .3rem; }
+.kpi-value { font-size: 1.35rem; font-weight: 800; color: #0a1628; }
+
+/* Budget table */
+.budget-table td, .budget-table th { padding: .35rem .5rem; font-size: .82rem; }
+.budget-input { width: 70px; padding: .2rem .35rem; border: 1px solid #ddd; border-radius: 4px; font-size: .8rem; text-align: right; }
+.budget-input:focus { border-color: #0a1628; outline: none; }
+.budget-annual { font-weight: 700; color: #0a1628; text-align: right; }
+.var-positive { color: #059669; font-weight: 600; }
+.var-negative { color: #c0392b; font-weight: 600; }
+
 /* btn-icon alias for payroll tables */
 .btn-icon { display: inline-flex; align-items: center; justify-content: center; padding: .25rem .5rem; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; cursor: pointer; font-size: .9rem; transition: background .15s, border-color .15s; }
 .btn-icon:hover { background: #f3f4f6; border-color: #9ca3af; }

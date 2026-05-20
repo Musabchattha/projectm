@@ -121,6 +121,16 @@
         <span class="nav-icon">📋</span><span>Payruns</span>
       </div>
 
+      <div class="nav-group-label">Fixed Assets</div>
+      <div class="nav-item" data-page="assets">
+        <span class="nav-icon">🏗️</span><span>Asset Register</span>
+      </div>
+
+      <div class="nav-group-label">Planning</div>
+      <div class="nav-item" data-page="budgets">
+        <span class="nav-icon">📊</span><span>Budgets</span>
+      </div>
+
       <div class="nav-group-label">Reporting</div>
       <div class="nav-item" data-page="reports">
         <span class="nav-icon">📈</span><span>Reports</span>
@@ -869,6 +879,7 @@
           <button class="sub-tab report-tab" data-tab="expenses">Expenses</button>
           <button class="sub-tab report-tab" data-tab="vehicle-pl">Vehicle P&L</button>
           <button class="sub-tab report-tab" data-tab="cashflow">Cash Flow</button>
+          <button class="sub-tab report-tab" data-tab="depreciation">Depreciation</button>
         </div>
 
         <div id="rpt-pnl" class="report-section">
@@ -925,6 +936,9 @@
         <div id="rpt-cashflow" class="report-section" style="display:none">
           <div id="cashflow-content"></div>
         </div>
+
+        <div id="rpt-depreciation" class="report-section" style="display:none">
+        </div>
       </div>
 
       <!-- ===== EMPLOYEES ===== -->
@@ -935,6 +949,16 @@
       <!-- ===== PAYRUNS ===== -->
       <div class="page-section" id="page-payruns">
         <div id="payruns-content"></div>
+      </div>
+
+      <!-- ===== FIXED ASSETS ===== -->
+      <div class="page-section" id="page-assets">
+        <div id="assets-content"></div>
+      </div>
+
+      <!-- ===== BUDGETS ===== -->
+      <div class="page-section" id="page-budgets">
+        <div id="budgets-content"></div>
       </div>
 
     </div><!-- /acc-content -->
