@@ -370,12 +370,27 @@ const modalConfigs = {
       const inv = { id: DB.nextId('nau_invoices'), invoiceNo: genInvoiceNo(), ...d, createdAt: nowISO() };
       all.push(inv);
       DB.save('nau_invoices', all);
-      if (d.status === 'Sent') markVehicleSold(d.vehicleId);
+      if (d.status === 'Sent') {
+        markVehicleSold(d.vehicleId);
+        postInvoiceJE(inv);
+        postCOGSJE(inv.vehicleId, inv.invoiceNo);
+        // Update jeRef back to storage
+        const allUpd = DB.load('nau_invoices');
+        const idx = allUpd.findIndex(x => x.id === inv.id);
+        if (idx > -1) { allUpd[idx].jeRef = inv.jeRef; DB.save('nau_invoices', allUpd); }
+      }
     },
     update: (id, d) => {
       const all = DB.load('nau_invoices');
       const i = all.findIndex(x => x.id === id);
-      if (i > -1) { all[i] = { ...all[i], ...d }; DB.save('nau_invoices', all); }
+      if (i > -1) {
+        all[i] = { ...all[i], ...d };
+        if (d.status === 'Sent' && !all[i].jeRef) {
+          postInvoiceJE(all[i]);
+          postCOGSJE(all[i].vehicleId, all[i].invoiceNo);
+        }
+        DB.save('nau_invoices', all);
+      }
       if (d.status === 'Sent') markVehicleSold(d.vehicleId);
     },
     refresh: renderInvoices
@@ -475,13 +490,21 @@ const modalConfigs = {
     },
     create: d => {
       const all = DB.load('nau_bills');
-      all.push({ id: DB.nextId('nau_bills'), billNo: genBillNo(), ...d, createdAt: nowISO() });
+      const newBill = { id: DB.nextId('nau_bills'), billNo: genBillNo(), ...d, createdAt: nowISO() };
+      postBillJE(newBill);
+      all.push(newBill);
       DB.save('nau_bills', all);
     },
     update: (id, d) => {
       const all = DB.load('nau_bills');
       const i = all.findIndex(b => b.id === id);
-      if (i > -1) { all[i] = { ...all[i], ...d }; DB.save('nau_bills', all); }
+      if (i > -1) {
+        all[i] = { ...all[i], ...d };
+        if (all[i].status !== 'Cancelled' && !all[i].jeRef) {
+          postBillJE(all[i]);
+        }
+        DB.save('nau_bills', all);
+      }
     },
     refresh: renderBills
   },
@@ -533,6 +556,10 @@ const modalConfigs = {
           <label>Account Holder</label>
           <input class="form-control" id="pa-holder" value="${d ? d.accountHolder || '' : ''}" placeholder="e.g. NipponAuto Uganda Ltd" />
         </div>
+      </div>
+      <div class="form-group">
+        <label>GL Account Code</label>
+        <input class="form-control" id="acc-gl-code" placeholder="e.g. 1001" value="${d ? d.glAccountCode || '' : ''}" />
       </div>`,
     collect: () => {
       const name = document.getElementById('pa-name').value.trim();
@@ -544,7 +571,8 @@ const modalConfigs = {
         status: document.getElementById('pa-status').value,
         bankName: document.getElementById('pa-bank').value.trim(),
         accountNumber: document.getElementById('pa-acctno').value.trim(),
-        accountHolder: document.getElementById('pa-holder').value.trim()
+        accountHolder: document.getElementById('pa-holder').value.trim(),
+        glAccountCode: document.getElementById('acc-gl-code').value.trim() || '1001'
       };
     },
     create: d => {
@@ -587,6 +615,50 @@ function renderDashboard() {
   document.getElementById('stat-expenses').textContent = '$' + totalExpenses.toLocaleString();
   document.getElementById('stat-profit').textContent = '$' + netProfit.toLocaleString();
   document.getElementById('stat-outstanding').textContent = '$' + outstanding.toLocaleString();
+
+  // Overdue alerts
+  const today = new Date().toISOString().split('T')[0];
+  const sevenDays = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const overdueInvs = invoices.filter(i => !['Paid', 'Cancelled'].includes(i.status) && i.dueDate && i.dueDate < today);
+  const dueSoonBills = bills.filter(b => b.status === 'Pending' && b.dueDate && b.dueDate >= today && b.dueDate <= sevenDays);
+  const overdueAmt = overdueInvs.reduce((s, i) => s + (Number(i.totalAmount || 0) - Number(i.paidAmount || 0)), 0);
+  const dueSoonAmt = dueSoonBills.reduce((s, b) => s + Number(b.amount || 0), 0);
+
+  const alertsHtml = (overdueInvs.length || dueSoonBills.length) ? `
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+      ${overdueInvs.length ? `<div style="flex:1;min-width:240px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:1rem;">
+        <div style="font-weight:700;color:#c0392b;">🔴 ${overdueInvs.length} Overdue Invoice${overdueInvs.length > 1 ? 's' : ''}</div>
+        <div style="color:#c0392b;font-size:.9rem;">${fmtMoney(overdueAmt)} outstanding</div>
+        <div style="font-size:.8rem;color:#888;margin-top:.25rem;">Action required</div>
+      </div>` : ''}
+      ${dueSoonBills.length ? `<div style="flex:1;min-width:240px;background:#fffbeb;border:1px solid #fed7aa;border-radius:8px;padding:1rem;">
+        <div style="font-weight:700;color:#d97706;">🟡 ${dueSoonBills.length} Bill${dueSoonBills.length > 1 ? 's' : ''} Due This Week</div>
+        <div style="color:#d97706;font-size:.9rem;">${fmtMoney(dueSoonAmt)} payable</div>
+        <div style="font-size:.8rem;color:#888;margin-top:.25rem;">Due within 7 days</div>
+      </div>` : ''}
+    </div>` : '';
+
+  // Cash position widget
+  const glBal = getGLBalances();
+  const cashAccts = DB.load('nau_payment_accounts').filter(a => a.status !== 'Inactive');
+  const cashRows = cashAccts.map(a => {
+    const code = a.glAccountCode || '1001';
+    const b = glBal[code] || { debit: 0, credit: 0 };
+    const balance = b.debit - b.credit;
+    return `<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #f0f0f0;font-size:.88rem;">
+      <span>${a.name}</span>
+      <span style="font-weight:600;color:${balance >= 0 ? '#0a1628' : '#c0392b'}">${a.currency || 'USD'} ${Math.abs(balance).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${balance < 0 ? ' CR' : ''}</span>
+    </div>`;
+  }).join('');
+
+  const cashWidget = `
+    <div style="background:#fff;border-radius:10px;padding:1.25rem;box-shadow:0 2px 12px rgba(10,22,40,.08);margin-bottom:1.5rem;">
+      <div style="font-weight:700;color:#0a1628;margin-bottom:.75rem;font-size:.95rem;">💰 Cash Position</div>
+      ${cashRows || '<div style="color:#999;font-size:.85rem;">No accounts configured.</div>'}
+    </div>`;
+
+  const alertsEl = document.getElementById('dash-alerts-widgets');
+  if (alertsEl) alertsEl.innerHTML = alertsHtml + cashWidget;
 
   // Recent Invoices table
   const recentInv = [...invoices].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 8);
@@ -850,6 +922,7 @@ function renderAccounts() {
       <td>${a.bankName || '—'}</td>
       <td style="font-family:monospace;font-size:.83rem">${a.accountNumber || '—'}</td>
       <td>${a.accountHolder || '—'}</td>
+      <td style="font-family:monospace;font-size:.83rem;color:#0a1628;font-weight:600">${a.glAccountCode || '—'}</td>
       <td>
         <label class="toggle-switch">
           <input type="checkbox" ${a.status === 'Active' ? 'checked' : ''} onchange="toggleAccountStatus(${a.id},this.checked)">
@@ -864,7 +937,7 @@ function renderAccounts() {
         </div>
       </td>
     </tr>`).join('')
-    : '<tr><td colspan="8" style="text-align:center;color:#8a9ab5;padding:2rem">No accounts found. Add your first payment account above.</td></tr>';
+    : '<tr><td colspan="9" style="text-align:center;color:#8a9ab5;padding:2rem">No accounts found. Add your first payment account above.</td></tr>';
 }
 
 function toggleAccountStatus(id, active) {
@@ -986,12 +1059,26 @@ function openPaymentModal(type, refId) {
         } else {
           inv.status = 'Partially Paid';
         }
+        postReceiptJE(pmt, inv);
+        // Save jeRef back into pmts
+        const pmts2 = DB.load('nau_payments');
+        const pi = pmts2.findIndex(x => x.id === pmt.id);
+        if (pi > -1) { pmts2[pi].jeRef = pmt.jeRef; DB.save('nau_payments', pmts2); }
         DB.save('nau_invoices', invs);
       }
     } else {
       const billsArr = DB.load('nau_bills');
       const bill = billsArr.find(b => b.id === refId);
-      if (bill) { bill.status = 'Paid'; bill.paidAt = nowISO(); DB.save('nau_bills', billsArr); }
+      if (bill) {
+        bill.status = 'Paid';
+        bill.paidAt = nowISO();
+        postBillPaymentJE(pmt, bill);
+        // Save jeRef back into pmts
+        const pmts2 = DB.load('nau_payments');
+        const pi = pmts2.findIndex(x => x.id === pmt.id);
+        if (pi > -1) { pmts2[pi].jeRef = pmt.jeRef; DB.save('nau_payments', pmts2); }
+        DB.save('nau_bills', billsArr);
+      }
     }
 
     closeModal();
@@ -1575,6 +1662,16 @@ function seedAccountingData() {
     ]);
   }
 
+  // Payment Accounts (with GL codes)
+  if (!DB.load('nau_payment_accounts').length) {
+    DB.save('nau_payment_accounts', [
+      { id:1, name:'Cash (USD)', type:'Cash', currency:'USD', status:'Active', bankName:'', accountNumber:'', accountHolder:'NipponAuto Uganda Ltd', glAccountCode:'1001', createdAt: nowISO() },
+      { id:2, name:'Cash (UGX)', type:'Cash', currency:'UGX', status:'Active', bankName:'', accountNumber:'', accountHolder:'NipponAuto Uganda Ltd', glAccountCode:'1002', createdAt: nowISO() },
+      { id:3, name:'Stanbic Bank USD', type:'Bank', currency:'USD', status:'Active', bankName:'Stanbic Bank Uganda', accountNumber:'9030012345678', accountHolder:'NipponAuto Uganda Ltd', glAccountCode:'1010', createdAt: nowISO() },
+      { id:4, name:'Stanbic Bank UGX', type:'Bank', currency:'UGX', status:'Active', bankName:'Stanbic Bank Uganda', accountNumber:'9030098765432', accountHolder:'NipponAuto Uganda Ltd', glAccountCode:'1011', createdAt: nowISO() }
+    ]);
+  }
+
   // Bank Statements
   if (!DB.load('nau_bank_statements').length) {
     const lines = [
@@ -1987,6 +2084,122 @@ function populateBSFilter() {
     `<option value="${a.name}">${a.name}</option>`).join('');
 }
 
+// ===== AUTO GL POSTING HELPERS =====
+function coaName(code) {
+  return (DB.load('nau_coa').find(a => a.code === String(code)) || {}).name || String(code);
+}
+
+function postJE(lines, ref, narration, journalType) {
+  const debits = lines.reduce((s, l) => s + Number(l.debit || 0), 0);
+  const credits = lines.reduce((s, l) => s + Number(l.credit || 0), 0);
+  if (Math.abs(debits - credits) > 0.01) {
+    console.warn('[postJE] Unbalanced entry skipped:', ref, 'D:', debits, 'C:', credits);
+    return;
+  }
+  const entries = DB.load('nau_journal_entries');
+  entries.push({
+    id: DB.nextId('nau_journal_entries'),
+    entryNo: genJENo(),
+    journalType: journalType || 'general',
+    date: new Date().toISOString().split('T')[0],
+    reference: ref,
+    narration: narration,
+    lines: lines,
+    status: 'Posted',
+    autoPosted: true,
+    createdAt: nowISO()
+  });
+  DB.save('nau_journal_entries', entries);
+}
+
+function postInvoiceJE(inv) {
+  if (!inv || inv.jeRef) return;
+  const total = Number(inv.totalAmount || 0);
+  const tax = Number(inv.taxAmount || 0);
+  const net = total - tax;
+  if (total <= 0) return;
+  const lines = [
+    { accountCode: '1100', accountName: coaName('1100'), debit: total, credit: 0, description: 'AR — ' + inv.invoiceNo },
+    { accountCode: '4000', accountName: coaName('4000'), debit: 0, credit: net, description: 'Revenue — ' + inv.invoiceNo }
+  ];
+  if (tax > 0) lines.push({ accountCode: '2100', accountName: coaName('2100'), debit: 0, credit: tax, description: 'VAT — ' + inv.invoiceNo });
+  postJE(lines, inv.invoiceNo, 'Sales invoice — ' + (inv.customerName || ''), 'sales');
+  inv.jeRef = inv.invoiceNo;
+}
+
+function postCOGSJE(vehicleId, invoiceNo) {
+  if (!vehicleId) return;
+  const po = DB.load('nau_purchase_orders').find(p => p.vehicleId === Number(vehicleId) && p.purchasePrice);
+  if (!po) return;
+  const cost = Number(po.purchasePrice || 0);
+  if (cost <= 0) return;
+  postJE([
+    { accountCode: '5000', accountName: coaName('5000'), debit: cost, credit: 0, description: 'COGS — ' + invoiceNo },
+    { accountCode: '1200', accountName: coaName('1200'), debit: 0, credit: cost, description: 'Inventory — ' + invoiceNo }
+  ], invoiceNo + '-COGS', 'Cost of goods sold — ' + invoiceNo, 'general');
+}
+
+function postReceiptJE(payment, inv) {
+  if (!payment || payment.jeRef) return;
+  const acct = DB.load('nau_payment_accounts').find(a => a.name === payment.method) || {};
+  const cashCode = acct.glAccountCode || '1001';
+  const cashName = acct.name || 'Cash';
+  const amt = Number(payment.amount || 0);
+  if (amt <= 0) return;
+  postJE([
+    { accountCode: cashCode, accountName: cashName, debit: amt, credit: 0, description: 'Receipt — ' + (inv.invoiceNo || '') },
+    { accountCode: '1100', accountName: coaName('1100'), debit: 0, credit: amt, description: 'AR clearance — ' + (inv.invoiceNo || '') }
+  ], payment.paymentNo, 'Payment from ' + (inv.customerName || ''), 'bank');
+  payment.jeRef = payment.paymentNo;
+}
+
+const BILL_EXPENSE_CODES = {
+  'Vehicle Purchase': '5000', 'Freight': '6020', 'Insurance': '6020',
+  'Maintenance': '6030', 'Salaries': '6010', 'Utilities': '6020',
+  'Marketing': '6030', 'Office Supplies': '6030', 'Other': '6030'
+};
+
+function postBillJE(bill) {
+  if (!bill || bill.jeRef) return;
+  const amt = Number(bill.amount || 0);
+  if (amt <= 0) return;
+  const expCode = BILL_EXPENSE_CODES[bill.category] || '6030';
+  postJE([
+    { accountCode: expCode, accountName: coaName(expCode), debit: amt, credit: 0, description: (bill.category || 'Expense') + ' — ' + bill.billNo },
+    { accountCode: '2000', accountName: coaName('2000'), debit: 0, credit: amt, description: 'AP — ' + bill.billNo }
+  ], bill.billNo, 'Vendor bill — ' + (bill.vendor || ''), 'purchase');
+  bill.jeRef = bill.billNo;
+}
+
+function postBillPaymentJE(payment, bill) {
+  if (!payment || payment.jeRef) return;
+  const acct = DB.load('nau_payment_accounts').find(a => a.name === payment.method) || {};
+  const cashCode = acct.glAccountCode || '1001';
+  const cashName = acct.name || 'Cash';
+  const amt = Number(payment.amount || 0);
+  if (amt <= 0) return;
+  postJE([
+    { accountCode: '2000', accountName: coaName('2000'), debit: amt, credit: 0, description: 'AP clearance — ' + (bill.billNo || '') },
+    { accountCode: cashCode, accountName: cashName, debit: 0, credit: amt, description: 'Payment — ' + (bill.billNo || '') }
+  ], payment.paymentNo, 'Payment to ' + (bill.vendor || ''), 'bank');
+  payment.jeRef = payment.paymentNo;
+}
+
+function getGLBalances() {
+  const entries = DB.load('nau_journal_entries').filter(e => e.status === 'Posted');
+  const bal = {};
+  entries.forEach(e => {
+    (e.lines || []).forEach(l => {
+      const c = String(l.accountCode || '');
+      if (!c) return;
+      if (!bal[c]) bal[c] = { name: l.accountName || c, debit: 0, credit: 0 };
+      bal[c].debit += Number(l.debit || 0);
+      bal[c].credit += Number(l.credit || 0);
+    });
+  });
+  return bal;
+}
+
 // ===== JOURNAL ENTRIES =====
 let _jeEditId = null;
 let _jeLines = [];
@@ -2218,132 +2431,105 @@ function closeJEModal() {
 
 // ===== REPORTS: TRIAL BALANCE =====
 function renderTrialBalance() {
-  const coa = DB.load('nau_coa').filter(a=>a.active);
-  const entries = DB.load('nau_journal_entries').filter(e=>e.status==='Posted');
-  const invoices = DB.load('nau_invoices');
-  const bills = DB.load('nau_bills');
-  const payments = DB.load('nau_payments');
+  const coa = DB.load('nau_coa');
+  const balances = getGLBalances();
 
-  // Build account balances from posted journal entries
-  const balances = {};
-  entries.forEach(e => {
-    (e.lines||[]).forEach(l => {
-      if (!l.accountCode) return;
-      if (!balances[l.accountCode]) balances[l.accountCode] = { debit:0, credit:0 };
-      balances[l.accountCode].debit += Number(l.debit||0);
-      balances[l.accountCode].credit += Number(l.credit||0);
-    });
-  });
+  // Merge COA info into balances; also include GL entries for codes not in COA
+  const allCodes = new Set([...coa.map(a => a.code), ...Object.keys(balances)]);
+  const sortedCodes = [...allCodes].sort();
 
-  // Also derive from invoices (AR) and bills (AP)
-  invoices.filter(i=>['Paid','Partially Paid','Sent'].includes(i.status)).forEach(i=>{
-    if (!balances['1100']) balances['1100'] = { debit:0, credit:0 };
-    balances['1100'].debit += Number(i.totalAmount||0);
-    if (!balances['4000']) balances['4000'] = { debit:0, credit:0 };
-    balances['4000'].credit += Number(i.salePrice||0);
-    if (i.taxAmount) {
-      if (!balances['2100']) balances['2100'] = { debit:0, credit:0 };
-      balances['2100'].credit += Number(i.taxAmount||0);
-    }
-  });
-  payments.filter(p=>p.type==='invoice').forEach(p=>{
-    if (!balances['1100']) balances['1100'] = { debit:0, credit:0 };
-    balances['1100'].credit += Number(p.amount||0);
-    if (!balances['1030']) balances['1030'] = { debit:0, credit:0 };
-    balances['1030'].debit += Number(p.amount||0);
-  });
-  bills.filter(b=>['Paid','Pending'].includes(b.status)).forEach(b=>{
-    if (!balances['2000']) balances['2000'] = { debit:0, credit:0 };
-    balances['2000'].credit += Number(b.amount||0);
-    if (!balances['5000']) balances['5000'] = { debit:0, credit:0 };
-    balances['5000'].debit += Number(b.amount||0);
-  });
-  payments.filter(p=>p.type==='bill').forEach(p=>{
-    if (!balances['2000']) balances['2000'] = { debit:0, credit:0 };
-    balances['2000'].debit += Number(p.amount||0);
-    if (!balances['1030']) balances['1030'] = { debit:0, credit:0 };
-    balances['1030'].credit += Number(p.amount||0);
-  });
-
-  const totalDebit = Object.values(balances).reduce((s,b)=>s+b.debit,0);
-  const totalCredit = Object.values(balances).reduce((s,b)=>s+b.credit,0);
-
-  const el = document.getElementById('trial-balance-content');
-  if (!el) return;
-  const rows = coa.map(a => {
-    const b = balances[a.code] || { debit:0, credit:0 };
-    if (!b.debit && !b.credit) return '';
+  let totalDebit = 0, totalCredit = 0;
+  const rows = sortedCodes.map(code => {
+    const b = balances[code];
+    if (!b || (!b.debit && !b.credit)) return '';
+    const coaEntry = coa.find(a => a.code === code);
+    const name = b.name || (coaEntry ? coaEntry.name : code);
+    const type = coaEntry ? coaEntry.type : '-';
+    const netBal = b.debit - b.credit;
+    totalDebit += b.debit;
+    totalCredit += b.credit;
     return `<tr>
-      <td style="font-family:monospace">${a.code}</td>
-      <td>${a.name}</td>
-      <td><span class="badge badge-draft" style="font-size:.72rem">${a.type}</span></td>
-      <td class="amount-mono" style="color:#10b981">${b.debit?fmtMoney(b.debit):'-'}</td>
-      <td class="amount-mono" style="color:#c0392b">${b.credit?fmtMoney(b.credit):'-'}</td>
+      <td style="font-family:monospace">${code}</td>
+      <td>${name}</td>
+      <td><span class="badge badge-draft" style="font-size:.72rem">${type}</span></td>
+      <td class="amount-mono" style="color:#10b981">${b.debit ? fmtMoney(b.debit) : '-'}</td>
+      <td class="amount-mono" style="color:#c0392b">${b.credit ? fmtMoney(b.credit) : '-'}</td>
+      <td class="amount-mono" style="color:${netBal >= 0 ? '#0a1628' : '#c0392b'}">${fmtMoney(Math.abs(netBal))} ${netBal < 0 ? 'Cr' : 'Dr'}</td>
     </tr>`;
   }).join('');
 
+  const el = document.getElementById('trial-balance-content');
+  if (!el) return;
   el.innerHTML = `<div class="report-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem">
       <h3 style="font-size:1rem;font-weight:700">Trial Balance</h3>
-      <span style="font-size:.8rem;color:#6b7280">All posted transactions</span>
+      <span style="font-size:.8rem;color:#6b7280">All posted journal entries</span>
     </div>
     <div class="table-wrap"><table class="acc-table">
-      <thead><tr><th>Code</th><th>Account</th><th>Type</th><th>Debit</th><th>Credit</th></tr></thead>
-      <tbody>${rows||'<tr><td colspan="5" class="table-empty">No posted transactions yet.</td></tr>'}</tbody>
+      <thead><tr><th>Code</th><th>Account</th><th>Type</th><th>Total Debits</th><th>Total Credits</th><th>Balance</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="6" class="table-empty">No posted transactions yet.</td></tr>'}</tbody>
       <tfoot><tr style="background:#f4f6fa;font-weight:700">
         <td colspan="3" style="text-align:right;padding:.75rem">TOTALS</td>
         <td class="amount-mono" style="color:#10b981">${fmtMoney(totalDebit)}</td>
         <td class="amount-mono" style="color:#c0392b">${fmtMoney(totalCredit)}</td>
+        <td></td>
       </tr></tfoot>
     </table></div>
-    <p style="margin-top:.75rem;font-size:.8rem;color:${Math.abs(totalDebit-totalCredit)<0.01?'#10b981':'#c0392b'};font-weight:600">
-      ${Math.abs(totalDebit-totalCredit)<0.01?'✓ Trial balance is balanced':'⚠ Out of balance by '+fmtMoney(Math.abs(totalDebit-totalCredit))}
+    <p style="margin-top:.75rem;font-size:.8rem;color:${Math.abs(totalDebit - totalCredit) < 0.01 ? '#10b981' : '#c0392b'};font-weight:600">
+      ${Math.abs(totalDebit - totalCredit) < 0.01 ? '✓ Balanced — debits equal credits' : '⚠ Out of Balance by ' + fmtMoney(Math.abs(totalDebit - totalCredit))}
     </p>
   </div>`;
 }
 
 // ===== REPORTS: BALANCE SHEET =====
 function renderBalanceSheet() {
-  const invoices = DB.load('nau_invoices');
-  const bills = DB.load('nau_bills');
-  const payments = DB.load('nau_payments');
+  const coa = DB.load('nau_coa');
+  const balances = getGLBalances();
 
-  const totalRevenue = invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+Number(i.totalAmount||0),0);
-  const totalExpenses = bills.filter(b=>b.status==='Paid').reduce((s,b)=>s+Number(b.amount||0),0);
+  // Group accounts by type using COA
+  const groups = { asset: [], liability: [], equity: [], revenue: [], expense: [] };
+  coa.forEach(a => {
+    const b = balances[a.code];
+    if (!b) return;
+    const netBal = a.type === 'asset' || a.type === 'expense'
+      ? b.debit - b.credit   // debit-normal
+      : b.credit - b.debit;  // credit-normal
+    if (groups[a.type]) groups[a.type].push({ code: a.code, name: a.name, balance: netBal });
+  });
+
+  function section(items) {
+    return items.map(i => `<div class="bs-row"><span>${i.code} ${i.name}</span><span class="amount-mono">${fmtMoney(Math.abs(i.balance))}${i.balance < 0 ? ' Cr' : ''}</span></div>`).join('');
+  }
+
+  const totalAssets = groups.asset.reduce((s, i) => s + i.balance, 0);
+  const totalLiabilities = groups.liability.reduce((s, i) => s + i.balance, 0);
+  const totalEquity = groups.equity.reduce((s, i) => s + i.balance, 0);
+  const totalRevenue = groups.revenue.reduce((s, i) => s + i.balance, 0);
+  const totalExpenses = groups.expense.reduce((s, i) => s + i.balance, 0);
   const netProfit = totalRevenue - totalExpenses;
-
-  const cash = payments.filter(p=>p.type==='invoice').reduce((s,p)=>s+Number(p.amount||0),0)
-             - payments.filter(p=>p.type==='bill').reduce((s,p)=>s+Number(p.amount||0),0);
-  const ar = invoices.filter(i=>['Sent','Partially Paid','Draft'].includes(i.status))
-    .reduce((s,i)=>s+(Number(i.totalAmount||0)-Number(i.paidAmount||0)),0);
-  const ap = bills.filter(b=>b.status==='Pending').reduce((s,b)=>s+Number(b.amount||0),0);
-
-  const totalAssets = cash + ar;
-  const totalLiabilities = ap;
-  const equity = totalAssets - totalLiabilities;
+  const totalLiabEquity = totalLiabilities + totalEquity + netProfit;
 
   const el = document.getElementById('balance-sheet-content');
   if (!el) return;
   el.innerHTML = `<div class="bs-grid">
     <div class="bs-section">
       <h3>Assets</h3>
-      <div class="bs-row"><span>Cash &amp; Bank</span><span class="amount-mono">${fmtMoney(Math.max(cash,0))}</span></div>
-      <div class="bs-row"><span>Accounts Receivable</span><span class="amount-mono">${fmtMoney(ar)}</span></div>
+      ${section(groups.asset) || '<div class="bs-row" style="color:#999">No asset accounts with balances</div>'}
       <div class="bs-row bs-subtotal"><span>Total Assets</span><span class="amount-mono">${fmtMoney(totalAssets)}</span></div>
     </div>
     <div class="bs-section">
-      <h3>Liabilities &amp; Equity</h3>
-      <div class="bs-row"><span>Accounts Payable</span><span class="amount-mono" style="color:#c0392b">${fmtMoney(ap)}</span></div>
+      <h3>Liabilities</h3>
+      ${section(groups.liability) || '<div class="bs-row" style="color:#999">No liability accounts with balances</div>'}
       <div class="bs-row bs-subtotal"><span>Total Liabilities</span><span class="amount-mono" style="color:#c0392b">${fmtMoney(totalLiabilities)}</span></div>
-      <div style="margin-top:1rem">
-        <div class="bs-row"><span>Retained Earnings</span><span class="amount-mono">${fmtMoney(netProfit)}</span></div>
-        <div class="bs-row"><span>Total Equity (Net)</span><span class="amount-mono">${fmtMoney(equity)}</span></div>
-      </div>
-      <div class="bs-row bs-subtotal"><span>Liabilities + Equity</span><span class="amount-mono">${fmtMoney(totalAssets)}</span></div>
+      <h3 style="margin-top:1.25rem">Equity</h3>
+      ${section(groups.equity) || '<div class="bs-row" style="color:#999">No equity accounts with balances</div>'}
+      <div class="bs-row" style="margin-top:.5rem"><span>Net Profit (Revenue − Expenses)</span><span class="amount-mono" style="color:${netProfit >= 0 ? '#10b981' : '#c0392b'}">${fmtMoney(netProfit)}</span></div>
+      <div class="bs-row bs-subtotal"><span>Total Equity + Net Profit</span><span class="amount-mono">${fmtMoney(totalEquity + netProfit)}</span></div>
+      <div class="bs-row bs-subtotal" style="margin-top:.5rem"><span>Liabilities + Equity + Net Profit</span><span class="amount-mono">${fmtMoney(totalLiabEquity)}</span></div>
     </div>
   </div>
-  <p style="margin-top:.75rem;font-size:.8rem;color:${Math.abs(totalAssets-(totalLiabilities+equity))<0.01?'#10b981':'#c0392b'};font-weight:600">
-    ${Math.abs(totalAssets-(totalLiabilities+equity))<0.01?'✓ Balance sheet is balanced':'⚠ Assets ≠ Liabilities + Equity'}
+  <p style="margin-top:.75rem;font-size:.8rem;color:${Math.abs(totalAssets - totalLiabEquity) < 0.01 ? '#10b981' : '#c0392b'};font-weight:600">
+    ${Math.abs(totalAssets - totalLiabEquity) < 0.01 ? '✓ Balance sheet is balanced' : '⚠ Assets ≠ Liabilities + Equity (difference: ' + fmtMoney(Math.abs(totalAssets - totalLiabEquity)) + ')'}
   </p>`;
 }
 
